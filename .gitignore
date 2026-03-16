@@ -1,0 +1,21 @@
+# Dependencies
+control-financiero-app/node_modules/
+
+# Build output (solo ignoramos el dist del proyecto Vite)
+control-financiero-app/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Excel temporal (el original sí se sube como referencia)
+~$*.xlsx

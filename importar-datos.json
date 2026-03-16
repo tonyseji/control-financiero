@@ -1,0 +1,2104 @@
+{
+  "version": 1,
+  "exported": "2026-03-16T00:52:56.663883",
+  "categories": [
+    {
+      "id": "mig_1",
+      "name": "Alquiler / Hipoteca",
+      "type": "expense",
+      "color": "#3b82f6"
+    },
+    {
+      "id": "mig_2",
+      "name": "Belleza / Peluquería",
+      "type": "expense_var",
+      "color": "#ef4444"
+    },
+    {
+      "id": "mig_3",
+      "name": "Compras",
+      "type": "expense_var",
+      "color": "#10b981"
+    },
+    {
+      "id": "mig_4",
+      "name": "Deporte",
+      "type": "expense_var",
+      "color": "#f59e0b"
+    },
+    {
+      "id": "mig_5",
+      "name": "Devolución impuestos",
+      "type": "income",
+      "color": "#8b5cf6"
+    },
+    {
+      "id": "mig_6",
+      "name": "Donacion",
+      "type": "expense_var",
+      "color": "#ec4899"
+    },
+    {
+      "id": "mig_7",
+      "name": "Factura Luz/Agua/Gas",
+      "type": "expense",
+      "color": "#06b6d4"
+    },
+    {
+      "id": "mig_8",
+      "name": "Farmacia",
+      "type": "expense",
+      "color": "#84cc16"
+    },
+    {
+      "id": "mig_9",
+      "name": "Fondo de emergencia",
+      "type": "saving",
+      "color": "#f97316"
+    },
+    {
+      "id": "mig_10",
+      "name": "Gasolina",
+      "type": "expense_var",
+      "color": "#6366f1"
+    },
+    {
+      "id": "mig_11",
+      "name": "Gym",
+      "type": "expense",
+      "color": "#14b8a6"
+    },
+    {
+      "id": "mig_12",
+      "name": "Internet / Móvil",
+      "type": "expense",
+      "color": "#e11d48"
+    },
+    {
+      "id": "mig_13",
+      "name": "Nómina / Sueldo",
+      "type": "income",
+      "color": "#7c3aed"
+    },
+    {
+      "id": "mig_14",
+      "name": "Ocio",
+      "type": "expense_var",
+      "color": "#0ea5e9"
+    },
+    {
+      "id": "mig_15",
+      "name": "Otros ingresos",
+      "type": "income",
+      "color": "#22c55e"
+    },
+    {
+      "id": "mig_16",
+      "name": "Peluquería",
+      "type": "expense_var",
+      "color": "#eab308"
+    },
+    {
+      "id": "mig_17",
+      "name": "Regalos recibidos",
+      "type": "income",
+      "color": "#a855f7"
+    },
+    {
+      "id": "mig_18",
+      "name": "Reparaciones",
+      "type": "expense_var",
+      "color": "#f43f5e"
+    },
+    {
+      "id": "mig_19",
+      "name": "Restaurantes",
+      "type": "expense_var",
+      "color": "#0891b2"
+    },
+    {
+      "id": "mig_20",
+      "name": "Ropa",
+      "type": "expense_var",
+      "color": "#65a30d"
+    },
+    {
+      "id": "mig_21",
+      "name": "Seguros",
+      "type": "expense",
+      "color": "#d97706"
+    },
+    {
+      "id": "mig_22",
+      "name": "Sueldo",
+      "type": "income",
+      "color": "#4f46e5"
+    },
+    {
+      "id": "mig_23",
+      "name": "Supermercado",
+      "type": "expense_var",
+      "color": "#059669"
+    },
+    {
+      "id": "mig_24",
+      "name": "Supermercado (básico)",
+      "type": "expense",
+      "color": "#dc2626"
+    },
+    {
+      "id": "mig_25",
+      "name": "Suscripciones",
+      "type": "expense_var",
+      "color": "#7c3aed"
+    },
+    {
+      "id": "mig_26",
+      "name": "Suscripciones esenciales",
+      "type": "expense",
+      "color": "#0284c7"
+    },
+    {
+      "id": "mig_27",
+      "name": "Taxi / VTC",
+      "type": "expense_var",
+      "color": "#15803d"
+    },
+    {
+      "id": "mig_28",
+      "name": "Transporte",
+      "type": "expense_var",
+      "color": "#b45309"
+    }
+  ],
+  "transactions": [
+    {
+      "id": "xl_1",
+      "type": "income",
+      "amount": 1771.56,
+      "date": "2025-09-01",
+      "catId": "mig_13",
+      "note": "Sueldo mensual"
+    },
+    {
+      "id": "xl_2",
+      "type": "expense",
+      "amount": 488.83,
+      "date": "2025-09-01",
+      "catId": "mig_1",
+      "note": "Alquiler septiembre"
+    },
+    {
+      "id": "xl_3",
+      "type": "expense",
+      "amount": 6.82,
+      "date": "2025-09-02",
+      "catId": "mig_7",
+      "note": "Factura Luz/Agua/Gas"
+    },
+    {
+      "id": "xl_4",
+      "type": "expense",
+      "amount": 10.0,
+      "date": "2025-09-03",
+      "catId": "mig_12",
+      "note": "Internet / Móvil"
+    },
+    {
+      "id": "xl_5",
+      "type": "expense",
+      "amount": 3.25,
+      "date": "2025-09-03",
+      "catId": "mig_26",
+      "note": "Crunchi"
+    },
+    {
+      "id": "xl_6",
+      "type": "expense",
+      "amount": 6.41,
+      "date": "2025-09-03",
+      "catId": "mig_7",
+      "note": "Factura Luz/Agua/Gas"
+    },
+    {
+      "id": "xl_7",
+      "type": "expense_var",
+      "amount": 4.99,
+      "date": "2025-09-03",
+      "catId": "mig_25",
+      "note": "Uber"
+    },
+    {
+      "id": "xl_8",
+      "type": "expense_var",
+      "amount": 11.45,
+      "date": "2025-09-04",
+      "catId": "mig_3",
+      "note": "Regalo Carlos"
+    },
+    {
+      "id": "xl_9",
+      "type": "expense_var",
+      "amount": 37.5,
+      "date": "2025-09-05",
+      "catId": "mig_20",
+      "note": "Corbata"
+    },
+    {
+      "id": "xl_10",
+      "type": "expense_var",
+      "amount": 3.4,
+      "date": "2025-09-05",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_11",
+      "type": "expense_var",
+      "amount": 4.61,
+      "date": "2025-09-07",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_12",
+      "type": "expense_var",
+      "amount": 22.07,
+      "date": "2025-09-08",
+      "catId": "mig_10",
+      "note": "Gasolina"
+    },
+    {
+      "id": "xl_13",
+      "type": "expense",
+      "amount": 29.99,
+      "date": "2025-09-08",
+      "catId": "mig_11",
+      "note": "Gym"
+    },
+    {
+      "id": "xl_14",
+      "type": "expense",
+      "amount": 6.88,
+      "date": "2025-09-09",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_15",
+      "type": "expense",
+      "amount": 20.11,
+      "date": "2025-09-09",
+      "catId": "mig_8",
+      "note": "Avidart"
+    },
+    {
+      "id": "xl_16",
+      "type": "expense",
+      "amount": 6.99,
+      "date": "2025-09-10",
+      "catId": "mig_26",
+      "note": "Netflix"
+    },
+    {
+      "id": "xl_17",
+      "type": "expense",
+      "amount": 15.66,
+      "date": "2025-09-10",
+      "catId": "mig_7",
+      "note": "Factura Luz/Agua/Gas"
+    },
+    {
+      "id": "xl_18",
+      "type": "expense_var",
+      "amount": 15.0,
+      "date": "2025-09-11",
+      "catId": "mig_6",
+      "note": "Donacion"
+    },
+    {
+      "id": "xl_19",
+      "type": "expense",
+      "amount": 77.04,
+      "date": "2025-09-11",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_20",
+      "type": "expense_var",
+      "amount": 30.8,
+      "date": "2025-09-12",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_21",
+      "type": "expense_var",
+      "amount": 54.18,
+      "date": "2025-09-14",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_22",
+      "type": "expense",
+      "amount": 23.0,
+      "date": "2025-09-17",
+      "catId": "mig_26",
+      "note": "OpenAI"
+    },
+    {
+      "id": "xl_23",
+      "type": "expense_var",
+      "amount": 5.99,
+      "date": "2025-09-17",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_24",
+      "type": "expense",
+      "amount": 25.59,
+      "date": "2025-09-19",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_25",
+      "type": "expense_var",
+      "amount": 7.3,
+      "date": "2025-09-20",
+      "catId": "mig_27",
+      "note": "Metro"
+    },
+    {
+      "id": "xl_26",
+      "type": "expense_var",
+      "amount": 12.0,
+      "date": "2025-09-20",
+      "catId": "mig_3",
+      "note": "Regalo Marta"
+    },
+    {
+      "id": "xl_27",
+      "type": "expense",
+      "amount": 1.93,
+      "date": "2025-09-23",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_28",
+      "type": "expense",
+      "amount": 21.69,
+      "date": "2025-09-24",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_29",
+      "type": "expense_var",
+      "amount": 12.5,
+      "date": "2025-09-25",
+      "catId": "mig_3",
+      "note": "Tarta"
+    },
+    {
+      "id": "xl_30",
+      "type": "expense_var",
+      "amount": 5.62,
+      "date": "2025-09-26",
+      "catId": "mig_27",
+      "note": "Taxi / VTC"
+    },
+    {
+      "id": "xl_31",
+      "type": "expense_var",
+      "amount": 7.95,
+      "date": "2025-09-26",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_32",
+      "type": "expense_var",
+      "amount": 25.14,
+      "date": "2025-09-27",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_33",
+      "type": "expense_var",
+      "amount": 1.59,
+      "date": "2025-09-29",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_34",
+      "type": "expense",
+      "amount": 4.0,
+      "date": "2025-09-30",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_35",
+      "type": "expense_var",
+      "amount": 4.0,
+      "date": "2025-09-30",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_36",
+      "type": "saving",
+      "amount": 757.28,
+      "date": "2025-09-30",
+      "catId": "mig_9",
+      "note": "Fondo de emergencia"
+    },
+    {
+      "id": "xl_37",
+      "type": "income",
+      "amount": 2088.0,
+      "date": "2025-10-01",
+      "catId": "mig_13",
+      "note": "Nómina / Sueldo"
+    },
+    {
+      "id": "xl_38",
+      "type": "income",
+      "amount": 2230.81,
+      "date": "2025-10-01",
+      "catId": "mig_13",
+      "note": "Finiquito"
+    },
+    {
+      "id": "xl_39",
+      "type": "expense",
+      "amount": 565.49,
+      "date": "2025-10-01",
+      "catId": "mig_1",
+      "note": "Alquiler / Hipoteca"
+    },
+    {
+      "id": "xl_40",
+      "type": "expense",
+      "amount": 10.0,
+      "date": "2025-10-01",
+      "catId": "mig_12",
+      "note": "Internet / Móvil"
+    },
+    {
+      "id": "xl_41",
+      "type": "expense",
+      "amount": 6.14,
+      "date": "2025-10-01",
+      "catId": "mig_7",
+      "note": "Factura Luz/Agua/Gas"
+    },
+    {
+      "id": "xl_42",
+      "type": "expense",
+      "amount": 3.25,
+      "date": "2025-10-01",
+      "catId": "mig_26",
+      "note": "Crunchi"
+    },
+    {
+      "id": "xl_43",
+      "type": "income",
+      "amount": 500.0,
+      "date": "2025-10-02",
+      "catId": "mig_15",
+      "note": "Festi lavanda"
+    },
+    {
+      "id": "xl_44",
+      "type": "expense_var",
+      "amount": 10.4,
+      "date": "2025-10-03",
+      "catId": "mig_23",
+      "note": "Cena casa"
+    },
+    {
+      "id": "xl_45",
+      "type": "expense_var",
+      "amount": 16.0,
+      "date": "2025-10-04",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_46",
+      "type": "expense_var",
+      "amount": 5.27,
+      "date": "2025-10-04",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_47",
+      "type": "expense_var",
+      "amount": 40.0,
+      "date": "2025-10-04",
+      "catId": "mig_10",
+      "note": "Gasolina"
+    },
+    {
+      "id": "xl_48",
+      "type": "expense_var",
+      "amount": 3.75,
+      "date": "2025-10-04",
+      "catId": "mig_23",
+      "note": "Chino"
+    },
+    {
+      "id": "xl_49",
+      "type": "expense",
+      "amount": 53.95,
+      "date": "2025-10-05",
+      "catId": "mig_8",
+      "note": "Minoxidil"
+    },
+    {
+      "id": "xl_50",
+      "type": "expense_var",
+      "amount": 113.43,
+      "date": "2025-10-05",
+      "catId": "mig_3",
+      "note": "Regalo"
+    },
+    {
+      "id": "xl_51",
+      "type": "expense",
+      "amount": 29.99,
+      "date": "2025-10-06",
+      "catId": "mig_11",
+      "note": "Gym"
+    },
+    {
+      "id": "xl_52",
+      "type": "expense",
+      "amount": 55.7,
+      "date": "2025-10-06",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_53",
+      "type": "expense",
+      "amount": 6.99,
+      "date": "2025-10-08",
+      "catId": "mig_26",
+      "note": "Netflix"
+    },
+    {
+      "id": "xl_54",
+      "type": "expense",
+      "amount": 16.82,
+      "date": "2025-10-08",
+      "catId": "mig_7",
+      "note": "Factura Luz/Agua/Gas"
+    },
+    {
+      "id": "xl_55",
+      "type": "expense_var",
+      "amount": 96.0,
+      "date": "2025-10-10",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_56",
+      "type": "expense_var",
+      "amount": 4.57,
+      "date": "2025-10-12",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_57",
+      "type": "expense",
+      "amount": 59.79,
+      "date": "2025-10-13",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_58",
+      "type": "expense_var",
+      "amount": 15.0,
+      "date": "2025-10-15",
+      "catId": "mig_6",
+      "note": "Cruz Roja"
+    },
+    {
+      "id": "xl_59",
+      "type": "expense",
+      "amount": 61.72,
+      "date": "2025-10-15",
+      "catId": "mig_21",
+      "note": "Piso"
+    },
+    {
+      "id": "xl_60",
+      "type": "expense_var",
+      "amount": 14.8,
+      "date": "2025-10-16",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_61",
+      "type": "expense_var",
+      "amount": 3.7,
+      "date": "2025-10-17",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_62",
+      "type": "expense_var",
+      "amount": 10.67,
+      "date": "2025-10-18",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_63",
+      "type": "expense_var",
+      "amount": 1.99,
+      "date": "2025-10-18",
+      "catId": "mig_25",
+      "note": "Perplexity"
+    },
+    {
+      "id": "xl_64",
+      "type": "expense_var",
+      "amount": 50.0,
+      "date": "2025-10-20",
+      "catId": "mig_10",
+      "note": "Gasolina"
+    },
+    {
+      "id": "xl_65",
+      "type": "expense_var",
+      "amount": 3.5,
+      "date": "2025-10-20",
+      "catId": "mig_14",
+      "note": "Cine"
+    },
+    {
+      "id": "xl_66",
+      "type": "expense",
+      "amount": 23.0,
+      "date": "2025-10-21",
+      "catId": "mig_26",
+      "note": "OpenIA"
+    },
+    {
+      "id": "xl_67",
+      "type": "expense",
+      "amount": 15.39,
+      "date": "2025-10-23",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_68",
+      "type": "expense_var",
+      "amount": 28.75,
+      "date": "2025-10-25",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_69",
+      "type": "expense_var",
+      "amount": 3.99,
+      "date": "2025-10-25",
+      "catId": "mig_3",
+      "note": "Ikea"
+    },
+    {
+      "id": "xl_70",
+      "type": "expense_var",
+      "amount": 10.0,
+      "date": "2025-10-25",
+      "catId": "mig_14",
+      "note": "Ocio"
+    },
+    {
+      "id": "xl_71",
+      "type": "expense_var",
+      "amount": 3.0,
+      "date": "2025-10-25",
+      "catId": "mig_3",
+      "note": "Cuadro"
+    },
+    {
+      "id": "xl_72",
+      "type": "expense_var",
+      "amount": 19.3,
+      "date": "2025-10-25",
+      "catId": "mig_14",
+      "note": "Circo"
+    },
+    {
+      "id": "xl_73",
+      "type": "expense_var",
+      "amount": 24.48,
+      "date": "2025-10-25",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_74",
+      "type": "expense",
+      "amount": 20.11,
+      "date": "2025-10-28",
+      "catId": "mig_8",
+      "note": "Avidart"
+    },
+    {
+      "id": "xl_75",
+      "type": "expense_var",
+      "amount": 3.39,
+      "date": "2025-10-28",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_76",
+      "type": "income",
+      "amount": 553.14,
+      "date": "2025-10-29",
+      "catId": "mig_22",
+      "note": "Sueldo"
+    },
+    {
+      "id": "xl_77",
+      "type": "expense_var",
+      "amount": 10.0,
+      "date": "2025-10-31",
+      "catId": "mig_2",
+      "note": "Belleza / Peluquería"
+    },
+    {
+      "id": "xl_78",
+      "type": "expense_var",
+      "amount": 13.25,
+      "date": "2025-10-31",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_79",
+      "type": "saving",
+      "amount": 3938.37,
+      "date": "2025-10-31",
+      "catId": "mig_9",
+      "note": "Fondo de emergencia"
+    },
+    {
+      "id": "xl_80",
+      "type": "expense",
+      "amount": 76.36,
+      "date": "2025-11-01",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_81",
+      "type": "expense",
+      "amount": 690.52,
+      "date": "2025-11-01",
+      "catId": "mig_1",
+      "note": "Alquiler / Hipoteca"
+    },
+    {
+      "id": "xl_82",
+      "type": "expense",
+      "amount": 62.59,
+      "date": "2025-11-01",
+      "catId": "mig_7",
+      "note": "Factura Luz/Agua/Gas"
+    },
+    {
+      "id": "xl_83",
+      "type": "income",
+      "amount": 2126.03,
+      "date": "2025-11-01",
+      "catId": "mig_22",
+      "note": "Sueldo"
+    },
+    {
+      "id": "xl_84",
+      "type": "expense",
+      "amount": 3.25,
+      "date": "2025-11-02",
+      "catId": "mig_26",
+      "note": "Crunchi"
+    },
+    {
+      "id": "xl_85",
+      "type": "expense_var",
+      "amount": 7.8,
+      "date": "2025-11-02",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_86",
+      "type": "expense",
+      "amount": 29.99,
+      "date": "2025-11-03",
+      "catId": "mig_11",
+      "note": "Gym"
+    },
+    {
+      "id": "xl_87",
+      "type": "expense",
+      "amount": 6.99,
+      "date": "2025-11-07",
+      "catId": "mig_26",
+      "note": "Netflix"
+    },
+    {
+      "id": "xl_88",
+      "type": "expense_var",
+      "amount": 1.5,
+      "date": "2025-11-08",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_89",
+      "type": "expense_var",
+      "amount": 9.25,
+      "date": "2025-11-09",
+      "catId": "mig_4",
+      "note": "Deporte"
+    },
+    {
+      "id": "xl_90",
+      "type": "expense_var",
+      "amount": 15.0,
+      "date": "2025-11-10",
+      "catId": "mig_6",
+      "note": "Donacion"
+    },
+    {
+      "id": "xl_91",
+      "type": "expense_var",
+      "amount": 17.55,
+      "date": "2025-11-13",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_92",
+      "type": "expense_var",
+      "amount": 17.15,
+      "date": "2025-11-14",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_93",
+      "type": "expense_var",
+      "amount": 16.59,
+      "date": "2025-11-15",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_94",
+      "type": "expense_var",
+      "amount": 8.7,
+      "date": "2025-11-15",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_95",
+      "type": "expense_var",
+      "amount": 3.19,
+      "date": "2025-11-17",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_96",
+      "type": "expense_var",
+      "amount": 40.0,
+      "date": "2025-11-17",
+      "catId": "mig_10",
+      "note": "Gasolina"
+    },
+    {
+      "id": "xl_97",
+      "type": "expense",
+      "amount": 23.0,
+      "date": "2025-11-19",
+      "catId": "mig_26",
+      "note": "OpenIA"
+    },
+    {
+      "id": "xl_98",
+      "type": "expense",
+      "amount": 70.01,
+      "date": "2025-11-19",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_99",
+      "type": "expense_var",
+      "amount": 25.92,
+      "date": "2025-11-19",
+      "catId": "mig_3",
+      "note": "Reloj"
+    },
+    {
+      "id": "xl_100",
+      "type": "income",
+      "amount": 60.0,
+      "date": "2025-11-20",
+      "catId": "mig_17",
+      "note": "Regalos recibidos"
+    },
+    {
+      "id": "xl_101",
+      "type": "expense_var",
+      "amount": 37.12,
+      "date": "2025-11-21",
+      "catId": "mig_3",
+      "note": "Aspiradoras y cosas casa"
+    },
+    {
+      "id": "xl_102",
+      "type": "expense_var",
+      "amount": 9.0,
+      "date": "2025-11-21",
+      "catId": "mig_4",
+      "note": "Deporte"
+    },
+    {
+      "id": "xl_103",
+      "type": "expense_var",
+      "amount": 20.08,
+      "date": "2025-11-22",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_104",
+      "type": "expense_var",
+      "amount": 4.18,
+      "date": "2025-11-24",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_105",
+      "type": "expense_var",
+      "amount": 13.64,
+      "date": "2025-11-27",
+      "catId": "mig_3",
+      "note": "Regalo marta"
+    },
+    {
+      "id": "xl_106",
+      "type": "expense_var",
+      "amount": 10.46,
+      "date": "2025-11-29",
+      "catId": "mig_28",
+      "note": "Transporte"
+    },
+    {
+      "id": "xl_107",
+      "type": "expense_var",
+      "amount": 0.0,
+      "date": "2025-11-29",
+      "catId": "mig_3",
+      "note": "Pcomponentes"
+    },
+    {
+      "id": "xl_108",
+      "type": "expense_var",
+      "amount": 21.56,
+      "date": "2025-11-29",
+      "catId": "mig_3",
+      "note": "Vinted"
+    },
+    {
+      "id": "xl_109",
+      "type": "expense_var",
+      "amount": 6.0,
+      "date": "2025-11-29",
+      "catId": "mig_28",
+      "note": "Transporte"
+    },
+    {
+      "id": "xl_110",
+      "type": "expense_var",
+      "amount": 17.6,
+      "date": "2025-11-29",
+      "catId": "mig_14",
+      "note": "Discoteca"
+    },
+    {
+      "id": "xl_111",
+      "type": "expense_var",
+      "amount": 4.7,
+      "date": "2025-11-29",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_112",
+      "type": "expense_var",
+      "amount": 10.25,
+      "date": "2025-11-30",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_113",
+      "type": "saving",
+      "amount": 906.08,
+      "date": "2025-11-30",
+      "catId": "mig_9",
+      "note": "Fondo de emergencia"
+    },
+    {
+      "id": "xl_114",
+      "type": "income",
+      "amount": 2126.85,
+      "date": "2025-12-01",
+      "catId": "mig_22",
+      "note": "Sueldo"
+    },
+    {
+      "id": "xl_115",
+      "type": "expense",
+      "amount": 29.99,
+      "date": "2025-12-01",
+      "catId": "mig_11",
+      "note": "Gym"
+    },
+    {
+      "id": "xl_116",
+      "type": "expense",
+      "amount": 690.51,
+      "date": "2025-12-01",
+      "catId": "mig_1",
+      "note": "Alquiler / Hipoteca"
+    },
+    {
+      "id": "xl_117",
+      "type": "expense",
+      "amount": 54.15,
+      "date": "2025-12-03",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_118",
+      "type": "expense_var",
+      "amount": 27.0,
+      "date": "2025-12-03",
+      "catId": "mig_14",
+      "note": "Discoteca"
+    },
+    {
+      "id": "xl_119",
+      "type": "income",
+      "amount": 250.0,
+      "date": "2025-12-03",
+      "catId": "mig_15",
+      "note": "Piso"
+    },
+    {
+      "id": "xl_120",
+      "type": "expense",
+      "amount": 13.88,
+      "date": "2025-12-04",
+      "catId": "mig_7",
+      "note": "Factura Luz/Agua/Gas"
+    },
+    {
+      "id": "xl_121",
+      "type": "expense_var",
+      "amount": 1.1,
+      "date": "2025-12-07",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_122",
+      "type": "expense_var",
+      "amount": 13.97,
+      "date": "2025-12-07",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_123",
+      "type": "expense",
+      "amount": 6.99,
+      "date": "2025-12-09",
+      "catId": "mig_26",
+      "note": "Netflix"
+    },
+    {
+      "id": "xl_124",
+      "type": "income",
+      "amount": 1723.27,
+      "date": "2025-12-09",
+      "catId": "mig_5",
+      "note": "Devolución impuestos"
+    },
+    {
+      "id": "xl_125",
+      "type": "expense_var",
+      "amount": 34.4,
+      "date": "2025-12-09",
+      "catId": "mig_3",
+      "note": "Farmacia"
+    },
+    {
+      "id": "xl_126",
+      "type": "expense_var",
+      "amount": 23.0,
+      "date": "2025-12-09",
+      "catId": "mig_28",
+      "note": "Transporte"
+    },
+    {
+      "id": "xl_127",
+      "type": "expense",
+      "amount": 20.11,
+      "date": "2025-12-10",
+      "catId": "mig_8",
+      "note": "Avidart"
+    },
+    {
+      "id": "xl_128",
+      "type": "expense_var",
+      "amount": 11.09,
+      "date": "2025-12-10",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_129",
+      "type": "expense",
+      "amount": 25.1,
+      "date": "2025-12-10",
+      "catId": "mig_7",
+      "note": "Factura Luz/Agua/Gas"
+    },
+    {
+      "id": "xl_130",
+      "type": "expense_var",
+      "amount": 15.0,
+      "date": "2025-12-11",
+      "catId": "mig_6",
+      "note": "Donacion"
+    },
+    {
+      "id": "xl_131",
+      "type": "income",
+      "amount": 585.72,
+      "date": "2025-12-12",
+      "catId": "mig_22",
+      "note": "Extra"
+    },
+    {
+      "id": "xl_132",
+      "type": "expense",
+      "amount": 42.75,
+      "date": "2025-12-12",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_133",
+      "type": "expense_var",
+      "amount": 15.8,
+      "date": "2025-12-14",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_134",
+      "type": "expense_var",
+      "amount": 160.0,
+      "date": "2025-12-15",
+      "catId": "mig_3",
+      "note": "Regalo"
+    },
+    {
+      "id": "xl_135",
+      "type": "expense_var",
+      "amount": 1.8,
+      "date": "2025-12-15",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_136",
+      "type": "expense",
+      "amount": 715.53,
+      "date": "2025-12-17",
+      "catId": "mig_21",
+      "note": "Coche"
+    },
+    {
+      "id": "xl_137",
+      "type": "expense_var",
+      "amount": 400.0,
+      "date": "2025-12-19",
+      "catId": "mig_3",
+      "note": "Regalo boda"
+    },
+    {
+      "id": "xl_138",
+      "type": "expense_var",
+      "amount": 6.49,
+      "date": "2025-12-19",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_139",
+      "type": "expense",
+      "amount": 23.0,
+      "date": "2025-12-19",
+      "catId": "mig_26",
+      "note": "OpenIA"
+    },
+    {
+      "id": "xl_140",
+      "type": "expense_var",
+      "amount": 19.0,
+      "date": "2025-12-22",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_141",
+      "type": "expense_var",
+      "amount": 22.27,
+      "date": "2025-12-22",
+      "catId": "mig_10",
+      "note": "Gasolina"
+    },
+    {
+      "id": "xl_142",
+      "type": "expense_var",
+      "amount": 34.04,
+      "date": "2025-12-23",
+      "catId": "mig_3",
+      "note": "Regalo yaya"
+    },
+    {
+      "id": "xl_143",
+      "type": "expense_var",
+      "amount": 3.19,
+      "date": "2025-12-23",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_144",
+      "type": "expense_var",
+      "amount": 17.0,
+      "date": "2025-12-23",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_145",
+      "type": "expense_var",
+      "amount": 19.2,
+      "date": "2025-12-24",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_146",
+      "type": "expense_var",
+      "amount": 36.98,
+      "date": "2025-12-24",
+      "catId": "mig_3",
+      "note": "Pulir tabla"
+    },
+    {
+      "id": "xl_147",
+      "type": "income",
+      "amount": 225.0,
+      "date": "2025-12-26",
+      "catId": "mig_17",
+      "note": "Regalos recibidos"
+    },
+    {
+      "id": "xl_148",
+      "type": "expense_var",
+      "amount": 28.0,
+      "date": "2025-12-29",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_149",
+      "type": "expense_var",
+      "amount": 9.0,
+      "date": "2025-12-29",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_150",
+      "type": "expense_var",
+      "amount": 12.75,
+      "date": "2025-12-29",
+      "catId": "mig_28",
+      "note": "Transporte"
+    },
+    {
+      "id": "xl_151",
+      "type": "expense",
+      "amount": 29.99,
+      "date": "2025-12-29",
+      "catId": "mig_11",
+      "note": "Gym"
+    },
+    {
+      "id": "xl_152",
+      "type": "expense",
+      "amount": 18.94,
+      "date": "2025-12-31",
+      "catId": "mig_7",
+      "note": "Factura Luz/Agua/Gas"
+    },
+    {
+      "id": "xl_153",
+      "type": "saving",
+      "amount": 2328.82,
+      "date": "2025-12-31",
+      "catId": "mig_9",
+      "note": "Fondo de emergencia"
+    },
+    {
+      "id": "xl_154",
+      "type": "income",
+      "amount": 2100.0,
+      "date": "2026-01-01",
+      "catId": "mig_22",
+      "note": "Sueldo"
+    },
+    {
+      "id": "xl_155",
+      "type": "expense",
+      "amount": 690.52,
+      "date": "2026-01-01",
+      "catId": "mig_1",
+      "note": "Alquiler / Hipoteca"
+    },
+    {
+      "id": "xl_156",
+      "type": "expense",
+      "amount": 19.86,
+      "date": "2026-01-02",
+      "catId": "mig_7",
+      "note": "Factura Luz/Agua/Gas"
+    },
+    {
+      "id": "xl_157",
+      "type": "expense_var",
+      "amount": 20.0,
+      "date": "2026-01-02",
+      "catId": "mig_10",
+      "note": "Gasolina"
+    },
+    {
+      "id": "xl_158",
+      "type": "income",
+      "amount": 500.0,
+      "date": "2026-01-05",
+      "catId": "mig_17",
+      "note": "Regalos recibidos"
+    },
+    {
+      "id": "xl_159",
+      "type": "income",
+      "amount": 250.0,
+      "date": "2026-01-05",
+      "catId": "mig_15",
+      "note": "Piso"
+    },
+    {
+      "id": "xl_160",
+      "type": "expense",
+      "amount": 18.56,
+      "date": "2026-01-07",
+      "catId": "mig_7",
+      "note": "Factura Luz/Agua/Gas"
+    },
+    {
+      "id": "xl_161",
+      "type": "expense_var",
+      "amount": 23.45,
+      "date": "2026-01-07",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_162",
+      "type": "expense",
+      "amount": 74.41,
+      "date": "2026-01-08",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_163",
+      "type": "expense",
+      "amount": 6.99,
+      "date": "2026-01-09",
+      "catId": "mig_26",
+      "note": "Netflix"
+    },
+    {
+      "id": "xl_164",
+      "type": "expense_var",
+      "amount": 67.8,
+      "date": "2026-01-10",
+      "catId": "mig_14",
+      "note": "Ocio"
+    },
+    {
+      "id": "xl_165",
+      "type": "expense_var",
+      "amount": 16.17,
+      "date": "2026-01-10",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_166",
+      "type": "expense_var",
+      "amount": 6.21,
+      "date": "2026-01-11",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_167",
+      "type": "expense_var",
+      "amount": 15.0,
+      "date": "2026-01-12",
+      "catId": "mig_6",
+      "note": "Cruz Roja"
+    },
+    {
+      "id": "xl_168",
+      "type": "expense_var",
+      "amount": 40.0,
+      "date": "2026-01-15",
+      "catId": "mig_10",
+      "note": "Gasolina"
+    },
+    {
+      "id": "xl_169",
+      "type": "expense_var",
+      "amount": 30.0,
+      "date": "2026-01-19",
+      "catId": "mig_14",
+      "note": "Ocio"
+    },
+    {
+      "id": "xl_170",
+      "type": "expense_var",
+      "amount": 21.4,
+      "date": "2026-01-19",
+      "catId": "mig_28",
+      "note": "DUDAS PEDIR CURRO"
+    },
+    {
+      "id": "xl_171",
+      "type": "expense_var",
+      "amount": 4.32,
+      "date": "2026-01-19",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_172",
+      "type": "expense_var",
+      "amount": 8.5,
+      "date": "2026-01-19",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_173",
+      "type": "expense",
+      "amount": 3.04,
+      "date": "2026-01-19",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_174",
+      "type": "expense",
+      "amount": 23.0,
+      "date": "2026-01-20",
+      "catId": "mig_26",
+      "note": "OpenIA"
+    },
+    {
+      "id": "xl_175",
+      "type": "expense",
+      "amount": 20.11,
+      "date": "2026-01-21",
+      "catId": "mig_8",
+      "note": "Avidart"
+    },
+    {
+      "id": "xl_176",
+      "type": "expense",
+      "amount": 32.77,
+      "date": "2026-01-21",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_177",
+      "type": "expense_var",
+      "amount": 33.9,
+      "date": "2026-01-23",
+      "catId": "mig_18",
+      "note": "ITV"
+    },
+    {
+      "id": "xl_178",
+      "type": "expense_var",
+      "amount": 19.05,
+      "date": "2026-01-23",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_179",
+      "type": "expense_var",
+      "amount": 24.2,
+      "date": "2026-01-24",
+      "catId": "mig_14",
+      "note": "Ocio"
+    },
+    {
+      "id": "xl_180",
+      "type": "expense_var",
+      "amount": 3.19,
+      "date": "2026-01-25",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_181",
+      "type": "expense_var",
+      "amount": 21.8,
+      "date": "2026-01-25",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_182",
+      "type": "expense_var",
+      "amount": 9.68,
+      "date": "2026-01-25",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_183",
+      "type": "expense",
+      "amount": 29.99,
+      "date": "2026-01-26",
+      "catId": "mig_11",
+      "note": "Gym"
+    },
+    {
+      "id": "xl_184",
+      "type": "expense_var",
+      "amount": 13.98,
+      "date": "2026-01-27",
+      "catId": "mig_3",
+      "note": "Regalo tori"
+    },
+    {
+      "id": "xl_185",
+      "type": "expense",
+      "amount": 77.56,
+      "date": "2026-01-27",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_186",
+      "type": "expense",
+      "amount": 1.29,
+      "date": "2026-01-29",
+      "catId": "mig_12",
+      "note": "Internet / Móvil"
+    },
+    {
+      "id": "xl_187",
+      "type": "expense_var",
+      "amount": 4.3,
+      "date": "2026-01-30",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_188",
+      "type": "expense_var",
+      "amount": 36.55,
+      "date": "2026-01-31",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_189",
+      "type": "expense_var",
+      "amount": 25.95,
+      "date": "2026-01-29",
+      "catId": "mig_3",
+      "note": "Compras"
+    },
+    {
+      "id": "xl_190",
+      "type": "expense_var",
+      "amount": 3.3,
+      "date": "2026-01-31",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_191",
+      "type": "saving",
+      "amount": 1403.15,
+      "date": "2026-01-31",
+      "catId": "mig_9",
+      "note": "Fondo de emergencia"
+    },
+    {
+      "id": "xl_192",
+      "type": "income",
+      "amount": 2093.9,
+      "date": "2026-02-01",
+      "catId": "mig_22",
+      "note": "Sueldo"
+    },
+    {
+      "id": "xl_193",
+      "type": "expense",
+      "amount": 690.52,
+      "date": "2026-02-01",
+      "catId": "mig_1",
+      "note": "Alquiler / Hipoteca"
+    },
+    {
+      "id": "xl_194",
+      "type": "income",
+      "amount": 250.0,
+      "date": "2026-02-03",
+      "catId": "mig_15",
+      "note": "Otros ingresos"
+    },
+    {
+      "id": "xl_195",
+      "type": "expense_var",
+      "amount": 15.0,
+      "date": "2026-02-03",
+      "catId": "mig_3",
+      "note": "Compras"
+    },
+    {
+      "id": "xl_196",
+      "type": "expense",
+      "amount": 73.88,
+      "date": "2026-02-04",
+      "catId": "mig_7",
+      "note": "Factura Luz/Agua/Gas"
+    },
+    {
+      "id": "xl_197",
+      "type": "expense",
+      "amount": 67.1,
+      "date": "2026-02-06",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_198",
+      "type": "expense_var",
+      "amount": 4.95,
+      "date": "2026-02-06",
+      "catId": "mig_14",
+      "note": "Ocio"
+    },
+    {
+      "id": "xl_199",
+      "type": "expense_var",
+      "amount": 9.16,
+      "date": "2026-02-06",
+      "catId": "mig_14",
+      "note": "faltan 18,33"
+    },
+    {
+      "id": "xl_200",
+      "type": "expense_var",
+      "amount": 6.5,
+      "date": "2026-02-06",
+      "catId": "mig_14",
+      "note": "Ocio"
+    },
+    {
+      "id": "xl_201",
+      "type": "expense_var",
+      "amount": 16.17,
+      "date": "2026-02-06",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_202",
+      "type": "expense",
+      "amount": 67.1,
+      "date": "2026-02-07",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_203",
+      "type": "expense_var",
+      "amount": 40.0,
+      "date": "2026-02-07",
+      "catId": "mig_10",
+      "note": "Gasolina"
+    },
+    {
+      "id": "xl_204",
+      "type": "expense",
+      "amount": 6.99,
+      "date": "2026-02-10",
+      "catId": "mig_26",
+      "note": "Netflix"
+    },
+    {
+      "id": "xl_205",
+      "type": "expense_var",
+      "amount": 15.59,
+      "date": "2026-02-10",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_206",
+      "type": "expense_var",
+      "amount": 15.0,
+      "date": "2026-02-11",
+      "catId": "mig_6",
+      "note": "Donacion"
+    },
+    {
+      "id": "xl_207",
+      "type": "expense",
+      "amount": 20.0,
+      "date": "2026-02-11",
+      "catId": "mig_8",
+      "note": "Minoxidil"
+    },
+    {
+      "id": "xl_208",
+      "type": "expense",
+      "amount": 11.06,
+      "date": "2026-02-11",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_209",
+      "type": "expense_var",
+      "amount": 38.0,
+      "date": "2026-02-12",
+      "catId": "mig_3",
+      "note": "Regalo"
+    },
+    {
+      "id": "xl_210",
+      "type": "expense_var",
+      "amount": 7.62,
+      "date": "2026-02-13",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_211",
+      "type": "expense_var",
+      "amount": 1.5,
+      "date": "2026-02-13",
+      "catId": "mig_28",
+      "note": "Transporte"
+    },
+    {
+      "id": "xl_212",
+      "type": "expense_var",
+      "amount": 11.0,
+      "date": "2026-02-13",
+      "catId": "mig_16",
+      "note": "Peluquería"
+    },
+    {
+      "id": "xl_213",
+      "type": "expense_var",
+      "amount": 1.65,
+      "date": "2026-02-13",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_214",
+      "type": "expense_var",
+      "amount": 16.5,
+      "date": "2026-02-13",
+      "catId": "mig_14",
+      "note": "Ocio"
+    },
+    {
+      "id": "xl_215",
+      "type": "expense_var",
+      "amount": 7.3,
+      "date": "2026-02-14",
+      "catId": "mig_28",
+      "note": "Transporte"
+    },
+    {
+      "id": "xl_216",
+      "type": "expense_var",
+      "amount": 8.5,
+      "date": "2026-02-14",
+      "catId": "mig_14",
+      "note": "Ocio"
+    },
+    {
+      "id": "xl_217",
+      "type": "expense_var",
+      "amount": 46.72,
+      "date": "2026-02-14",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_218",
+      "type": "expense_var",
+      "amount": 7.0,
+      "date": "2026-02-14",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_219",
+      "type": "expense",
+      "amount": 33.98,
+      "date": "2026-02-16",
+      "catId": "mig_8",
+      "note": "Minoxidil"
+    },
+    {
+      "id": "xl_220",
+      "type": "expense_var",
+      "amount": 1.1,
+      "date": "2026-02-16",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_221",
+      "type": "expense_var",
+      "amount": 11.94,
+      "date": "2026-02-17",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_222",
+      "type": "expense_var",
+      "amount": 34.99,
+      "date": "2026-02-18",
+      "catId": "mig_14",
+      "note": "Rally"
+    },
+    {
+      "id": "xl_223",
+      "type": "expense",
+      "amount": 23.0,
+      "date": "2026-02-19",
+      "catId": "mig_26",
+      "note": "OpenIA"
+    },
+    {
+      "id": "xl_224",
+      "type": "expense_var",
+      "amount": 10.5,
+      "date": "2026-02-20",
+      "catId": "mig_3",
+      "note": "Regalo"
+    },
+    {
+      "id": "xl_225",
+      "type": "expense_var",
+      "amount": 15.77,
+      "date": "2026-02-20",
+      "catId": "mig_19",
+      "note": "Restaurantes"
+    },
+    {
+      "id": "xl_226",
+      "type": "expense_var",
+      "amount": 4.79,
+      "date": "2026-02-22",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_227",
+      "type": "expense",
+      "amount": 29.99,
+      "date": "2026-02-23",
+      "catId": "mig_11",
+      "note": "Gym"
+    },
+    {
+      "id": "xl_228",
+      "type": "expense",
+      "amount": 22.58,
+      "date": "2026-02-25",
+      "catId": "mig_7",
+      "note": "Factura Luz/Agua/Gas"
+    },
+    {
+      "id": "xl_229",
+      "type": "expense",
+      "amount": 5.0,
+      "date": "2026-02-26",
+      "catId": "mig_12",
+      "note": "Internet / Móvil"
+    },
+    {
+      "id": "xl_230",
+      "type": "expense_var",
+      "amount": 3.58,
+      "date": "2026-02-26",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_231",
+      "type": "expense",
+      "amount": 65.43,
+      "date": "2026-02-27",
+      "catId": "mig_24",
+      "note": "Supermercado (básico)"
+    },
+    {
+      "id": "xl_232",
+      "type": "expense_var",
+      "amount": 45.0,
+      "date": "2026-02-28",
+      "catId": "mig_10",
+      "note": "Gasolina"
+    },
+    {
+      "id": "xl_233",
+      "type": "saving",
+      "amount": 831.44,
+      "date": "2026-02-28",
+      "catId": "mig_9",
+      "note": "Fondo de emergencia"
+    },
+    {
+      "id": "xl_234",
+      "type": "income",
+      "amount": 2093.9,
+      "date": "2026-03-01",
+      "catId": "mig_22",
+      "note": "Sueldo"
+    },
+    {
+      "id": "xl_235",
+      "type": "expense",
+      "amount": 690.52,
+      "date": "2026-03-01",
+      "catId": "mig_1",
+      "note": "Alquiler / Hipoteca"
+    },
+    {
+      "id": "xl_236",
+      "type": "income",
+      "amount": 250.0,
+      "date": "2026-03-01",
+      "catId": "mig_15",
+      "note": "Otros ingresos"
+    },
+    {
+      "id": "xl_237",
+      "type": "expense_var",
+      "amount": 33.68,
+      "date": "2026-03-03",
+      "catId": "mig_14",
+      "note": "Rally"
+    },
+    {
+      "id": "xl_238",
+      "type": "expense_var",
+      "amount": 30.5,
+      "date": "2026-03-04",
+      "catId": "mig_3",
+      "note": "Compras"
+    },
+    {
+      "id": "xl_239",
+      "type": "expense",
+      "amount": 20.11,
+      "date": "2026-03-04",
+      "catId": "mig_8",
+      "note": "Farmacia"
+    },
+    {
+      "id": "xl_240",
+      "type": "expense_var",
+      "amount": 3.65,
+      "date": "2026-03-04",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    },
+    {
+      "id": "xl_241",
+      "type": "expense_var",
+      "amount": 4.5,
+      "date": "2026-03-05",
+      "catId": "mig_23",
+      "note": "Supermercado"
+    }
+  ]
+}
