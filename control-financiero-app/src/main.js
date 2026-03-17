@@ -1,7 +1,7 @@
 import { state } from './store.js';
 import { save, STORE } from './utils.js';
 import { toast, setSyncStatus, closeConfirm, confirmAction } from './ui.js';
-import { API_URL, syncFromSheets, saveApiUrl, forceSyncFromSheets, exportData, importData } from './api.js';
+import { API_URL, syncFromSheets, syncToSheets, saveApiUrl, forceSyncFromSheets, exportData, importData } from './api.js';
 import { setChartPeriod, changeChartYear } from './charts.js';
 import { renderDashboard, updateMonthLabels } from './views/dashboard.js';
 import { populateCatFilter, renderTransactions } from './views/transactions.js';
@@ -68,6 +68,7 @@ window.showView              = showView;
 window.changeMonth           = changeMonth;
 window.toggleSetupBanner     = toggleSetupBanner;
 window.saveApiUrl            = saveApiUrl;
+window.syncToSheets          = syncToSheets;
 window.forceSyncFromSheets   = forceSyncFromSheets;
 window.exportData            = exportData;
 window.importData            = importData;

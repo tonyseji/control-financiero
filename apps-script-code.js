@@ -6,7 +6,7 @@
 const SS = SpreadsheetApp.getActiveSpreadsheet();
 const SHEET_TX   = 'Transacciones';
 const SHEET_CATS = 'Categorias';
-const TX_HEADERS   = ['id', 'type', 'amount', 'date', 'catId', 'note'];
+const TX_HEADERS   = ['id', 'type', 'amount', 'date', 'catId', 'note', 'accountId'];
 const CATS_HEADERS = ['id', 'name', 'type', 'color'];
 
 // ── GET: devuelve todos los datos ──────────────────────────────

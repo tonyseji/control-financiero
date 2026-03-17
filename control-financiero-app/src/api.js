@@ -18,8 +18,13 @@ export async function syncFromSheets() {
       save(STORE.CATS, state.categories);
     }
     if (d.transactions) {
+      // Merge: preservar campos locales (accountId, etc.) que Sheets puede no tener aún
+      const localMap = Object.fromEntries(state.transactions.map(t => [t.id, t]));
       state.transactions = d.transactions.map(t => ({
-        ...t, amount: parseFloat(t.amount) || 0, date: normalizeDate(t.date),
+        ...(localMap[t.id] || {}),
+        ...t,
+        amount: parseFloat(t.amount) || 0,
+        date: normalizeDate(t.date),
       }));
       save(STORE.TX, state.transactions);
     }
@@ -32,7 +37,7 @@ export async function syncFromSheets() {
 }
 
 // ─── Sincronización hacia Sheets (POST) ──────────────────────────────────────
-async function syncToSheets() {
+export async function syncToSheets() {
   if (!API_URL) return;
   setSyncStatus('syncing');
   try {

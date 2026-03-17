@@ -503,7 +503,11 @@ async function syncFromSheets(){
     const res=await fetch(API_URL,{cache:'no-store'});
     const d=await res.json();if(d.error)throw new Error(d.error);
     if(d.categories&&d.categories.length){categories=d.categories;save(STORE.CATS,categories);}
-    if(d.transactions){transactions=d.transactions.map(t=>({...t,amount:parseFloat(t.amount)||0,date:normalizeDate(t.date)}));save(STORE.TX,transactions);}
+    if(d.transactions){
+      const localMap=Object.fromEntries(transactions.map(t=>[t.id,t]));
+      transactions=d.transactions.map(t=>({...(localMap[t.id]||{}),...t,amount:parseFloat(t.amount)||0,date:normalizeDate(t.date)}));
+      save(STORE.TX,transactions);
+    }
     setSyncStatus('ok','Sincronizado '+hhmm());renderCurrentView();
   }catch(e){setSyncStatus('error','Error de sync');console.error(e);}
 }
