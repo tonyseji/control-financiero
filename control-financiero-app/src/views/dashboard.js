@@ -106,7 +106,7 @@ export function renderDashboard() {
   if (mi > 0) {
     document.getElementById('s-income-sub').textContent  = `Objetivo: ${fmt(mi)}`;
     document.getElementById('s-expense-sub').textContent = income > 0 ? `${Math.round(expense / income * 100)}% de ingresos` : '';
-    document.getElementById('s-balance-sub').textContent = income > 0 ? `Tasa ahorro: ${Math.round(balance / income * 100)}%` : '';
+    document.getElementById('s-balance-sub').textContent = income > 0 ? `Tasa ahorro: ${Math.round(saving / income * 100)}%` : '';
   }
 
   renderBudgetOverview(txs);

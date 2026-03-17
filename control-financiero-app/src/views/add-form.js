@@ -32,8 +32,11 @@ export function populateFormCats(type) {
     cats = state.categories.filter(c => c.type === 'income' || c.type === 'both');
   } else if (type === 'saving' || type === 'invest') {
     cats = state.categories.filter(c => c.type === 'saving' || c.type === 'invest' || c.type === 'both');
+  } else if (type === 'expense_var') {
+    cats = state.categories.filter(c => c.type === 'expense_var' || c.type === 'both');
   } else {
-    cats = state.categories.filter(c => c.type === 'expense' || c.type === 'expense_var' || c.type === 'both');
+    // expense (gasto fijo)
+    cats = state.categories.filter(c => c.type === 'expense' || c.type === 'both');
   }
   if (!cats.length) cats = state.categories;
   document.getElementById('fCatSel').innerHTML = cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
