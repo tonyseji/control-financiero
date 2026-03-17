@@ -1,4 +1,4 @@
-import { state, getCat, getMonthTx, amt } from '../store.js';
+import { state, getCat, getAccount, getMonthTx, amt } from '../store.js';
 import { fmt, typeIsIncome, fmtDate, fmtDateLong, typeLabel, typeBadgeCls, monthName } from '../utils.js';
 import { renderPieChart, renderBarChart } from '../charts.js';
 
@@ -47,6 +47,8 @@ export function renderBudgetOverview(txs) {
 export function txRow(t, withActions) {
   const cat    = getCat(t.catId);
   const isInc  = typeIsIncome(t.type);
+  const acc    = getAccount(t.accountId);
+  const accChip = acc ? `<span class="tx-account">${acc.name}</span>` : '';
   const actions = withActions
     ? `<div class="tx-actions">
          <button class="btn-sm" onclick="editTx('${t.id}')">✏</button>
@@ -58,6 +60,7 @@ export function txRow(t, withActions) {
     <div class="tx-info">
       <div class="tx-cat">${cat.name}</div>
       ${t.note ? `<div class="tx-note">${t.note}</div>` : ''}
+      ${accChip}
     </div>
     <div class="tx-meta">
       <div class="tx-date">${fmtDate(t.date)}</div>

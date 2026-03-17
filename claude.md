@@ -43,6 +43,7 @@
 - `cf_budgets` — configuración de presupuesto
 - `cf_settings` — config general (ingresos objetivo, etc.)
 - `cf_api_url` — URL del Apps Script deployado
+- `cf_accounts` — array de cuentas `{id, name}`
 
 ## Datos de migración
 - 241 transacciones: Sep 2025 – Mar 2026
@@ -155,3 +156,12 @@
       → localStorage.setItem directo al guardar (sin JSON.stringify)
       → .replace(/^"|"$/g,'') al cargar por si había quedado con comillas
 - [x] Limpieza: eliminados importar-datos.json y Control_Financiero.xlsx (artefactos de migración)
+
+### v9 (aplicada el 2026-03-17)
+- [x] Feature: Cuentas bancarias — número variable, crear/editar/eliminar como categorías
+      → Store: cf_accounts — array {id, name}; defaults: Cuenta principal, Cuenta comun, Tarjeta débito, Cuenta ahorro, Broker
+      → Campo "Cuenta" en formulario añadir/editar transacción
+      → Filtro por cuenta en vista Transacciones
+      → Gestión de cuentas en vista Categorías (sección inferior)
+      → Chip "tx-account" en cada fila de transacción mostrando la cuenta asignada
+      → Al eliminar cuenta: aviso si tiene transacciones asociadas

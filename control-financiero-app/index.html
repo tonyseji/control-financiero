@@ -91,6 +91,7 @@
   <div class="filter-bar">
     <select id="fType" onchange="renderTransactions()"><option value="">Todos los tipos</option><option value="income">Ingresos</option><option value="expense">Gastos fijos</option><option value="expense_var">Gastos variables</option><option value="saving">Ahorro</option><option value="invest">Inversión</option></select>
     <select id="fCat" onchange="renderTransactions()"><option value="">Todas las categorías</option></select>
+    <select id="fAccount" onchange="renderTransactions()"><option value="">Todas las cuentas</option></select>
     <input type="text" id="fSearch" placeholder="Buscar nota o categoría…" oninput="renderTransactions()" style="flex:1;min-width:120px">
   </div>
   <div class="tx-list" id="tx-list"></div>
@@ -104,6 +105,7 @@
       <div class="fg"><label>Cantidad (€)</label><input type="number" id="fAmount" placeholder="0.00" step="0.01" min="0"></div>
       <div class="fg"><label>Fecha</label><input type="date" id="fDate"></div>
       <div class="fg"><label>Categoría</label><select id="fCatSel"></select></div>
+      <div class="fg"><label>Cuenta</label><select id="fAccount2"></select></div>
       <div class="fg full"><label>Nota (opcional)</label><textarea id="fNote" placeholder="Descripción breve…"></textarea></div>
     </div>
     <label class="toggle-wrap" id="recurringToggleWrap">
@@ -158,6 +160,16 @@
   </div>
   <div class="sh"><div class="sh-title">Tus categorías</div></div>
   <div class="cat-grid" id="catGrid"></div>
+  <div class="form-card" style="margin-top:1.25rem">
+    <div class="form-title" id="accFormTitle">Nueva cuenta</div>
+    <div class="form-grid" style="grid-template-columns:1fr auto">
+      <div class="fg"><label>Nombre</label><input type="text" id="accName" placeholder="Ej: Cuenta principal"></div>
+      <div class="fg"><label>&nbsp;</label><button class="btn-primary" id="accSubmit" onclick="submitAccount()">Añadir</button></div>
+    </div>
+    <button class="btn-hdr" id="accCancel" onclick="cancelAccEdit()" style="display:none;margin-top:.5rem">Cancelar edición</button>
+  </div>
+  <div class="sh"><div class="sh-title">Tus cuentas</div></div>
+  <div class="acc-grid" id="accGrid"></div>
 </div>
 </main>
 <!-- MODAL BÚSQUEDA GLOBAL -->

@@ -8,7 +8,8 @@ import { populateCatFilter, renderTransactions } from './views/transactions.js';
 import { resetForm, buildTypeTabs, setFormType, populateFormCats, editTx,
          cancelEdit, submitForm, deleteTxConfirm, toggleRecurringOpts } from './views/add-form.js';
 import { renderBudgetView, saveBudgets, saveSettings, updateBudgetTotal } from './views/budget.js';
-import { renderCategories, submitCategory, editCat, cancelCatEdit, deleteCatConfirm } from './views/categories.js';
+import { renderCategories, submitCategory, editCat, cancelCatEdit, deleteCatConfirm,
+         renderAccounts, submitAccount, editAcc, cancelAccEdit, deleteAccConfirm } from './views/categories.js';
 import { initRecurring, renderRecurringList, toggleRecurringActive, deleteRecurringConfirm } from './views/recurring.js';
 import { openGlobalSearch, closeGlobalSearch, renderSearchResults } from './views/search.js';
 
@@ -28,7 +29,7 @@ export function showView(name) {
   if (name === 'transactions') { populateCatFilter(); renderTransactions(); }
   if (name === 'add')          { if (!state.editingTxId) resetForm(); renderRecurringList(); }
   if (name === 'budget')       renderBudgetView();
-  if (name === 'categories')   renderCategories();
+  if (name === 'categories')   { renderCategories(); renderAccounts(); }
 }
 
 // ─── Re-render de la vista activa ─────────────────────────────────────────────
@@ -89,6 +90,10 @@ window.submitCategory        = submitCategory;
 window.editCat               = editCat;
 window.cancelCatEdit         = cancelCatEdit;
 window.deleteCatConfirm      = deleteCatConfirm;
+window.submitAccount         = submitAccount;
+window.editAcc               = editAcc;
+window.cancelAccEdit         = cancelAccEdit;
+window.deleteAccConfirm      = deleteAccConfirm;
 window.toggleRecurringActive = toggleRecurringActive;
 window.deleteRecurringConfirm= deleteRecurringConfirm;
 window.closeConfirm          = closeConfirm;

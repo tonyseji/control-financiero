@@ -1,5 +1,6 @@
 import { load, normalizeDate, STORE } from './utils.js';
 
+
 // ─── Categorías por defecto ───────────────────────────────────────────────────
 export const DEFAULT_CATS = [
   { id: 'c1', name: 'Vivienda',       color: '#6366f1', type: 'expense' },
@@ -11,6 +12,15 @@ export const DEFAULT_CATS = [
   { id: 'c7', name: 'Otros gastos',   color: '#64748b', type: 'expense' },
   { id: 'c8', name: 'Nómina',         color: '#22c55e', type: 'income'  },
   { id: 'c9', name: 'Otros ingresos', color: '#6b7280', type: 'income'  },
+];
+
+// ─── Cuentas por defecto ──────────────────────────────────────────────────────
+export const DEFAULT_ACCOUNTS = [
+  { id: 'acc1', name: 'Cuenta principal' },
+  { id: 'acc2', name: 'Cuenta comun' },
+  { id: 'acc3', name: 'Tarjeta débito' },
+  { id: 'acc4', name: 'Cuenta ahorro' },
+  { id: 'acc5', name: 'Broker' },
 ];
 
 // ─── Tipos de transacción ─────────────────────────────────────────────────────
@@ -29,6 +39,8 @@ export const state = {
   budgets:      load(STORE.BUDGETS) || {},
   settings:     load(STORE.SETTINGS) || { monthlyIncome: 0 },
   recurring:    load(STORE.RECURRING) || [],
+  accounts:     load(STORE.ACCOUNTS) || DEFAULT_ACCOUNTS,
+  editingAccId: null,
 
   curY:  new Date().getFullYear(),
   curM:  new Date().getMonth(),
@@ -46,6 +58,7 @@ export const state = {
 
 // ─── Helpers de acceso al estado ─────────────────────────────────────────────
 export const getCat     = id => state.categories.find(c => c.id === id) || { name: 'Sin categoría', color: '#64748b', type: 'both' };
+export const getAccount = id => state.accounts.find(a => a.id === id) || null;
 export const getMonthTx = (y, m) => state.transactions.filter(t => {
   const d = new Date(t.date);
   return d.getFullYear() === y && d.getMonth() === m;

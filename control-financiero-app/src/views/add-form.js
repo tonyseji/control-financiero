@@ -42,6 +42,15 @@ export function populateFormCats(type) {
   document.getElementById('fCatSel').innerHTML = cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 }
 
+// ─── Poblar selector de cuentas ───────────────────────────────────────────────
+export function populateFormAccounts(selectedId) {
+  const sel = document.getElementById('fAccount2');
+  if (!sel) return;
+  sel.innerHTML = state.accounts.map(a =>
+    `<option value="${a.id}"${a.id === selectedId ? ' selected' : ''}>${a.name}</option>`
+  ).join('');
+}
+
 // ─── Resetear formulario ──────────────────────────────────────────────────────
 export function resetForm() {
   state.editingTxId = null;
@@ -57,6 +66,7 @@ export function resetForm() {
   if (ro) ro.style.display = 'none';
   buildTypeTabs();
   populateFormCats('expense');
+  populateFormAccounts(state.accounts[0]?.id);
 }
 
 // ─── Editar transacción existente ─────────────────────────────────────────────
@@ -74,6 +84,7 @@ export function editTx(id) {
   document.getElementById('fDate').value    = t.date;
   document.getElementById('fCatSel').value  = t.catId;
   document.getElementById('fNote').value    = t.note || '';
+  populateFormAccounts(t.accountId || state.accounts[0]?.id);
   // Ir a la vista de añadir
   window.showView('add');
 }
@@ -88,8 +99,9 @@ export function cancelEdit() {
 export async function submitForm() {
   const amount = parseFloat(document.getElementById('fAmount').value);
   const date   = document.getElementById('fDate').value;
-  const catId  = document.getElementById('fCatSel').value;
-  const note   = document.getElementById('fNote').value.trim();
+  const catId     = document.getElementById('fCatSel').value;
+  const accountId = document.getElementById('fAccount2').value;
+  const note      = document.getElementById('fNote').value.trim();
 
   if (!amount || amount <= 0) { toast('Introduce una cantidad válida', 'error'); return; }
   if (!date)   { toast('Selecciona una fecha', 'error'); return; }
@@ -99,13 +111,13 @@ export async function submitForm() {
 
   if (state.editingTxId) {
     const i = state.transactions.findIndex(t => t.id === state.editingTxId);
-    state.transactions[i] = { ...state.transactions[i], amount, date, catId, note, type: state.formType };
+    state.transactions[i] = { ...state.transactions[i], amount, date, catId, accountId, note, type: state.formType };
     state.editingTxId = null;
     await saveData();
     toast('Actualizado ✓', 'success');
     window.showView('transactions');
   } else {
-    state.transactions.push({ id: uid(), type: state.formType, amount, date, catId, note });
+    state.transactions.push({ id: uid(), type: state.formType, amount, date, catId, accountId, note });
     if (isRecurring) {
       const day     = parseInt(document.getElementById('fRecDay')?.value) || 1;
       const name    = document.getElementById('fRecName')?.value.trim() || note || getCat(catId).name;

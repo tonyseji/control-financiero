@@ -5,6 +5,7 @@ export const STORE = {
   BUDGETS: 'cf_budgets',
   SETTINGS: 'cf_settings',
   RECURRING: 'cf_recurring',
+  ACCOUNTS: 'cf_accounts',
 };
 
 // ─── localStorage helpers ─────────────────────────────────────────────────────
