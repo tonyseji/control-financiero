@@ -3,7 +3,7 @@ import { save, normalizeDate, hhmm, uid, STORE } from './utils.js';
 import { toast, setSyncStatus } from './ui.js';
 
 // ─── URL del Apps Script ──────────────────────────────────────────────────────
-export let API_URL = localStorage.getItem('cf_api_url') || '';
+export let API_URL = (localStorage.getItem('cf_api_url') || '').replace(/^"|"$/g, '');
 
 // ─── Sincronización desde Sheets (GET) ───────────────────────────────────────
 export async function syncFromSheets() {
@@ -66,7 +66,7 @@ export function saveApiUrl() {
     return;
   }
   API_URL = v;
-  save('cf_api_url', API_URL);
+  localStorage.setItem('cf_api_url', v);
   document.getElementById('setupBanner').style.display = 'none';
   toast('URL guardada, conectando…', 'success');
   syncFromSheets();
