@@ -14,12 +14,12 @@
   <nav class="nav-desktop">
     <button class="active" onclick="showView('dashboard')">Dashboard</button>
     <button onclick="showView('transactions')">Transacciones</button>
-    <button onclick="showView('add')">+ Añadir</button>
+    <button onclick="showView('add')" id="navAddBtn" style="background:var(--blue);color:#fff;font-weight:700">+ Añadir</button>
     <button onclick="showView('budget')">Presupuesto</button>
     <button onclick="showView('categories')">Categorías</button>
   </nav>
   <div class="header-r">
-    <div class="sync-badge" id="syncBadge"><div class="sync-dot"></div><span class="sl" id="syncLabel">Sin configurar</span></div>
+    <div class="sync-badge" id="syncBadge" onclick="toggleSetupBanner()" title="Clic para configurar la URL de Sheets" style="cursor:pointer"><div class="sync-dot"></div><span class="sl" id="syncLabel">Sin configurar</span></div>
     <button class="btn-hdr" onclick="openGlobalSearch()" title="Buscar en todo el historial">🔍</button>
     <button class="btn-hdr" onclick="forceSyncFromSheets()" title="Sincronizar">↺</button>
     <button class="btn-hdr" onclick="exportData()">⬇ JSON</button>

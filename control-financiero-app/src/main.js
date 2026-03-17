@@ -38,6 +38,18 @@ export function renderCurrentView() {
   else renderDashboard();
 }
 
+// ─── Toggle banner de configuración de URL ───────────────────────────────────
+export function toggleSetupBanner() {
+  const banner = document.getElementById('setupBanner');
+  const input  = document.getElementById('apiUrlInput');
+  const isHidden = banner.style.display === 'none';
+  banner.style.display = isHidden ? 'flex' : 'none';
+  if (isHidden && input) {
+    input.value = API_URL || '';
+    setTimeout(() => input.focus(), 80);
+  }
+}
+
 // ─── Navegación mensual ───────────────────────────────────────────────────────
 export function changeMonth(d) {
   state.curM += d;
@@ -53,6 +65,7 @@ export function changeMonth(d) {
 // ─── Exponer todo al scope global (necesario para los onclick= del HTML) ──────
 window.showView              = showView;
 window.changeMonth           = changeMonth;
+window.toggleSetupBanner     = toggleSetupBanner;
 window.saveApiUrl            = saveApiUrl;
 window.forceSyncFromSheets   = forceSyncFromSheets;
 window.exportData            = exportData;

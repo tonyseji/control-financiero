@@ -234,12 +234,12 @@ main{flex:1;padding:1.25rem;max-width:1100px;margin:0 auto;width:100%}
   <nav class="nav-desktop">
     <button class="active" onclick="showView('dashboard')">Dashboard</button>
     <button onclick="showView('transactions')">Transacciones</button>
-    <button onclick="showView('add')">+ Añadir</button>
+    <button onclick="showView('add')" id="navAddBtn" style="background:var(--blue);color:#fff;font-weight:700">+ Añadir</button>
     <button onclick="showView('budget')">Presupuesto</button>
     <button onclick="showView('categories')">Categorías</button>
   </nav>
   <div class="header-r">
-    <div class="sync-badge" id="syncBadge"><div class="sync-dot"></div><span class="sl" id="syncLabel">Sin configurar</span></div>
+    <div class="sync-badge" id="syncBadge" onclick="toggleSetupBanner()" title="Clic para configurar la URL de Sheets" style="cursor:pointer"><div class="sync-dot"></div><span class="sl" id="syncLabel">Sin configurar</span></div>
     <button class="btn-hdr" onclick="openGlobalSearch()" title="Buscar en todo el historial">🔍</button>
     <button class="btn-hdr" onclick="forceSyncFromSheets()" title="Sincronizar">↺</button>
     <button class="btn-hdr" onclick="exportData()">⬇ JSON</button>
@@ -459,6 +459,12 @@ function setSyncStatus(s,label){
   b.className='sync-badge '+(s||'');
   l.textContent=label||{idle:'Listo',syncing:'Sincronizando…',ok:'Sincronizado',error:'Error',none:'Sin configurar'}[s]||s;
 }
+function toggleSetupBanner(){
+  const banner=document.getElementById('setupBanner');
+  const isHidden=banner.style.display==='none';
+  banner.style.display=isHidden?'flex':'none';
+  if(isHidden){const inp=document.getElementById('apiUrlInput');inp.value=API_URL||'';setTimeout(()=>inp.focus(),80);}
+}
 function saveApiUrl(){
   const v=document.getElementById('apiUrlInput').value.trim();
   if(!v||!v.startsWith('https://script.google.com')){toast('URL no válida de Apps Script','error');return;}
@@ -523,7 +529,8 @@ function renderDashboard(){
   if(mi>0){
     document.getElementById('s-income-sub').textContent=`Objetivo: ${fmt(mi)}`;
     document.getElementById('s-expense-sub').textContent=income>0?`${Math.round(expense/income*100)}% de ingresos`:'';
-    document.getElementById('s-balance-sub').textContent=income>0?`Tasa ahorro: ${Math.round(saving/income*100)}%`:'';
+    document.getElementById('s-balance-sub').textContent=income>0?`${Math.round(balance/income*100)}% de ingresos`:'';
+    document.getElementById('s-saving-sub').textContent=income>0?`Tasa ahorro: ${Math.round(saving/income*100)}%`:'';
   }
   renderBudgetOverview(txs);renderPieChart(txs);renderBarChart();
   const sorted=[...txs].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
