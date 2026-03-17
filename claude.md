@@ -1,16 +1,25 @@
 # Control Financiero — Contexto del Proyecto
 
 ## Archivos principales
-- `control-financiero.html` — App web principal (single-file HTML+CSS+JS)
-- `importar-datos.json` — Migración de datos desde Excel (241 tx, 28 cats)
+- `control-financiero.html` — App web principal (single-file HTML+CSS+JS), funciona abriendo directamente en el navegador
+- `control-financiero-app/` — Proyecto Vite con arquitectura modular ES modules (rama `vite-migration`)
 - `apps-script-code.js` — Backend Google Apps Script (pegar en Script Editor del Sheet)
-- `Control_Financiero.xlsx` — Excel original (Sep 2025 – Mar 2026)
+- ~~`importar-datos.json`~~ — eliminado (migración ya completada)
+- ~~`Control_Financiero.xlsx`~~ — eliminado (datos en localStorage/Google Sheets)
 
 ## Arquitectura
-- **Frontend**: Single-file HTML con Chart.js 4.4.1 (CDN)
+- **Frontend (monolito)**: Single-file HTML con Chart.js 4.4.1 (CDN) — `control-financiero.html`
+- **Frontend (Vite)**: ES modules + Chart.js npm + vite-plugin-singlefile — `control-financiero-app/`
 - **Base de datos**: localStorage (caché local) + Google Sheets (nube via Apps Script)
 - **Backend**: Google Apps Script Web App (GET = leer todo, POST urlencoded = guardar)
 - **Sheet**: `Transacciones` + `Categorias` en Google Sheets
+
+## Git / GitHub
+- Repo: `https://github.com/tonyseji/control-financiero.git`
+- `main` — monolito v7 estable
+- `vite-migration` — arquitectura modular Vite (activa)
+- Builds deben ejecutarse desde Git Bash en Windows (`npm run dev`, `npm run build`), no desde la VM
+- La VM puede editar código fuente pero no ejecutar npm (node_modules de Windows no compatibles)
 
 ## Google Apps Script
 - Deployment: Web App, Execute as: Me, Access: Anyone
@@ -129,3 +138,20 @@
       → Filtros: tipo de transacción + año
       → Resultados agrupados por mes con neto del mes y contador
       → Summary bar: total resultados + balance neto de la búsqueda
+
+### v8 (aplicada el 2026-03-17)
+- [x] Migración Vite — arquitectura modular ES modules en `control-financiero-app/`
+      → src/utils.js, store.js, ui.js, api.js, charts.js, main.js
+      → src/views/: dashboard.js, transactions.js, add-form.js, budget.js, categories.js, recurring.js, search.js
+      → vite-plugin-singlefile: build genera un único HTML inline (compatible file://)
+      → chart.js como npm package (no CDN) para que Vite lo bundle inline
+      → window.* bindings en main.js para que onclick= funcione con ES modules
+      → CustomEvent 'cf:datachanged' para evitar dependencia circular api.js ↔ main.js
+- [x] Fix: tasa de ahorro real — saving / income (no balance / income)
+- [x] Fix: categorías separadas por tipo — expense vs expense_var en formulario
+- [x] Fix: sync badge clickable — onclick="toggleSetupBanner()" para reconfigurar URL
+- [x] UX: botón "+ Añadir" con fondo azul para mayor visibilidad
+- [x] Fix crítico: URL de Sheets sin comillas JSON
+      → localStorage.setItem directo al guardar (sin JSON.stringify)
+      → .replace(/^"|"$/g,'') al cargar por si había quedado con comillas
+- [x] Limpieza: eliminados importar-datos.json y Control_Financiero.xlsx (artefactos de migración)
