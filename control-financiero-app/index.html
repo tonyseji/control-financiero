@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1117">
+<title>Control Financiero</title>
+<link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+<header>
+  <div class="logo">💰 Control<em>Financiero</em></div>
+  <nav class="nav-desktop">
+    <button class="active" onclick="showView('dashboard')">Dashboard</button>
+    <button onclick="showView('transactions')">Transacciones</button>
+    <button onclick="showView('add')">+ Añadir</button>
+    <button onclick="showView('budget')">Presupuesto</button>
+    <button onclick="showView('categories')">Categorías</button>
+  </nav>
+  <div class="header-r">
+    <div class="sync-badge" id="syncBadge"><div class="sync-dot"></div><span class="sl" id="syncLabel">Sin configurar</span></div>
+    <button class="btn-hdr" onclick="openGlobalSearch()" title="Buscar en todo el historial">🔍</button>
+    <button class="btn-hdr" onclick="forceSyncFromSheets()" title="Sincronizar">↺</button>
+    <button class="btn-hdr" onclick="exportData()">⬇ JSON</button>
+    <button class="btn-hdr" onclick="document.getElementById('importFile').click()">⬆ JSON</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+</header>
+<nav class="nav-mobile">
+  <div class="nav-mobile-inner">
+    <button class="active" onclick="showView('dashboard')"><span class="nav-icon">📊</span>Dashboard</button>
+    <button onclick="showView('transactions')"><span class="nav-icon">↕</span>Movimientos</button>
+    <button class="add-btn" onclick="showView('add')"><span class="nav-icon">＋</span>Añadir</button>
+    <button onclick="showView('budget')"><span class="nav-icon">🎯</span>Presupuesto</button>
+    <button onclick="showView('categories')"><span class="nav-icon">🏷</span>Categorías</button>
+  </div>
+</nav>
+<main>
+<!-- DASHBOARD -->
+<div class="view active" id="view-dashboard">
+  <div id="setupBanner">
+    <div class="si">🔗</div>
+    <div class="st"><strong>Conecta Google Sheets</strong> — Pega la URL del Apps Script para sincronizar en la nube.</div>
+    <input id="apiUrlInput" type="text" placeholder="https://script.google.com/macros/s/.../exec">
+    <button class="btn-primary" onclick="saveApiUrl()">Guardar</button>
+  </div>
+  <div class="ph">
+    <div class="ph-title">Dashboard</div>
+    <div class="month-nav">
+      <button onclick="changeMonth(-1)">‹</button>
+      <div class="month-label" id="monthLabel">—</div>
+      <button onclick="changeMonth(1)">›</button>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card c-balance"><span class="stat-icon">⚖️</span><div class="stat-label">Balance</div><div class="stat-value neu" id="s-balance">€0</div><div class="stat-sub" id="s-balance-sub"></div></div>
+    <div class="stat-card c-income"><span class="stat-icon">📈</span><div class="stat-label">Ingresos</div><div class="stat-value pos" id="s-income">€0</div><div class="stat-sub" id="s-income-sub"></div></div>
+    <div class="stat-card c-expense"><span class="stat-icon">📉</span><div class="stat-label">Gastos</div><div class="stat-value neg" id="s-expense">€0</div><div class="stat-sub" id="s-expense-sub"></div></div>
+    <div class="stat-card c-saving"><span class="stat-icon">💧</span><div class="stat-label">Ahorro / Inv.</div><div class="stat-value cya" id="s-saving">€0</div><div class="stat-sub" id="s-saving-sub"></div></div>
+  </div>
+  <div class="budget-overview">
+    <div class="bo-header"><div class="bo-title">Presupuesto mensual</div><button class="btn-hdr" onclick="showView('budget')">Configurar →</button></div>
+    <div class="bo-grid" id="boGrid"></div>
+  </div>
+  <div class="charts-grid">
+    <div class="chart-card"><div class="chart-title">Gastos por categoría</div><div class="chart-wrap"><canvas id="chartPie"></canvas></div></div>
+    <div class="chart-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;gap:.5rem;flex-wrap:wrap">
+        <div class="chart-title" style="margin-bottom:0" id="chartBarTitle">Evolución (6 meses)</div>
+        <div style="display:flex;align-items:center;gap:.3rem">
+          <div id="yearNav" style="display:none;align-items:center;gap:.2rem">
+            <button class="btn-hdr" style="font-size:.72rem;padding:.22rem .45rem" onclick="changeChartYear(-1)">‹</button>
+            <span id="chartYearLabel" style="font-size:.78rem;font-weight:700;color:var(--text);min-width:36px;text-align:center"></span>
+            <button class="btn-hdr" style="font-size:.72rem;padding:.22rem .45rem" onclick="changeChartYear(1)">›</button>
+          </div>
+          <button id="btn6m" class="btn-hdr" style="font-size:.7rem;padding:.22rem .55rem;background:var(--blue);color:#fff;border-color:var(--blue)" onclick="setChartPeriod('6m')">6M</button>
+          <button id="btnYear" class="btn-hdr" style="font-size:.7rem;padding:.22rem .55rem" onclick="setChartPeriod('year')">Año</button>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chartBar"></canvas></div>
+    </div>
+  </div>
+  <div id="annualSummary" style="display:none;margin-bottom:1.2rem"></div>
+  <div class="sh"><div class="sh-title">Últimas transacciones</div></div>
+  <div class="tx-list" id="dash-recent"></div>
+</div>
+<!-- TRANSACCIONES -->
+<div class="view" id="view-transactions">
+  <div class="ph"><div class="ph-title">Transacciones</div><div class="month-nav"><button onclick="changeMonth(-1)">‹</button><div class="month-label" id="monthLabel2">—</div><button onclick="changeMonth(1)">›</button></div></div>
+  <div class="filter-bar">
+    <select id="fType" onchange="renderTransactions()"><option value="">Todos los tipos</option><option value="income">Ingresos</option><option value="expense">Gastos fijos</option><option value="expense_var">Gastos variables</option><option value="saving">Ahorro</option><option value="invest">Inversión</option></select>
+    <select id="fCat" onchange="renderTransactions()"><option value="">Todas las categorías</option></select>
+    <input type="text" id="fSearch" placeholder="Buscar nota o categoría…" oninput="renderTransactions()" style="flex:1;min-width:120px">
+  </div>
+  <div class="tx-list" id="tx-list"></div>
+</div>
+<!-- AÑADIR -->
+<div class="view" id="view-add">
+  <div class="ph"><div class="ph-title" id="formTitle">Añadir transacción</div></div>
+  <div class="form-card">
+    <div class="type-tabs" id="typeTabs"></div>
+    <div class="form-grid">
+      <div class="fg"><label>Cantidad (€)</label><input type="number" id="fAmount" placeholder="0.00" step="0.01" min="0"></div>
+      <div class="fg"><label>Fecha</label><input type="date" id="fDate"></div>
+      <div class="fg"><label>Categoría</label><select id="fCatSel"></select></div>
+      <div class="fg full"><label>Nota (opcional)</label><textarea id="fNote" placeholder="Descripción breve…"></textarea></div>
+    </div>
+    <label class="toggle-wrap" id="recurringToggleWrap">
+      <input type="checkbox" id="fRecurring" onchange="toggleRecurringOpts()">
+      <span class="toggle-label">🔁 Repetir mensualmente el mismo importe</span>
+    </label>
+    <div id="recurringOpts" style="display:none;margin-top:.65rem;padding:.75rem;background:var(--s2);border-radius:10px;border:1px solid rgba(168,85,247,.25)">
+      <div class="form-grid" style="grid-template-columns:1fr 1fr">
+        <div class="fg"><label>Día del mes (1-31)</label><input type="number" id="fRecDay" min="1" max="31" value="1" style="background:var(--s3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.5rem .75rem;font-size:.88rem;outline:none"></div>
+        <div class="fg"><label>Nombre del recurrente</label><input type="text" id="fRecName" placeholder="Ej: Alquiler, Netflix…" style="background:var(--s3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.5rem .75rem;font-size:.88rem;outline:none"></div>
+      </div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:.4rem">Se generará automáticamente cada mes cuando abras la app.</div>
+    </div>
+    <div style="margin-top:.85rem;display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn-primary" id="fSubmit" onclick="submitForm()">Guardar</button>
+      <button class="btn-hdr" id="fCancel" onclick="cancelEdit()" style="display:none">Cancelar</button>
+    </div>
+  </div>
+  <div class="form-card" id="recurringSection">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.2rem">
+      <div class="form-title" style="margin-bottom:0">🔁 Recurrentes activos</div>
+    </div>
+    <div style="font-size:.78rem;color:var(--muted);margin-bottom:.7rem">Se generan automáticamente cada mes al abrir la app.</div>
+    <div class="rec-list" id="recList"></div>
+  </div>
+</div>
+<!-- PRESUPUESTO -->
+<div class="view" id="view-budget">
+  <div class="ph"><div class="ph-title">Presupuesto</div><div class="month-nav"><button onclick="changeMonth(-1)">‹</button><div class="month-label" id="monthLabel3">—</div><button onclick="changeMonth(1)">›</button></div></div>
+  <div class="form-card">
+    <div class="form-title">Configuración</div>
+    <div class="settings-row"><label>Ingreso objetivo mensual (€)</label><input class="settings-input" type="number" id="settingIncome" placeholder="2100" oninput="saveSettings()"></div>
+    <div style="font-size:.8rem;color:var(--muted);margin-bottom:.75rem">Asigna el % de tus ingresos a cada grupo. La suma debe ser 100%.</div>
+    <div id="budgetCatInputs"></div>
+    <div id="budgetPctTotal" style="font-size:.82rem;margin:.5rem 0 .75rem;font-weight:700"></div>
+    <button class="btn-primary green" onclick="saveBudgets()" style="margin-top:.25rem">Guardar presupuesto</button>
+  </div>
+  <div class="budget-sections" id="budgetSections"></div>
+</div>
+<!-- CATEGORÍAS -->
+<div class="view" id="view-categories">
+  <div class="ph"><div class="ph-title">Categorías</div></div>
+  <div class="form-card">
+    <div class="form-title" id="catFormTitle">Nueva categoría</div>
+    <div class="form-grid">
+      <div class="fg"><label>Nombre</label><input type="text" id="catName" placeholder="Ej: Ocio"></div>
+      <div class="fg"><label>Tipo</label><select id="catType"><option value="expense">Gasto</option><option value="income">Ingreso</option><option value="both">Ambos</option></select></div>
+      <div class="fg"><label>Color</label><input type="color" id="catColor" value="#3b82f6" style="height:38px;padding:.2rem .4rem;cursor:pointer"></div>
+      <div class="fg"><label>&nbsp;</label><button class="btn-primary" id="catSubmit" onclick="submitCategory()">Añadir</button></div>
+    </div>
+    <button class="btn-hdr" id="catCancel" onclick="cancelCatEdit()" style="display:none;margin-top:.5rem">Cancelar edición</button>
+  </div>
+  <div class="sh"><div class="sh-title">Tus categorías</div></div>
+  <div class="cat-grid" id="catGrid"></div>
+</div>
+</main>
+<!-- MODAL BÚSQUEDA GLOBAL -->
+<div class="modal-overlay" id="searchModal" onclick="if(event.target===this)closeGlobalSearch()">
+  <div class="modal search-modal">
+    <div class="search-header">
+      <span style="font-size:1.1rem">🔍</span>
+      <input class="search-input" id="globalSearchInput" placeholder="Buscar en todo el historial…" oninput="renderSearchResults()" autocomplete="off">
+      <button class="modal-x" onclick="closeGlobalSearch()">✕</button>
+    </div>
+    <div class="search-filters">
+      <select id="sFType" onchange="renderSearchResults()" style="background:var(--s2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.35rem .65rem;font-size:.78rem;outline:none">
+        <option value="">Todos los tipos</option>
+        <option value="income">Ingresos</option>
+        <option value="expense">Gastos fijos</option>
+        <option value="expense_var">Gastos variables</option>
+        <option value="saving">Ahorro</option>
+        <option value="invest">Inversión</option>
+      </select>
+      <select id="sFYear" onchange="renderSearchResults()" style="background:var(--s2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.35rem .65rem;font-size:.78rem;outline:none">
+        <option value="">Todos los años</option>
+      </select>
+    </div>
+    <div class="search-results" id="searchResults">
+      <div style="color:var(--muted);font-size:.88rem;text-align:center;padding:2rem">Escribe para buscar en todas tus transacciones</div>
+    </div>
+  </div>
+</div>
+<!-- MODAL CONFIRMACIÓN -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title" id="confirmTitle">Confirmar</div><button class="modal-x" onclick="closeConfirm()">✕</button></div>
+    <p id="confirmMsg" style="color:var(--muted);font-size:.87rem;margin-bottom:1.2rem;line-height:1.5"></p>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end">
+      <button class="btn-hdr" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn-primary red" onclick="confirmAction()">Eliminar</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
