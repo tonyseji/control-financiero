@@ -188,6 +188,11 @@ main{flex:1;padding:1.25rem;max-width:1100px;margin:0 auto;width:100%}
 .toggle-wrap{display:flex;align-items:center;gap:.6rem;cursor:pointer;user-select:none;margin-top:.5rem}
 .toggle-wrap input[type=checkbox]{width:16px;height:16px;accent-color:var(--purple);cursor:pointer}
 .toggle-label{font-size:.82rem;color:var(--muted);font-weight:600}
+.tx-account{font-size:.68rem;color:var(--muted);background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:4px;padding:.1rem .35rem;white-space:nowrap;margin-top:.15rem;display:inline-block}
+.acc-grid{display:flex;flex-direction:column;gap:.45rem;margin-top:.75rem}
+.acc-card{display:flex;align-items:center;gap:.7rem;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:.6rem .75rem}
+.acc-name{font-size:.88rem;font-weight:600;flex:1}
+.acc-actions{display:flex;gap:.3rem;flex-shrink:0}
 .modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
 .modal-title{font-size:1rem;font-weight:700}
 .modal-x{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer}

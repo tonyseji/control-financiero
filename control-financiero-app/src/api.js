@@ -3,7 +3,7 @@ import { save, normalizeDate, hhmm, uid, STORE } from './utils.js';
 import { toast, setSyncStatus } from './ui.js';
 
 // ─── URL del Apps Script ──────────────────────────────────────────────────────
-export let API_URL = localStorage.getItem('cf_api_url') || '';
+export let API_URL = (localStorage.getItem('cf_api_url') || '').replace(/^"|"$/g, '');
 
 // ─── Sincronización desde Sheets (GET) ───────────────────────────────────────
 export async function syncFromSheets() {
@@ -18,8 +18,13 @@ export async function syncFromSheets() {
       save(STORE.CATS, state.categories);
     }
     if (d.transactions) {
+      // Merge: preservar campos locales (accountId, etc.) que Sheets puede no tener aún
+      const localMap = Object.fromEntries(state.transactions.map(t => [t.id, t]));
       state.transactions = d.transactions.map(t => ({
-        ...t, amount: parseFloat(t.amount) || 0, date: normalizeDate(t.date),
+        ...(localMap[t.id] || {}),
+        ...t,
+        amount: parseFloat(t.amount) || 0,
+        date: normalizeDate(t.date),
       }));
       save(STORE.TX, state.transactions);
     }
@@ -32,7 +37,7 @@ export async function syncFromSheets() {
 }
 
 // ─── Sincronización hacia Sheets (POST) ──────────────────────────────────────
-async function syncToSheets() {
+export async function syncToSheets() {
   if (!API_URL) return;
   setSyncStatus('syncing');
   try {
@@ -66,7 +71,7 @@ export function saveApiUrl() {
     return;
   }
   API_URL = v;
-  save('cf_api_url', API_URL);
+  localStorage.setItem('cf_api_url', v);
   document.getElementById('setupBanner').style.display = 'none';
   toast('URL guardada, conectando…', 'success');
   syncFromSheets();
