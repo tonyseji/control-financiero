@@ -25,7 +25,7 @@
 - Deployment: Web App, Execute as: Me, Access: Anyone
 - POST: `e.parameter.data` = JSON string `{action:'save', transactions:[...], categories:[...]}`
 - GET: devuelve `{transactions:[...], categories:[...]}`
-- Sheet headers TX: `['id','type','amount','date','catId','note']`
+- Sheet headers TX: `['id','type','amount','date','catId','note','accountId']`
 - Sheet headers Cats: `['id','name','type','color']`
 
 ## Tipos de transacción
@@ -165,3 +165,15 @@
       → Gestión de cuentas en vista Categorías (sección inferior)
       → Chip "tx-account" en cada fila de transacción mostrando la cuenta asignada
       → Al eliminar cuenta: aviso si tiene transacciones asociadas
+
+### v10 (aplicada el 2026-03-18)
+- [x] Fix: accountId preservado en ciclos de sync con Google Sheets
+      → Apps Script TX_HEADERS actualizado: incluye 'accountId'
+      → syncFromSheets hace merge por id (preserva campos locales como accountId)
+      → syncToSheets exportada (era función privada — no accesible desde consola)
+      → window.syncToSheets expuesto en main.js para poder llamar desde DevTools
+- [x] Migración histórica: migrar-cuentas.js asigna accountId a 241 TX del Excel
+      → 188 transacciones → acc1 (Cuenta principal)
+      → 39 transacciones → acc2 (Cuenta comun)
+      → Match por date+amount+type+note; fallback a orden de aparición
+      → Script a pegar en consola del navegador (una sola vez)
