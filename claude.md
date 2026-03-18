@@ -17,9 +17,11 @@
 ## Git / GitHub
 - Repo: `https://github.com/tonyseji/control-financiero.git`
 - `main` — monolito v7 estable
-- `vite-migration` — arquitectura modular Vite (activa)
+- `vite-migration` — arquitectura modular Vite (activa) → se despliega automáticamente a GitHub Pages
 - Builds deben ejecutarse desde Git Bash en Windows (`npm run dev`, `npm run build`), no desde la VM
 - La VM puede editar código fuente pero no ejecutar npm (node_modules de Windows no compatibles)
+- GitHub Pages: https://tonyseji.github.io/control-financiero/ (PWA instalable en móvil)
+- Deploy automático: `.github/workflows/deploy.yml` — push a vite-migration → build → deploy
 
 ## Google Apps Script
 - Deployment: Web App, Execute as: Me, Access: Anyone
@@ -165,6 +167,17 @@
       → Gestión de cuentas en vista Categorías (sección inferior)
       → Chip "tx-account" en cada fila de transacción mostrando la cuenta asignada
       → Al eliminar cuenta: aviso si tiene transacciones asociadas
+
+### v11 (aplicada el 2026-03-19)
+- [x] PWA: instalable en móvil como app nativa
+      → manifest.json: name, short_name, icons, orientation, lang, categories
+      → public/sw.js: service worker cache-first para shell, network-only para Google Sheets API
+      → apple-touch-icon.png (180px) para iOS
+      → icon-192.png + icon-512.png generados con Pillow
+      → index.html: <link rel="manifest">, apple meta tags, registro del SW
+      → GitHub Actions: deploy.yml — build Vite + deploy a GitHub Pages en cada push a vite-migration
+      → URL pública: https://tonyseji.github.io/control-financiero/
+      → Entorno github-pages configurado para permitir rama vite-migration
 
 ### v10 (aplicada el 2026-03-18)
 - [x] Fix: accountId preservado en ciclos de sync con Google Sheets
