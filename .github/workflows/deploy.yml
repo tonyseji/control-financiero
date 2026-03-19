@@ -2,7 +2,7 @@ name: Deploy a GitHub Pages
 
 on:
   push:
-    branches: [vite-migration]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
