@@ -130,8 +130,9 @@ export default function Transactions({ onEdit }) {
       {/* ── Header ────────────────────────────────────────────────────────── */}
       <div style={s.header}>
         <div>
-          <p style={s.headerSub}>Historial</p>
+          <p style={s.headerSup}>Movimientos</p>
           <h1 style={s.headerTitle}>{MONTH_NAMES[month - 1]} {year}</h1>
+          {!loading && <p style={s.headerSub}>{filtered.length} movimientos este mes</p>}
         </div>
         <div style={s.navBtns}>
           <button style={s.navBtn} onClick={prevMonth} title="Mes anterior">
@@ -150,13 +151,12 @@ export default function Transactions({ onEdit }) {
       {/* ── Resumen (sobre transacciones FILTRADAS) ────────────────────────── */}
       {!loading && filtered.length > 0 && (
         <div style={s.summary}>
-          <SummaryPill label="Ingresos" value={`+${formatCurrency(income)}`}   color="var(--income)"  bg="var(--income-soft)" />
-          <SummaryPill label="Gastos"   value={`−${formatCurrency(expenses)}`} color="var(--expense)" bg="var(--expense-soft)" />
+          <SummaryPill label="Ingresos" value={`+${formatCurrency(income)}`}   color="var(--income)"  />
+          <SummaryPill label="Gastos"   value={`−${formatCurrency(expenses)}`} color="var(--expense)" />
           <SummaryPill
             label="Balance"
             value={`${balance >= 0 ? '+' : '−'}${formatCurrency(Math.abs(balance))}`}
             color={balance >= 0 ? 'var(--income)' : 'var(--expense)'}
-            bg={balance >= 0 ? 'var(--income-soft)' : 'var(--expense-soft)'}
           />
         </div>
       )}
@@ -277,10 +277,10 @@ export default function Transactions({ onEdit }) {
 
 // ── Subcomponentes ────────────────────────────────────────────────────────────
 
-function SummaryPill({ label, value, color, bg }) {
+function SummaryPill({ label, value, color }) {
   return (
-    <div style={{ ...s.summaryPill, background: bg, border: `1px solid ${color}22` }}>
-      <span style={{ ...s.pillLabel, color: `${color}99` }}>{label}</span>
+    <div style={{ ...s.summaryPill, borderLeft: `3px solid ${color}` }}>
+      <span style={{ ...s.pillLabel, color: 'var(--text-muted)' }}>{label}</span>
       <span style={{ ...s.pillValue, color }} className="num">{value}</span>
     </div>
   )
@@ -346,13 +346,19 @@ const s = {
     justifyContent: 'space-between',
     marginBottom: '1.25rem',
   },
-  headerSub: {
-    fontSize: '0.72rem',
-    color: 'var(--text-muted)',
-    fontWeight: 600,
+  headerSup: {
+    fontSize: '0.67rem',
+    color: 'var(--text-faint)',
+    fontWeight: 700,
     textTransform: 'uppercase',
-    letterSpacing: '0.06em',
+    letterSpacing: '0.08em',
     marginBottom: '0.2rem',
+  },
+  headerSub: {
+    fontSize: '0.78rem',
+    color: 'var(--text-muted)',
+    fontWeight: 400,
+    marginTop: '0.2rem',
   },
   headerTitle: {
     fontSize: '1.6rem',
@@ -380,22 +386,24 @@ const s = {
     flex: '1 1 100px',
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-    padding: '0.75rem 0.75rem',
-    borderRadius: 12,
+    padding: '0.7rem 0.9rem',
+    borderRadius: 'var(--radius-btn)',
     gap: 3,
+    background: 'var(--bg-card)',
+    border: '1px solid var(--border)',
+    borderLeftWidth: 3,
   },
-  pillLabel: { fontSize: '0.63rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', opacity: 0.7 },
+  pillLabel: { fontSize: '0.63rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em' },
   pillValue: { fontSize: '1.05rem', fontWeight: 800, letterSpacing: '-0.02em' },
 
   filterBar: { display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' },
   filterSelect: {
-    background: 'var(--bg-card)',
+    background: 'var(--bg-input)',
     border: '1px solid var(--border)',
-    borderRadius: 8,
+    borderRadius: 'var(--radius-btn)',
     color: 'var(--text)',
     fontSize: '0.82rem',
-    padding: '0.4rem 0.65rem',
+    padding: '0.45rem 0.7rem',
     cursor: 'pointer',
     outline: 'none',
     flex: '1 1 130px',

@@ -7,11 +7,13 @@ import MonthlyChart from '../components/charts/MonthlyChart'
 const MONTH_NAMES  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 const SHORT_MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
 
+const DONUT_PALETTE = ['#3b82f6', '#22c55e', '#f59e0b', '#a855f7', '#06b6d4', '#f43f5e']
+
 const BUDGET_GROUPS = [
-  { catTypes: ['fixed_expense'],    label: 'Fijos',     color: '#6366f1', saving: false },
-  { catTypes: ['variable_expense'], label: 'Variables', color: '#f43f5e', saving: false },
-  { catTypes: ['saving'],           label: 'Ahorro',    color: '#06b6d4', saving: true  },
-  { catTypes: ['investment'],       label: 'Inversión', color: '#10b981', saving: true  },
+  { catTypes: ['fixed_expense'],    label: 'Gastos fijos',    icon: '🏠', color: '#6366f1', saving: false, targetPct: 40 },
+  { catTypes: ['variable_expense'], label: 'Gastos variables', icon: '🛒', color: '#f43f5e', saving: false, targetPct: 25 },
+  { catTypes: ['saving'],           label: 'Ahorro',          icon: '💰', color: '#06b6d4', saving: true,  targetPct: 15 },
+  { catTypes: ['investment'],       label: 'Inversión',       icon: '📊', color: '#10b981', saving: true,  targetPct: 15 },
 ]
 
 function catTypeBadge(catType) {
@@ -241,9 +243,10 @@ export default function Dashboard({ onNavigate = null }) {
 
   const donutData = useMemo(() =>
     Object.entries(byCategory)
-      .map(([name, { total, color }]) => ({ name, value: total, color }))
+      .map(([name, { total }]) => ({ name, value: total }))
       .sort((a, b) => b.value - a.value)
-      .slice(0, 6),
+      .slice(0, 6)
+      .map((item, i) => ({ ...item, color: DONUT_PALETTE[i % DONUT_PALETTE.length] })),
     [byCategory]
   )
 
@@ -301,11 +304,14 @@ export default function Dashboard({ onNavigate = null }) {
   if (loading) return <LoadingSkeleton />
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', paddingBottom: '2rem' }}>
+    <div className="animate-reveal" style={{ maxWidth: 1100, margin: '0 auto', paddingBottom: '2rem' }}>
 
       {/* ── Page header ──────────────────────────────────────────────────── */}
       <div className="ph">
-        <div className="ph-title">Dashboard</div>
+        <div>
+          <div className="ph-title">Dashboard</div>
+          <div className="ph-sub">Resumen financiero · {monthLabel} {year}</div>
+        </div>
         <div className="month-nav">
           <button onClick={prevMonth}>‹</button>
           <div className="month-label">{monthLabel} {year}</div>
@@ -314,30 +320,48 @@ export default function Dashboard({ onNavigate = null }) {
       </div>
 
       {/* ── Stats grid ───────────────────────────────────────────────────── */}
-      <div className="stats-grid">
+      <div className="stats-grid stagger-children">
         <div className="stat-card c-balance">
-          <span className="stat-icon">⚖️</span>
-          <div className="stat-label">Balance</div>
-          <div className={`stat-value num ${balance >= 0 ? 'pos' : 'neg'}`}>{formatCurrency(balance)}</div>
-          <div className="stat-sub">{income > 0 ? `${Math.round(balance / income * 100)}% de ingresos` : '\u00A0'}</div>
+          <div className="kpi-header">
+            <div className="kpi-title">Balance del mes</div>
+            <div className="kpi-icon-badge balance">⚖️</div>
+          </div>
+          <div className={`kpi-value num ${balance >= 0 ? 'pos' : 'neg'}`}>{formatCurrency(balance)}</div>
+          <div className="kpi-sub">{income > 0 ? `${Math.round(balance / income * 100)}% de ingresos` : '\u00A0'}</div>
         </div>
         <div className="stat-card c-income">
-          <span className="stat-icon">📈</span>
-          <div className="stat-label">Ingresos</div>
-          <div className="stat-value pos num">{formatCurrency(income)}</div>
-          <div className="stat-sub">{transactions.filter(t => t.tx_type === 'income').length} movimientos</div>
+          <div className="kpi-header">
+            <div className="kpi-title">Ingresos</div>
+            <div className="kpi-icon-badge income">📈</div>
+          </div>
+          <div className="kpi-value pos num">{formatCurrency(income)}</div>
+          <div className="kpi-sub">{transactions.filter(t => t.tx_type === 'income').length} movimientos</div>
         </div>
         <div className="stat-card c-expense">
-          <span className="stat-icon">📉</span>
-          <div className="stat-label">Gastos</div>
-          <div className="stat-value neg num">{formatCurrency(expense)}</div>
-          <div className="stat-sub">{income > 0 ? `${Math.round(expense / income * 100)}% de ingresos` : '\u00A0'}</div>
+          <div className="kpi-header">
+            <div className="kpi-title">Gastos</div>
+            <div className="kpi-icon-badge expense">📉</div>
+          </div>
+          <div className="kpi-value neg num">{formatCurrency(expense)}</div>
+          {income > 0
+            ? <div className={`kpi-trend ${expense / income > 0.7 ? 'neg' : 'pos'}`}>
+                {expense / income > 0.7 ? '↑' : '↓'} {Math.round(expense / income * 100)}% de ingresos
+              </div>
+            : <div className="kpi-sub">&nbsp;</div>
+          }
         </div>
         <div className="stat-card c-saving">
-          <span className="stat-icon">💧</span>
-          <div className="stat-label">Ahorro / Inv.</div>
-          <div className="stat-value cya num">{formatCurrency(saving)}</div>
-          <div className="stat-sub">{income > 0 ? `Tasa ahorro: ${Math.round(saving / income * 100)}%` : '\u00A0'}</div>
+          <div className="kpi-header">
+            <div className="kpi-title">Ahorro / Inv.</div>
+            <div className="kpi-icon-badge saving">💧</div>
+          </div>
+          <div className="kpi-value cya num">{formatCurrency(saving)}</div>
+          {income > 0
+            ? <div className={`kpi-trend ${saving / income >= 0.15 ? 'pos' : 'neg'}`}>
+                {saving / income >= 0.15 ? '↑' : '↓'} Tasa {Math.round(saving / income * 100)}%
+              </div>
+            : <div className="kpi-sub">&nbsp;</div>
+          }
         </div>
       </div>
 
@@ -349,22 +373,31 @@ export default function Dashboard({ onNavigate = null }) {
         </div>
         <div className="bo-grid">
           {BUDGET_GROUPS.map(g => {
-            const spent   = g.catTypes.reduce((s, ct) => s + (byType[ct] ?? 0), 0)
-            const pctInc  = income > 0 ? Math.min(spent / income * 100, 100) : 0
+            const spent    = g.catTypes.reduce((s, ct) => s + (byType[ct] ?? 0), 0)
+            const pctInc   = income > 0 ? (spent / income) * 100 : 0
+            const barPct   = income > 0 ? Math.min((spent / (income * g.targetPct / 100)) * 100, 100) : 0
+            const isOver   = !g.saving && pctInc > g.targetPct
+            const isWarn   = !g.saving && pctInc >= g.targetPct * 0.8 && !isOver
+            const savOver  = g.saving && pctInc >= g.targetPct
             const barColor = g.saving
-              ? (pctInc >= 15 ? '#22c55e' : pctInc >= 8 ? '#f59e0b' : '#f43f5e')
-              : (pctInc >= 40 ? '#f43f5e' : pctInc >= 28 ? '#f59e0b' : '#22c55e')
+              ? (savOver ? '#22c55e' : pctInc >= g.targetPct * 0.5 ? '#f59e0b' : '#f43f5e')
+              : (isOver  ? '#f43f5e' : isWarn                       ? '#f59e0b' : '#22c55e')
+            const pctCls   = isOver ? 'over' : isWarn ? 'warn' : (savOver ? 'ok' : '')
             return (
-              <div key={g.label}>
-                <div className="bo-label">
-                  {g.label}
-                  <span style={{ color: g.color }}>{formatCurrency(spent)}</span>
+              <div key={g.label} className={`budget-item${isOver ? ' over' : ''}`}>
+                <div className="budget-item-hd">
+                  <div className="budget-item-label">
+                    <span className="budget-item-icon">{g.icon}</span>
+                    <span>{g.label}</span>
+                  </div>
+                  <span className={`budget-item-pct ${pctCls}`}>{Math.round(pctInc)}%</span>
                 </div>
-                <div className="bo-bar-bg">
-                  <div className="bo-bar-fill" style={{ width: `${pctInc}%`, background: barColor }} />
+                <div className="budget-bar-track">
+                  <div className="budget-bar-fill" style={{ width: `${barPct}%`, background: barColor }} />
                 </div>
-                <div className="bo-amounts">
-                  <span>{income > 0 ? `${Math.round(pctInc)}% de ingresos` : '—'}</span>
+                <div className="budget-item-amounts">
+                  <span className="spent">{formatCurrency(spent)}</span>
+                  <span className="target">obj. {g.targetPct}%</span>
                 </div>
               </div>
             )

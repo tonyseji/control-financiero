@@ -99,9 +99,9 @@ export default function AddTransaction({ onSuccess, editTx }) {
       {/* ── Type toggle ──────────────────────────────────────────────────── */}
       {!isEdit && (
         <div style={s.typeToggle}>
-          <TypeButton active={type === 'expense'}  onClick={() => setType('expense')}  label="Gasto"         color="var(--expense)" bg="var(--expense-soft)" />
-          <TypeButton active={type === 'income'}   onClick={() => setType('income')}   label="Ingreso"       color="var(--income)"  bg="var(--income-soft)"  />
-          <TypeButton active={type === 'transfer'} onClick={() => setType('transfer')} label="Transferencia" color="var(--accent)"  bg="var(--accent-soft)"  />
+          <TypeButton active={type === 'expense'}  onClick={() => setType('expense')}  label="Gasto" />
+          <TypeButton active={type === 'income'}   onClick={() => setType('income')}   label="Ingreso" />
+          <TypeButton active={type === 'transfer'} onClick={() => setType('transfer')} label="Transferencia" />
         </div>
       )}
 
@@ -192,7 +192,7 @@ export default function AddTransaction({ onSuccess, editTx }) {
 
         {/* Submit */}
         <button
-          style={{ ...s.submitBtn, background: typeColor, boxShadow: `0 4px 20px ${typeBg}` }}
+          style={{ ...s.submitBtn, background: 'var(--accent)', boxShadow: '0 4px 20px var(--accent-glow)' }}
           type="submit"
           disabled={loading}
         >
@@ -206,7 +206,7 @@ export default function AddTransaction({ onSuccess, editTx }) {
   )
 }
 
-function TypeButton({ active, onClick, label, color, bg }) {
+function TypeButton({ active, onClick, label }) {
   return (
     <button
       type="button"
@@ -214,9 +214,9 @@ function TypeButton({ active, onClick, label, color, bg }) {
       style={{
         ...s.typeBtn,
         ...(active ? {
-          background: 'var(--bg-card)',
-          color,
-          boxShadow: `0 1px 5px rgba(0,0,0,0.5), inset 0 0 0 1px ${color}22`,
+          background: 'var(--accent)',
+          color: '#fff',
+          boxShadow: '0 1px 5px rgba(0,0,0,0.4)',
         } : {}),
       }}
     >
@@ -334,16 +334,16 @@ const s = {
   form: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
   field: { display: 'flex', flexDirection: 'column', gap: '0.35rem' },
   fieldLabel: {
-    fontSize: '0.75rem',
+    fontSize: 'var(--text-sm)',
     color: 'var(--text-muted)',
-    fontWeight: 600,
+    fontWeight: 500,
     letterSpacing: '0.02em',
   },
   input: {
-    background: 'var(--bg-card)',
+    background: 'var(--bg-input)',
     border: '1px solid var(--border)',
-    borderRadius: 'var(--radius-sm)',
-    padding: '0.7rem 0.9rem',
+    borderRadius: 'var(--radius-btn)',
+    padding: '10px 14px',
     color: 'var(--text)',
     fontSize: '0.9rem',
     width: '100%',
