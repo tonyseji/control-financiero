@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useTransactions } from '../hooks/useTransactions'
 import { useAccounts } from '../hooks/useAccounts'
 import { formatCurrency, monthRange } from '../utils/formatters'
-import MonthlyChart from '../components/MonthlyChart'
+import MonthlyChart from '../components/charts/MonthlyChart'
 
 const MONTH_NAMES  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 const SHORT_MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { signOut, requestPasswordReset } from '../services/auth'
-import { supabase } from '../supabase'
+import { supabase } from '../services/supabase'
 
 const CURRENCIES = ['EUR', 'USD', 'GBP']
 

@@ -1,4 +1,4 @@
-import { supabase } from '../supabase'
+import { supabase } from './supabase'
 
 export async function getActiveBudgets() {
   const today = new Date().toISOString().slice(0, 10)

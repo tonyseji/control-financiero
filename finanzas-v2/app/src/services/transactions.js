@@ -1,4 +1,4 @@
-import { supabase } from '../supabase'
+import { supabase } from './supabase'
 
 export async function getTransactions({ from, to } = {}) {
   let query = supabase

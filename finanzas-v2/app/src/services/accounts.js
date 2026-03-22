@@ -1,4 +1,4 @@
-import { supabase, getAuthUserId } from '../supabase'
+import { supabase, getAuthUserId } from './supabase'
 
 export async function getAccounts() {
   const { data, error } = await supabase

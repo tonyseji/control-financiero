@@ -1,4 +1,4 @@
-import { supabase, getAuthUserId } from '../supabase'
+import { supabase, getAuthUserId } from './supabase'
 import { createTransaction } from './transactions'
 
 export async function getRecurring() {

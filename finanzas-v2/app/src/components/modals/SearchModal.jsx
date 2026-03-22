@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { getTransactions } from '../services/transactions'
+import { getTransactions } from '../../services/transactions'
 
 const TYPE_OPTIONS = [
   { value: '',         label: 'Todos los tipos' },

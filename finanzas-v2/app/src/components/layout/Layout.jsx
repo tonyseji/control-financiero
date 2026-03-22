@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { signOut } from '../services/auth'
-import SearchModal from './SearchModal'
+import { signOut } from '../../services/auth'
+import SearchModal from '../modals/SearchModal'
 
 const NAV_ITEMS = [
   { key: 'dashboard',    label: 'Inicio',       icon: IconHome },
