@@ -267,14 +267,21 @@ Ver `docs/progress.md` para el log detallado.
 - [x] Roles: `prof_role` + `prof_is_active` + funciones `is_admin()` / `is_staging()` / `is_valid_user()`
 - [x] Auth completa: Google OAuth + Email/Password + recuperación de contraseña
 - [x] Scaffolding frontend completo: services/, hooks/, utils/
-- [x] Entornos: staging + producción con archivos `.env.*` y documentación
+- [x] Entornos: staging configurado y operativo (`gestor-financiero` en Supabase)
 - [x] Seguridad staging: 4 capas (auth-hook Edge Function + trigger + frontend + RLS)
-- [ ] Crear proyectos en Supabase (staging primero), ejecutar SQL, configurar auth y hooks
-- [ ] Inicializar proyecto Vite: `package.json`, `vite.config.js`, `npm install`
-- [ ] Login funcional (Google + email)
-- [ ] CRUD básico de transacciones
-- [ ] Input por voz
-- [ ] Foto de ticket con IA (Edge Function)
+- [x] Proyecto Vite inicializado, npm install, npm run dev funcional
+- [x] Login funcional (Google OAuth + Email/Password) ✓
+- [x] CRUD completo: cuentas, categorías (con jerarquía), transacciones (crear/editar/eliminar), transferencias
+- [x] Dashboard con métricas, gráfica evolución (6M/Año), resumen anual, top categorías
+- [x] Transacciones recurrentes con auto-generación al arrancar
+- [x] Búsqueda global (SearchModal), filtros por mes/tipo/cuenta/texto
+- [x] Presupuesto por tipo de categoría con semáforo (Budget.jsx)
+- [x] UI v12 — paleta azul v1, Inter font, sistema CSS reutilizable con clases v1
+- [x] Seguridad git: `.gitignore` multicapa, sin credenciales en el repo
+- [ ] Validar UI v12 en navegador (commit pendiente)
+- [ ] Input por voz (Web Speech API)
+- [ ] Foto de ticket con IA (Edge Function `receipt-ocr` + Claude Vision)
+- [ ] Proyecto producción en Supabase (cuando staging esté validado)
 
 ---
 

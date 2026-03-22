@@ -438,3 +438,137 @@ Todos los services que hacen INSERT deben inyectar el `user_id` desde la sesión
 **Próximos pasos:**
 - [ ] Input por voz — Web Speech API en AddTransaction
 - [ ] Foto de ticket — Edge Function + Claude Vision
+
+---
+
+## 2026-03-22 — Rediseño UI v12: paleta v1 + panel central completo
+
+### Sistema de diseño — paleta azul v1 restaurada
+
+**Contexto:** Tony prefiere el estilo azulado oscuro de v1 (`control-financiero-app`) sobre el "neutral dark premium". Se revierte la paleta y se adopta la estética v1 como base definitiva.
+
+**`app/src/styles/main.css` — variables CSS v12:**
+- Paleta: `--bg: #0f1117` / `--bg-card: #161b2e` / `--bg-hover: #1e2440` / `--bg-layer2: #252c4a`
+- Bordes azulados: `--border: #2e3558` / `--border-soft: #1e2440`
+- Tipografía: Inter (Google Fonts) como `--font`; escala completa `--text-xs` → `--text-3xl`; pesos `--fw-normal` → `--fw-black`
+- Radios: `--radius: 14px` / `--radius-sm: 10px` / `--radius-lg: 20px`
+- Añadidas todas las clases CSS v1 reutilizables al final del archivo:
+  - `.ph` / `.ph-title` / `.month-nav` / `.month-label`
+  - `.stats-grid` / `.stat-card.c-balance/.c-income/.c-expense/.c-saving` con barra top 3px gradiente (`::before`)
+  - `.stat-icon` / `.stat-label` / `.stat-value.pos/.neg/.cya` / `.stat-sub`
+  - `.budget-overview` / `.bo-header` / `.bo-title` / `.bo-grid` / `.bo-label` / `.bo-bar-bg` / `.bo-bar-fill` / `.bo-amounts`
+  - `.charts-grid` / `.chart-card` / `.chart-title` / `.chart-wrap`
+  - `.sh` / `.sh-title`
+  - `.tx-list` / `.tx-item` / `.tx-dot` / `.tx-info` / `.tx-cat` / `.tx-note` / `.tx-account` / `.tx-meta` / `.tx-date`
+  - `.tx-type-badge.gf/.gv/.ing/.aho/.inv`
+  - `.tx-amount.income/.expense`
+  - `.tx-actions` / `.btn-sm` (con `.btn-sm.del`) / `.btn-hdr`
+  - `.date-header` / `.date-header-line` / `.date-header-label` / `.date-header-total.pos/.neg/.neu`
+  - `.empty-state` / `.ei`
+  - `.tx-row-hover` (hover activa fondo + borde) / `.tx-actions-reveal` (opacity 0→1 en hover)
+
+**`app/index.html`:** añadido Inter desde Google Fonts (preconnect + stylesheet)
+
+### Layout.jsx — glassmorphism v1
+
+- Sidebar: `background: rgba(22,27,46,0.97)` + `backdropFilter: blur(12px)`
+- Bottom nav: mismo tratamiento glassmorphism
+- Item activo: `background: var(--bg-hover)` + barra vertical 3px accent a la izquierda
+- Logo: 34px, `borderRadius: 10`, borde con `var(--accent-glow)`
+- Padding main content: `1.5rem 2rem`
+
+### Dashboard.jsx — reescrito completo (panel central v1)
+
+- **Constantes:** `BUDGET_GROUPS` (4 grupos: fixed_expense→Fijos, variable_expense→Variables, saving→Ahorro, investment→Inversión)
+- **`catTypeBadge(catType)`** — mapea `cat_type` a `{cls, label}` para badges
+- **`DonutChart`** — SVG personalizado; fallback de color `'#2e3558'` (hex, no var()) para que SVG `fill` funcione
+- **`TxRow`** — usa clases CSS v1: `.tx-item`, `.tx-dot`, `.tx-info`, `.tx-cat`, `.tx-note`, `.tx-account`, `.tx-meta`, `.tx-type-badge`, `.tx-amount.income/.expense`, `.tx-actions` + `.btn-sm`
+- **`DateGroup`** — usa `.date-header` / `.date-header-line` / `.date-header-label` / `.date-header-total`
+- **`LoadingSkeleton`** — usa `.stats-grid` y `.charts-grid`
+- **Separación de loading states:** `loading = txLoading || accLoading` (sin chartLoading); `chartLoading` solo muestra skeleton local en el chart para no recargar la página entera al cambiar 6M/Año
+- **Métricas:** `byType` agrupado por `tx.categories?.cat_type` para las barras de presupuesto
+- **Barras de presupuesto:** semáforo por tipo (saving: rojo→amarillo→verde; expense: verde→amarillo→rojo)
+- **Toggle gráfica:** 6M / Año con navegación de año independiente (`chartY`)
+- **Resumen anual:** 3 tarjetas (ingresos totales, gastos totales, balance anual) que aparecen solo en modo Año
+- **Últimas transacciones:** 8 movimientos, agrupados por fecha con `DateGroup`
+
+### Transactions.jsx — alineado con estilo v1
+
+- **`catTypeBadge(catType)`** — mismo mapeo que Dashboard
+- **`TxRow`** reescrito con clases CSS v1 (idéntico al de Dashboard, incluyendo `.btn-sm` para editar/eliminar)
+- **Cabeceras de fecha** usan `.date-header` / `.date-header-line` / `.date-header-label` / `.date-header-total`
+- **Wrapper:** `div.tx-list` alrededor de todos los grupos
+- **Empty state:** usa `.empty-state` / `.ei`
+- **Eliminados:** ~150 líneas de estilos inline (txRow, txCatIcon, txInfo, txNote, txMeta, txRight, txAmount, txActions, group, groupHeader, groupDate, groupNet, groupBody, emptyState, emptyIcon, emptyText, emptyHint, loadingGroup, actionBtn, actionBtnDelete)
+- **Conservados inline:** header, summary pills, barra de filtros — son específicos de esta vista
+
+### Bugs corregidos en la sesión
+
+| Bug | Fix |
+|---|---|
+| DonutChart sin colores | Fallback `'#2e3558'` (hex) en vez de `'var(--border)'` — SVG `fill` no resuelve CSS custom properties |
+| Toggle 6M/Año recarga página | `chartLoading` eliminado de `loading`; solo afecta al skeleton local del chart |
+| Barras presupuesto por categoría | Añadido `byType` agrupado por `cat_type`; `BUDGET_GROUPS` usa `catTypes` para sumar |
+| Sección cuentas enorme | Reemplazada por `accountGrid` compacto con `minmax(180px, 1fr)` |
+
+**Archivos modificados:**
+- `app/index.html`
+- `app/src/styles/main.css`
+- `app/src/components/Layout.jsx`
+- `app/src/views/Dashboard.jsx` (reescrito completo)
+- `app/src/views/Transactions.jsx` (TxRow + DateGroup + EmptyState migrados a v1 CSS)
+- `app/src/views/AddTransaction.jsx` (segmented control type toggle + campo importe hero)
+
+**Próximos pasos:**
+- [ ] Input por voz — Web Speech API en AddTransaction
+- [ ] Foto de ticket — Edge Function + Claude Vision
+- [ ] Validar en navegador todos los cambios de esta sesión
+
+---
+
+## 2026-03-22 — Fixes de código + seguridad git + commits
+
+### Fixes aplicados (Claude Code)
+
+**`Accounts.jsx` — último hex hardcodeado:**
+- Línea 69: `color: acc.acc_current_balance >= 0 ? '#4ade80' : '#f87171'`  →  `'var(--income)' : 'var(--expense)'`
+- Ahora todos los colores de la app usan design tokens CSS, zero hex hardcoded
+
+**`Dashboard.jsx` — resumen anual (Fase 4):**
+- `useMemo` `annualSummary` calculado cuando `chartMode === 'year'`
+- 3 tarjetas debajo del gráfico en modo Año: Ingresos totales (+ media mensual), Gastos totales (+ % sobre ingresos), Balance anual (positivo / déficit)
+- Se ocultan automáticamente al volver al modo 6M
+- Estilos añadidos: `annualGrid`, `annualCard`, `annualDot`, `annualLabel`, `annualValue`, `annualSub`
+
+**`Transactions.jsx` — búsqueda por texto:**
+- Estado `filterText` + input de búsqueda en la barra de filtros
+- Filtra en tiempo real por `tx_notes` y `categories.cat_name`
+- `clearFilters()` resetea también `filterText`
+
+### Seguridad git
+
+- **`finanzas-v2/.gitignore`** — creado: excluye `supabase/.temp/`, `app/.env.staging`, `app/.env.production`, `app/.env.local`
+- **`control-financiero-app/.gitignore`** — creado: excluye `.vite/` (caché Vite, solo Windows)
+- Auditoría realizada antes de cada commit: ningún `.env.*` con valores reales en el índice git
+
+### Commits realizados
+
+1. `feat: añadir finanzas-v2 — app React + Supabase con UI completa`
+   - Todo `finanzas-v2/` (frontend + backend schema + docs), incluyendo `.gitignore` de seguridad
+2. `chore: mover legacy a carpeta legacy/ + excluir .vite/ de control-financiero-app`
+   - `apps-script-code.js` y `control-financiero.html` movidos a `legacy/` (git rm + git add)
+   - `.vite/` excluido mediante `.gitignore`
+
+### Herramienta de diseño revisada
+
+- Evaluado `southleft/figma-console-mcp` (MCP para ejecutar código en Figma Console)
+- Conclusión: interesante para automatización avanzada de Figma, pero no prioritario ahora mismo
+
+**Estado del roadmap tras esta sesión:**
+- Fase 0 ✅ · Fase 1 ✅ · Fase 2 ✅ · Fase 3 ✅ · Fase 4 ✅ (parcial — auto-recurrentes ✅, búsqueda ✅, chart ✅, budget ✅)
+- UI v12 subida a GitHub y lista para validar en navegador
+
+**Próximos pasos:**
+- [ ] Validar UI v12 en navegador (commit pendiente de los cambios de Cowork)
+- [ ] Input por voz — `useVoiceInput.js` (Web Speech API) + botón micrófono en AddTransaction
+- [ ] Foto de ticket — Edge Function `receipt-ocr` + Claude Vision + botón cámara en AddTransaction

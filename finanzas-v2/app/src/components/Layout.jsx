@@ -197,11 +197,13 @@ const s = {
   // Sidebar
   sidebar: {
     width: 'var(--sidebar-w)',
-    background: 'var(--bg-card)',
+    background: 'rgba(22,27,46,0.97)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
     borderRight: '1px solid var(--border)',
     display: 'flex',
     flexDirection: 'column',
-    padding: '1.25rem 0 1rem',
+    padding: '1.5rem 0 1rem',
     position: 'fixed',
     top: 0,
     left: 0,
@@ -218,11 +220,11 @@ const s = {
     marginBottom: '1.75rem',
   },
   logoMark: {
-    width: 32,
-    height: 32,
+    width: 34,
+    height: 34,
     background: 'var(--accent-soft)',
-    border: '1px solid rgba(79,145,255,0.25)',
-    borderRadius: 8,
+    border: '1px solid var(--accent-glow)',
+    borderRadius: 10,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -255,8 +257,8 @@ const s = {
     position: 'relative',
     display: 'flex',
     alignItems: 'center',
-    gap: '0.6rem',
-    padding: '0.55rem 0.75rem',
+    gap: '0.65rem',
+    padding: '0.6rem 0.875rem',
     borderRadius: 'var(--radius-sm)',
     border: 'none',
     background: 'none',
@@ -269,8 +271,8 @@ const s = {
     transition: 'background var(--transition), color var(--transition)',
   },
   navItemActive: {
-    background: 'var(--accent-soft)',
-    color: 'var(--accent)',
+    background: 'var(--bg-hover)',
+    color: 'var(--text)',
   },
   navActiveBar: {
     position: 'absolute',
@@ -294,7 +296,7 @@ const s = {
     fontSize: '0.875rem',
     color: 'inherit',
   },
-  navTextActive: { color: 'var(--accent)', fontWeight: 600 },
+  navTextActive: { color: 'var(--text)', fontWeight: 700 },
 
   // Divider
   divider: {
@@ -379,7 +381,9 @@ const s = {
     bottom: 0,
     left: 0,
     right: 0,
-    background: 'var(--bg-card)',
+    background: 'rgba(22,27,46,0.97)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
     borderTop: '1px solid var(--border)',
     flexDirection: 'row',
     zIndex: 100,

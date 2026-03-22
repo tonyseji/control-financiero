@@ -213,7 +213,11 @@ function TypeButton({ active, onClick, label, color, bg }) {
       onClick={onClick}
       style={{
         ...s.typeBtn,
-        ...(active ? { background: bg, color, borderColor: `${color}33` } : {}),
+        ...(active ? {
+          background: 'var(--bg-card)',
+          color,
+          boxShadow: `0 1px 5px rgba(0,0,0,0.5), inset 0 0 0 1px ${color}22`,
+        } : {}),
       }}
     >
       {label}
@@ -253,72 +257,77 @@ const s = {
     letterSpacing: '-0.03em',
   },
 
-  // Type toggle
+  // Type toggle — segmented control
   typeToggle: {
     display: 'flex',
-    gap: '0.4rem',
-    background: 'var(--bg-card)',
+    gap: 0,
+    background: 'var(--bg)',
     border: '1px solid var(--border)',
-    borderRadius: 10,
-    padding: '0.3rem',
+    borderRadius: 12,
+    padding: '3px',
     marginBottom: '1.5rem',
   },
   typeBtn: {
     flex: 1,
-    padding: '0.55rem 0.5rem',
-    borderRadius: 7,
-    border: '1px solid transparent',
+    padding: '0.6rem 0.5rem',
+    borderRadius: 9,
+    border: 'none',
     background: 'none',
     color: 'var(--text-muted)',
     fontWeight: 600,
     cursor: 'pointer',
-    fontSize: '0.82rem',
-    transition: 'all var(--transition)',
+    fontSize: '0.85rem',
+    transition: 'all 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
     fontFamily: 'inherit',
+    letterSpacing: '-0.01em',
   },
 
-  // Amount field
+  // Amount field — hero input centrado
   amountWrap: {
     background: 'var(--bg-card)',
     border: '1px solid var(--border)',
     borderRadius: 'var(--radius)',
-    padding: '1rem 1.25rem',
+    padding: '1.5rem 1.5rem 1.25rem',
     marginBottom: '0.25rem',
+    textAlign: 'center',
   },
   amountLabel: {
-    fontSize: '0.72rem',
+    fontSize: '0.68rem',
     color: 'var(--text-faint)',
     fontWeight: 600,
     textTransform: 'uppercase',
-    letterSpacing: '0.06em',
+    letterSpacing: '0.09em',
     display: 'block',
-    marginBottom: '0.5rem',
+    marginBottom: '0.875rem',
   },
   amountInputWrap: {
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'baseline',
+    justifyContent: 'center',
     gap: '0.25rem',
   },
   amountCurrency: {
-    fontSize: '1.25rem',
+    fontSize: '1.75rem',
     fontWeight: 700,
-    letterSpacing: '-0.02em',
+    letterSpacing: '-0.03em',
     lineHeight: 1,
     userSelect: 'none',
     color: 'var(--text-muted)',
+    paddingBottom: '0.1em',
   },
   amountInput: {
-    flex: 1,
     background: 'none',
     border: 'none',
     color: 'var(--text)',
-    fontSize: '1.25rem',
-    fontWeight: 700,
-    letterSpacing: '-0.02em',
+    fontSize: '2.75rem',
+    fontWeight: 800,
+    letterSpacing: '-0.04em',
     padding: 0,
     outline: 'none',
-    width: '100%',
+    width: '180px',
     fontFamily: 'inherit',
+    textAlign: 'center',
+    caretColor: 'var(--accent)',
   },
 
   // Regular fields
