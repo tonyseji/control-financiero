@@ -1,0 +1,7 @@
+# Supabase CLI temporales
+supabase/.temp/
+
+# Variables de entorno con valores reales
+app/.env.local
+app/.env.staging
+app/.env.production
