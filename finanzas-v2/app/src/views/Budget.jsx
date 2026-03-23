@@ -283,50 +283,63 @@ function CategoryBudgets({ budgets, categories, transactions, onSave, onDelete }
         <p style={s.empty}>No hay presupuestos por categoría. Añade uno para hacer seguimiento.</p>
       )}
 
-      {budgets.map(bud => {
-        const spent   = spentByCat[bud.bud_cat_id] ?? 0
-        const usedPct = bud.bud_amount > 0 ? Math.min(Math.round((spent / bud.bud_amount) * 100), 100) : 0
-        const color   = barColor(usedPct)
-        return (
-          <BudgetRow
-            key={bud.bud_id}
-            bud={bud}
-            spent={spent}
-            usedPct={usedPct}
-            color={color}
-            onDelete={onDelete}
-          />
-        )
-      })}
+      <div className="cat-budget-grid">
+        {budgets.map(bud => {
+          const spent   = spentByCat[bud.bud_cat_id] ?? 0
+          const usedPct = bud.bud_amount > 0 ? Math.min(Math.round((spent / bud.bud_amount) * 100), 100) : 0
+          const color   = barColor(usedPct)
+          return (
+            <BudgetRow
+              key={bud.bud_id}
+              bud={bud}
+              spent={spent}
+              usedPct={usedPct}
+              color={color}
+              onDelete={onDelete}
+            />
+          )
+        })}
+      </div>
     </section>
   )
 }
 
 function BudgetRow({ bud, spent, usedPct, color, onDelete }) {
   const [confirming, setConfirming] = useState(false)
-  const catName = bud.categories?.cat_name ?? '—'
+  const catName  = bud.categories?.cat_name ?? '—'
+  const isOver   = usedPct >= 100
+  const isWarn   = usedPct >= 80 && !isOver
+  const pctCls   = isOver ? 'over' : isWarn ? 'warn' : 'ok'
+  const remaining = bud.bud_amount - spent
 
   return (
-    <div style={s.budgetRow}>
-      <div style={s.budgetTop}>
-        <span style={s.budgetCatName}>{catName}</span>
-        <div style={s.budgetRight}>
-          <span style={s.budgetAmounts}>
-            <span style={{ color }}>{formatCurrency(spent)}</span>
-            <span style={s.budgetLimit}> / {formatCurrency(bud.bud_amount)}</span>
-          </span>
+    <div className={`cat-budget-card${isOver ? ' over-budget' : ''}`}>
+      <div className="cat-budget-card-hd">
+        <span className="cat-budget-card-name">{catName}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span className={`cat-budget-card-pct ${pctCls}`}>{usedPct}%</span>
           <button
-            style={{ ...s.deleteBtn, ...(confirming ? s.deleteBtnConfirm : {}) }}
+            className="cat-budget-card-del"
             onClick={() => confirming ? onDelete(bud.bud_id) : setConfirming(true)}
+            title={confirming ? 'Confirmar eliminación' : 'Eliminar presupuesto'}
           >
-            {confirming ? '¿Seguro?' : '×'}
+            {confirming ? '✓' : '×'}
           </button>
         </div>
       </div>
-      <div style={s.barTrack}>
-        <div style={{ ...s.barFill, width: `${usedPct}%`, background: color }} />
+      <div className="cat-budget-card-bar-track">
+        <div className="cat-budget-card-bar-fill" style={{ width: `${usedPct}%`, background: color }} />
       </div>
-      <span style={{ ...s.barPct, color }}>{usedPct}%</span>
+      <div className="cat-budget-card-amounts">
+        <span className="cat-budget-card-spent">{formatCurrency(spent)}</span>
+        <span className="cat-budget-card-limit">de {formatCurrency(bud.bud_amount)}</span>
+      </div>
+      <div className={`cat-budget-card-footer ${isOver ? 'over' : 'avail'}`}>
+        {isOver
+          ? `Excedido en ${formatCurrency(Math.abs(remaining))}`
+          : `Disponible: ${formatCurrency(remaining)}`
+        }
+      </div>
     </div>
   )
 }
@@ -363,7 +376,7 @@ const s = {
   label: { display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.8rem', color: '#888', fontWeight: 500 },
   input: { background: '#111', border: '1px solid #2a2a2a', borderRadius: 8, padding: '0.6rem 0.8rem', color: '#fff', fontSize: '0.9rem', outline: 'none' },
 
-  overviewRow:    { marginBottom: '1rem' },
+  overviewRow:    { marginBottom: '20px' },
   overviewTop:    { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.4rem' },
   overviewLabel:  { fontSize: '0.88rem', color: '#ccc', fontWeight: 500 },
   overviewAmounts:{ fontSize: '0.88rem', fontWeight: 600 },

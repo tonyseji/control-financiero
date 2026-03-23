@@ -243,7 +243,7 @@ const s = {
   },
 
   title: {
-    fontSize: '1.35rem',
+    fontSize: '1.6rem',
     fontWeight: 800,
     color: 'var(--text)',
     textAlign: 'center',

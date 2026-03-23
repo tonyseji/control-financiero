@@ -326,15 +326,17 @@ export default function Dashboard({ onNavigate = null }) {
             <div className="kpi-title">Balance del mes</div>
             <div className="kpi-icon-badge balance">⚖️</div>
           </div>
-          <div className={`kpi-value num ${balance >= 0 ? 'pos' : 'neg'}`}>{formatCurrency(balance)}</div>
-          <div className="kpi-sub">{income > 0 ? `${Math.round(balance / income * 100)}% de ingresos` : '\u00A0'}</div>
+          <div className="kpi-value num">{formatCurrency(balance)}</div>
+          <div className={`kpi-trend ${balance >= 0 ? 'pos' : 'neg'}`}>
+            {balance >= 0 ? '↑' : '↓'} {income > 0 ? `${Math.round(balance / income * 100)}% de ingresos` : '—'}
+          </div>
         </div>
         <div className="stat-card c-income">
           <div className="kpi-header">
             <div className="kpi-title">Ingresos</div>
             <div className="kpi-icon-badge income">📈</div>
           </div>
-          <div className="kpi-value pos num">{formatCurrency(income)}</div>
+          <div className="kpi-value num">{formatCurrency(income)}</div>
           <div className="kpi-sub">{transactions.filter(t => t.tx_type === 'income').length} movimientos</div>
         </div>
         <div className="stat-card c-expense">
@@ -342,7 +344,7 @@ export default function Dashboard({ onNavigate = null }) {
             <div className="kpi-title">Gastos</div>
             <div className="kpi-icon-badge expense">📉</div>
           </div>
-          <div className="kpi-value neg num">{formatCurrency(expense)}</div>
+          <div className="kpi-value num">{formatCurrency(expense)}</div>
           {income > 0
             ? <div className={`kpi-trend ${expense / income > 0.7 ? 'neg' : 'pos'}`}>
                 {expense / income > 0.7 ? '↑' : '↓'} {Math.round(expense / income * 100)}% de ingresos
@@ -355,7 +357,7 @@ export default function Dashboard({ onNavigate = null }) {
             <div className="kpi-title">Ahorro / Inv.</div>
             <div className="kpi-icon-badge saving">💧</div>
           </div>
-          <div className="kpi-value cya num">{formatCurrency(saving)}</div>
+          <div className="kpi-value num">{formatCurrency(saving)}</div>
           {income > 0
             ? <div className={`kpi-trend ${saving / income >= 0.15 ? 'pos' : 'neg'}`}>
                 {saving / income >= 0.15 ? '↑' : '↓'} Tasa {Math.round(saving / income * 100)}%

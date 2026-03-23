@@ -403,7 +403,7 @@ const s = {
     borderRadius: 'var(--radius-btn)',
     color: 'var(--text)',
     fontSize: '0.82rem',
-    padding: '0.45rem 0.7rem',
+    padding: '8px 12px',
     cursor: 'pointer',
     outline: 'none',
     flex: '1 1 130px',
