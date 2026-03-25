@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(grep -r components/Layout --include=*.js --include=*.jsx -l)",
-      "Bash(grep -r components/MonthlyChart --include=*.js --include=*.jsx -l)",
-      "Bash(grep -r components/SearchModal --include=*.js --include=*.jsx -l)"
-    ]
-  }
-}

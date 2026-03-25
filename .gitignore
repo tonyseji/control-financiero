@@ -19,3 +19,13 @@ npm-debug.log*
 
 # Excel temporal (el original sí se sube como referencia)
 ~$*.xlsx
+
+# Claude Code settings (locales)
+.claude/settings.local.json
+.claude/settings.json
+
+# Archivos temporales
+80
+Leerlo
+div
+finanzas-v2/app/Para
