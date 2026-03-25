@@ -5,3 +5,6 @@ supabase/.temp/
 app/.env.local
 app/.env.staging
 app/.env.production
+
+# Claude Code worktrees (temporales, no son parte del proyecto)
+.claude/worktrees/
