@@ -6,6 +6,28 @@ Historial completo: `docs/progress-archive.md`
 
 ---
 
+## 2026-03-25 — Limpieza y verificación tab Transferencia
+
+**Limpieza:**
+- Eliminados 4 archivos vacíos creados por error: `80`, `Leerlo`, `div`, `finanzas-v2/app/Para`
+- Añadidos al `.gitignore`: archivos vacíos + `.claude/settings*.json`
+- Worktree colgado `cool-margulis` pendiente de eliminar (directorio bloqueado por VS Code — cerrar el archivo abierto y ejecutar `git worktree prune`)
+
+**Tab Transferencia:**
+- Verificado: ya estaba implementado completamente en `AddTransaction.jsx` (v anterior)
+- 3 tabs: Gasto / Ingreso / Transferencia (oculto en modo edición)
+- Transferencia crea 2 filas enlazadas por `tx_transfer_pair_id` via `addTransfer()` en service
+- Validación: origen ≠ destino, cuenta destino requerida
+
+### Próximos pasos
+
+- [ ] Cerrar VS Code para poder ejecutar `git worktree prune` y limpiar `cool-margulis`
+- [ ] Input por voz — `useVoiceInput.js` (Web Speech API) + botón micrófono en `AddTransaction.jsx`
+- [ ] Foto de ticket — Edge Function `receipt-ocr` (Claude Vision) + botón cámara en `AddTransaction.jsx`
+- [ ] Validar app en navegador (staging) antes de añadir Fase 5
+
+---
+
 ## 2026-03-23 — Design system light mode + 6 features
 
 **Design system:**
