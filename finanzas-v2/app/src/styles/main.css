@@ -1,55 +1,55 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 /* ── Variables ───────────────────────────────────────────────────────────────── */
 :root {
-  /* Fondos — azul oscuro profundo (estilo v1) */
-  --bg:           #0f1117;
-  --bg-card:      #161b2e;
-  --bg-hover:     #1e2440;
-  --bg-input:     #161b2e;
-  --bg-layer2:    #252c4a;
+  /* Fondos — light mode (estilo lovable) */
+  --bg:           #f8fafc;
+  --bg-card:      #ffffff;
+  --bg-hover:     #f1f5f9;
+  --bg-input:     #f8fafc;
+  --bg-layer2:    #e2e8f0;
 
   /* Bordes */
-  --border:       #2e3558;
-  --border-soft:  #1e2440;
+  --border:       #c8d3e0;
+  --border-soft:  #e2e8f0;
 
   /* Texto */
-  --text:         #e8edf8;
-  --text-muted:   #7b83a6;
-  --text-faint:   #3d4570;
+  --text:         #0f172a;
+  --text-muted:   #64748b;
+  --text-faint:   #94a3b8;
 
   /* Acento principal */
   --accent:       #3b82f6;
-  --accent-soft:  rgba(59, 130, 246, 0.12);
-  --accent-glow:  rgba(59, 130, 246, 0.3);
+  --accent-soft:  rgba(59, 130, 246, 0.08);
+  --accent-glow:  rgba(59, 130, 246, 0.2);
 
   /* Semántica */
-  --income:       #22c55e;
-  --income-soft:  rgba(34, 197, 94, 0.12);
-  --expense:      #f43f5e;
-  --expense-soft: rgba(244, 63, 94, 0.12);
-  --warning:      #f59e0b;
+  --income:       #16a34a;
+  --income-soft:  rgba(22, 163, 74, 0.10);
+  --expense:      #dc2626;
+  --expense-soft: rgba(220, 38, 38, 0.10);
+  --warning:      #d97706;
 
   /* Colores adicionales */
-  --cyan:         #06b6d4;
-  --cyan-soft:    rgba(6, 182, 212, 0.12);
-  --purple:       #a855f7;
-  --purple-soft:  rgba(168, 85, 247, 0.12);
-  --yellow:       #f59e0b;
-  --yellow-soft:  rgba(245, 158, 11, 0.12);
+  --cyan:         #0891b2;
+  --cyan-soft:    rgba(8, 145, 178, 0.10);
+  --purple:       #9333ea;
+  --purple-soft:  rgba(147, 51, 234, 0.10);
+  --yellow:       #d97706;
+  --yellow-soft:  rgba(217, 119, 6, 0.10);
 
   /* Tipografía */
-  --font:         'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font:         'Inter', system-ui, -apple-system, sans-serif;
 
   /* Escala tipográfica */
-  --text-xs:      0.70rem;   /* 11.2px — badges, metadata */
-  --text-sm:      0.80rem;   /* 12.8px — labels secundarios */
-  --text-base:    0.875rem;  /* 14px   — cuerpo */
-  --text-md:      1rem;      /* 16px   — valores medianos */
-  --text-lg:      1.125rem;  /* 18px   — subtítulos */
-  --text-xl:      1.375rem;  /* 22px   — títulos de sección */
-  --text-2xl:     1.75rem;   /* 28px   — cifras hero */
-  --text-3xl:     2.25rem;   /* 36px   — cifra principal */
+  --text-xs:      0.70rem;
+  --text-sm:      0.80rem;
+  --text-base:    0.875rem;
+  --text-md:      1rem;
+  --text-lg:      1.125rem;
+  --text-xl:      1.375rem;
+  --text-2xl:     1.75rem;
+  --text-3xl:     2.25rem;
 
   /* Pesos */
   --fw-normal:    400;
@@ -70,22 +70,60 @@
   --radius-badge:   6px;
   --radius-pill:   99px;
 
-  /* Sombras */
-  --shadow:        0 2px 8px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.3);
-  --shadow-card:   0 1px 2px rgba(0,0,0,0.45), 0 3px 12px rgba(0,0,0,0.3);
+  /* Sombras — suaves para light mode */
+  --shadow:        0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-card:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
   --shadow-glow:   0 0 0 1px var(--accent), 0 4px 20px var(--accent-glow);
 
   /* Layout */
   --sidebar-w:    232px;
   --transition:   0.15s ease;
 
-  /* Tipografía semántica (adaptada a dark mode) */
-  --t-display:    1.75rem;    /* 28px  — cifras hero */
-  --t-title:      1rem;       /* 16px  — títulos de card */
-  --t-body:       0.875rem;   /* 14px  — cuerpo */
-  --t-sm:         0.8125rem;  /* 13px  — secundario */
-  --t-caption:    0.75rem;    /* 12px  — labels, captions */
-  --t-overline:   0.6875rem;  /* 11px  — uppercase muted */
+  /* Tipografía semántica — escala lovable */
+  --t-display:    2rem;       /* 32px — display,  lh 1.15, ls -0.025em, fw 700 */
+  --t-headline:   1.5rem;     /* 24px — headline, lh 1.2,  ls -0.02em,  fw 600 */
+  --t-title:      1.125rem;   /* 18px — title,    lh 1.35, ls -0.01em,  fw 600 */
+  --t-body:       0.875rem;   /* 14px — body,     lh 1.5,  fw 400 */
+  --t-sm:         0.8125rem;  /* 13px — sm */
+  --t-caption:    0.75rem;    /* 12px — caption,  lh 1.5,  fw 500 */
+  --t-overline:   0.6875rem;  /* 11px — overline, lh 1.4,  ls 0.04em,  fw 600 */
+}
+
+/* ── Dark mode override ──────────────────────────────────────────────────────── */
+html.dark {
+  --bg:           #0f1117;
+  --bg-card:      #1a1d27;
+  --bg-hover:     #1e2130;
+  --bg-input:     #161924;
+  --bg-layer2:    #252836;
+
+  --border:       #2a2f45;
+  --border-soft:  #1f2338;
+
+  --text:         #e8eaf6;
+  --text-muted:   #8b92b8;
+  --text-faint:   #555e88;
+
+  --accent:       #4f91ff;
+  --accent-soft:  rgba(79, 145, 255, 0.12);
+  --accent-glow:  rgba(79, 145, 255, 0.25);
+
+  --income:       #3fb850;
+  --income-soft:  rgba(63, 184, 80, 0.12);
+  --expense:      #f85149;
+  --expense-soft: rgba(248, 81, 73, 0.12);
+  --warning:      #f0883e;
+
+  --cyan:         #38bdf8;
+  --cyan-soft:    rgba(56, 189, 248, 0.12);
+  --purple:       #a78bfa;
+  --purple-soft:  rgba(167, 139, 250, 0.12);
+  --yellow:       #f0883e;
+  --yellow-soft:  rgba(240, 136, 62, 0.12);
+
+  --shadow:        0 4px 16px rgba(0,0,0,0.5);
+  --shadow-card:   0 2px 8px rgba(0,0,0,0.4);
+  --sidebar-bg:    rgba(26,29,39,0.97);
 }
 
 /* ── Reset ───────────────────────────────────────────────────────────────────── */
@@ -101,6 +139,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   min-height: 100%;
   line-height: 1.5;
+  font-size: var(--t-body);
 }
 
 /* ── Layout responsive ───────────────────────────────────────────────────────── */
@@ -151,11 +190,12 @@ input, select, textarea {
 select {
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%233d4570' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23555e88' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 12px;
-  padding-right: 28px !important;
+  padding-right: 2rem !important;
+  border-radius: var(--radius-btn);
 }
 
 input:focus, select:focus, textarea:focus {
@@ -279,18 +319,18 @@ button:hover:not(:disabled) {
   gap: .75rem;
 }
 .ph-title {
-  font-size: 1.6rem;
-  font-weight: 800;
-  letter-spacing: -.6px;
+  font-size: var(--t-headline);
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--text);
-  line-height: 1.1;
+  line-height: 1.2;
 }
 .ph-sub {
-  font-size: .8rem;
+  font-size: var(--t-caption);
   color: var(--text-muted);
   font-weight: 400;
   letter-spacing: 0;
-  margin-top: .15rem;
+  margin-top: .2rem;
 }
 
 /* Month navigator */
@@ -356,6 +396,23 @@ button:hover:not(:disabled) {
 }
 .stat-card::before { display: none; }
 
+/* ── KPI card color accents (borde superior) ──────────────────────────────────── */
+.c-balance, .c-income, .c-expense, .c-saving {
+  position: relative;
+  overflow: hidden;
+}
+.c-balance::before, .c-income::before, .c-expense::before, .c-saving::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+}
+.c-balance::before { background: var(--accent); }
+.c-income::before  { background: var(--income); }
+.c-expense::before { background: var(--expense); }
+.c-saving::before  { background: var(--cyan); }
+
 /* Legacy helpers (aún usados fuera del dashboard) */
 .stat-icon  { font-size: 1.3rem; margin-bottom: .45rem; display: block; }
 .stat-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: .3rem; }
@@ -383,14 +440,14 @@ button:hover:not(:disabled) {
 }
 .bo-title {
   font-size: var(--t-overline);
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: .07em;
+  letter-spacing: 0.04em;
   color: var(--text-muted);
 }
 
-/* Budget grid — 4 items en fila */
-.bo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+/* Budget grid — 2x2 */
+.bo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
 
 /* Budget item — patrón BudgetCard de lovable */
 .budget-item {
@@ -468,16 +525,16 @@ button:hover:not(:disabled) {
 }
 .chart-title {
   font-size: var(--t-overline);
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: .07em;
+  letter-spacing: 0.04em;
   color: var(--text-muted);
   margin-bottom: .9rem;
 }
 .chart-wrap { position: relative; }
 
 /* ── Section header ───────────────────────────────────────────────────────────── */
-.sh       { display: flex; align-items: center; justify-content: space-between; margin-bottom: .9rem; }
+.sh       { display: flex; align-items: center; justify-content: space-between; margin-top: .25rem; margin-bottom: .9rem; }
 .sh-title { font-size: .95rem; font-weight: 700; letter-spacing: -.01em; }
 
 /* ── Transaction list ─────────────────────────────────────────────────────────── */
@@ -533,6 +590,7 @@ button:hover:not(:disabled) {
 .tx-amount { font-size: .95rem; font-weight: 800; white-space: nowrap; flex-shrink: 0; }
 .tx-amount.income  { color: var(--income); }
 .tx-amount.expense { color: var(--expense); }
+.tx-amount.saving  { color: var(--cyan); }
 .tx-actions { display: flex; gap: .3rem; opacity: 0; transition: opacity .15s; flex-shrink: 0; }
 .btn-sm { background: var(--bg-hover); border: 1px solid var(--border); color: var(--text-muted); border-radius: 6px; padding: .22rem .46rem; cursor: pointer; font-size: .72rem; transition: all .15s; font-family: inherit; }
 .btn-sm:hover { color: var(--text); border-color: var(--text-faint); }
@@ -573,6 +631,7 @@ button:hover:not(:disabled) {
   .charts-grid { grid-template-columns: 1fr; }
   .bo-grid     { grid-template-columns: 1fr 1fr; }
   .tx-actions  { opacity: 1; }
+  .analysis-kpi-row { grid-template-columns: repeat(2, 1fr) !important; }
 }
 @media (max-width: 480px) {
   .stat-value  { font-size: 1.35rem; }
@@ -585,7 +644,7 @@ button:hover:not(:disabled) {
    TOKENS — sidebar & layout (inspirados en finanzas-lovable)
    ══════════════════════════════════════════════════════════════════════════════ */
 :root {
-  --sidebar-bg:         rgba(22, 27, 46, 0.97);
+  --sidebar-bg:         rgba(255, 255, 255, 0.97);
   --sidebar-border:     var(--border);
   --sidebar-item-hover: var(--bg-hover);
   --sidebar-active-bar: var(--accent);
@@ -887,10 +946,10 @@ button:hover:not(:disabled) {
   margin-bottom: 0.75rem;
 }
 .kpi-title {
-  font-size: 0.67rem;
-  font-weight: 700;
+  font-size: var(--t-overline);
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   color: var(--text-muted);
   line-height: 1.4;
 }
@@ -905,15 +964,15 @@ button:hover:not(:disabled) {
   font-size: 0.85rem;
   line-height: 1;
 }
-.kpi-icon-badge.balance  { background: var(--accent-soft); }
-.kpi-icon-badge.income   { background: var(--income-soft); }
-.kpi-icon-badge.expense  { background: var(--expense-soft); }
-.kpi-icon-badge.saving   { background: var(--cyan-soft); }
+.kpi-icon-badge.balance  { background: var(--accent-soft);  color: var(--accent); }
+.kpi-icon-badge.income   { background: var(--income-soft);  color: var(--income); }
+.kpi-icon-badge.expense  { background: var(--expense-soft); color: var(--expense); }
+.kpi-icon-badge.saving   { background: var(--cyan-soft);    color: var(--cyan); }
 .kpi-value {
-  font-size: 1.65rem;
-  font-weight: 900;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  font-size: var(--t-display);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
 }
 .kpi-sub {
   font-size: 0.68rem;

@@ -79,8 +79,19 @@ Cada cambio de schema sigue este flujo:
 - [ ] **Input por voz** — `useVoiceInput.js` (Web Speech API) → prellenar formulario + botón micrófono en AddTransaction
 - [ ] **Foto de ticket** — botón cámara en AddTransaction → Edge Function `receipt-ocr` → Claude Vision → extraer importe + comercio + fecha
 - [ ] **Categorización automática** — al escribir descripción, sugerir categoría basada en historial
+- [ ] **Asesor financiero IA** — chat conversacional híbrido (datos propios + conocimiento financiero general):
+  - Edge Function `financial-advisor` → Claude API (API key en Supabase Secrets, nunca en frontend)
+  - Dos modos de respuesta según la pregunta:
+    - **Personalizada** ("¿cuál es mi peor gasto?") → la EF resume datos del usuario (totales por categoría, saldo, tasa ahorro) antes de llamar a Claude — contexto compacto, no el array completo
+    - **General** ("¿cuánto necesito ahorrar para una casa?", "¿pago hipoteca o invierto?") → Claude responde con su conocimiento financiero base, sin necesidad de datos del usuario
+  - Claude combina ambos naturalmente: "con tu tasa de ahorro actual del 35%, tardarías X años en ahorrar para una entrada de piso en Madrid"
+  - UI: panel de chat flotante o vista dedicada, input de texto + botón de voz opcional
+  - Rate limiting: contador de llamadas diarias en Supabase (ej: 5/día free) — implementar junto con la feature, no después
+  - Modelo de pago futuro: más interacciones para usuarios premium (Stripe, cuando haya usuarios reales)
 
-## Fase 6 — Multi-usuario y escala
+## Fase 6 — Onboarding y crecimiento
+- [ ] **Demo data en onboarding** — al registrarse, el usuario recibe 2 meses de datos de prueba realistas con flag `tx_is_demo: true`; banner visible "Estás viendo datos de ejemplo"; botón "Empezar con mis datos" los borra; auto-delete a las 12h si no lo hace el usuario (Edge Function con cron o check en login)
+- [ ] **Importar extracto bancario** — subir PDF/CSV del banco → Edge Function parsea con Claude Vision → devuelve lista con categoría sugerida + confianza → usuario revisa y confirma antes de guardar; reutiliza la arquitectura de `receipt-ocr`
 - [ ] Onboarding de nuevos usuarios (categorías por defecto, primera cuenta)
 - [ ] Ajustes de perfil (moneda, idioma, objetivo de ingreso mensual)
 - [ ] Importar datos de V1 (migración de las 241 transacciones históricas de Sep 2025 – Mar 2026)
@@ -89,7 +100,7 @@ Cada cambio de schema sigue este flujo:
 
 ## Fase 7 — Automatización externa (futuro)
 - [ ] n8n conectado a Supabase para automatizaciones
-- [ ] Importación de extracto bancario (Open Banking / GoCardless / Nordigen)
+- [ ] Conexión bancaria directa (Open Banking / GoCardless / Nordigen) — feature opcional, no bloquea el valor del producto
 - [ ] Alertas por presupuesto vía email/Telegram
 - [ ] Detección de anomalías (gasto inusual en una categoría)
 

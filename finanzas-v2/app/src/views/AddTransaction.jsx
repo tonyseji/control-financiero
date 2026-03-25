@@ -5,26 +5,34 @@ import { useCategories } from '../hooks/useCategories'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
+function inferSubtype(tx) {
+  const catType = tx?.categories?.cat_type
+  if (!catType) return 'fixed_expense'
+  if (['fixed_expense', 'variable_expense', 'saving', 'investment'].includes(catType)) return catType
+  return 'fixed_expense'
+}
+
 export default function AddTransaction({ onSuccess, editTx }) {
   const isEdit = !!editTx
   const { add, update, addTransfer } = useTransactions()
   const { accounts } = useAccounts()
   const { categories } = useCategories()
 
-  const [type, setType]       = useState(editTx?.tx_type ?? 'expense')
-  const [amount, setAmount]   = useState(editTx ? String(editTx.tx_amount) : '')
-  const [date, setDate]       = useState(editTx?.tx_date?.slice(0, 10) ?? today())
-  const [catId, setCatId]     = useState(editTx?.tx_cat_id ?? '')
-  const [accId, setAccId]     = useState(editTx?.tx_acc_id ?? '')
-  const [toAccId, setToAccId] = useState('')
-  const [notes, setNotes]     = useState(editTx?.tx_notes ?? '')
-  const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState(null)
+  const [type, setType]         = useState(editTx?.tx_type ?? 'expense')
+  const [subtype, setSubtype]   = useState(editTx ? inferSubtype(editTx) : 'fixed_expense')
+  const [amount, setAmount]     = useState(editTx ? String(editTx.tx_amount) : '')
+  const [date, setDate]         = useState(editTx?.tx_date?.slice(0, 10) ?? today())
+  const [catId, setCatId]       = useState(editTx?.tx_cat_id ?? '')
+  const [accId, setAccId]       = useState(editTx?.tx_acc_id ?? '')
+  const [toAccId, setToAccId]   = useState('')
+  const [notes, setNotes]       = useState(editTx?.tx_notes ?? '')
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState(null)
 
   const isTransfer = type === 'transfer'
 
   const filteredCats = categories.filter(c =>
-    type === 'income' ? c.cat_type === 'income' : c.cat_type !== 'income'
+    type === 'income' ? c.cat_type === 'income' : c.cat_type === subtype
   )
 
   useEffect(() => {
@@ -36,6 +44,12 @@ export default function AddTransaction({ onSuccess, editTx }) {
     const first = filteredCats[0]
     setCatId(first ? first.cat_id : '')
   }, [type, categories])
+
+  useEffect(() => {
+    if (isEdit) return
+    const first = filteredCats[0]
+    setCatId(first ? first.cat_id : '')
+  }, [subtype])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -97,24 +111,32 @@ export default function AddTransaction({ onSuccess, editTx }) {
       </div>
 
       {/* ── Type toggle ──────────────────────────────────────────────────── */}
-      {!isEdit && (
-        <div style={s.typeToggle}>
-          <TypeButton active={type === 'expense'}  onClick={() => setType('expense')}  label="Gasto" />
-          <TypeButton active={type === 'income'}   onClick={() => setType('income')}   label="Ingreso" />
+      <div style={s.typeToggle}>
+        <TypeButton active={type === 'expense'} onClick={() => setType('expense')} label="Gasto" />
+        <TypeButton active={type === 'income'}  onClick={() => setType('income')}  label="Ingreso" />
+        {!isEdit && (
           <TypeButton active={type === 'transfer'} onClick={() => setType('transfer')} label="Transferencia" />
+        )}
+      </div>
+
+      {/* ── Subtype toggle (expense only) ────────────────────────────────── */}
+      {type === 'expense' && (
+        <div style={s.subtypeToggle}>
+          <SubtypeButton active={subtype === 'fixed_expense'}    onClick={() => setSubtype('fixed_expense')}    label="Gasto fijo" />
+          <SubtypeButton active={subtype === 'variable_expense'} onClick={() => setSubtype('variable_expense')} label="Gasto variable" />
+          <SubtypeButton active={subtype === 'saving'}           onClick={() => setSubtype('saving')}           label="Ahorro" />
+          <SubtypeButton active={subtype === 'investment'}       onClick={() => setSubtype('investment')}       label="Inversión" />
         </div>
       )}
 
       {/* ── Form ──────────────────────────────────────────────────────────── */}
       <form onSubmit={handleSubmit} style={s.form}>
 
-        {/* Importe — grande y prominente */}
-        <div style={s.amountWrap}>
-          <label style={s.amountLabel}>Importe</label>
-          <div style={s.amountInputWrap}>
-            <span style={s.amountCurrency}>€</span>
+        {/* Importe */}
+        <FormField label="Importe">
+          <div style={{ position: 'relative' }}>
             <input
-              style={{ ...s.amountInput, caretColor: typeColor }}
+              style={{ ...s.input, caretColor: typeColor, paddingRight: '2rem' }}
               type="number"
               min="0.01"
               step="0.01"
@@ -124,8 +146,9 @@ export default function AddTransaction({ onSuccess, editTx }) {
               required
               autoFocus
             />
+            <span style={s.amountCurrencySuffix}>€</span>
           </div>
-        </div>
+        </FormField>
 
         {/* Fecha */}
         <FormField label="Fecha">
@@ -206,6 +229,25 @@ export default function AddTransaction({ onSuccess, editTx }) {
   )
 }
 
+function SubtypeButton({ active, onClick, label }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        ...s.subtypeBtn,
+        ...(active ? {
+          background: 'var(--accent)',
+          color: '#fff',
+          boxShadow: '0 1px 5px rgba(0,0,0,0.4)',
+        } : {}),
+      }}
+    >
+      {label}
+    </button>
+  )
+}
+
 function TypeButton({ active, onClick, label }) {
   return (
     <button
@@ -282,52 +324,43 @@ const s = {
     letterSpacing: '-0.01em',
   },
 
-  // Amount field — hero input centrado
-  amountWrap: {
-    background: 'var(--bg-card)',
-    border: '1px solid var(--border)',
-    borderRadius: 'var(--radius)',
-    padding: '1.5rem 1.5rem 1.25rem',
-    marginBottom: '0.25rem',
-    textAlign: 'center',
-  },
-  amountLabel: {
-    fontSize: '0.68rem',
-    color: 'var(--text-faint)',
-    fontWeight: 600,
-    textTransform: 'uppercase',
-    letterSpacing: '0.09em',
-    display: 'block',
-    marginBottom: '0.875rem',
-  },
-  amountInputWrap: {
+  // Subtype toggle — smaller segmented control
+  subtypeToggle: {
     display: 'flex',
-    alignItems: 'baseline',
-    justifyContent: 'center',
-    gap: '0.25rem',
+    gap: 0,
+    background: 'var(--bg)',
+    border: '1px solid var(--border)',
+    borderRadius: 10,
+    padding: '3px',
+    marginBottom: '1.5rem',
+    marginTop: '-1rem',
   },
-  amountCurrency: {
-    fontSize: '1.75rem',
-    fontWeight: 700,
-    letterSpacing: '-0.03em',
-    lineHeight: 1,
-    userSelect: 'none',
-    color: 'var(--text-muted)',
-    paddingBottom: '0.1em',
-  },
-  amountInput: {
-    background: 'none',
+  subtypeBtn: {
+    flex: 1,
+    padding: '0.4rem 0.35rem',
+    borderRadius: 7,
     border: 'none',
-    color: 'var(--text)',
-    fontSize: '2.75rem',
-    fontWeight: 800,
-    letterSpacing: '-0.04em',
-    padding: 0,
-    outline: 'none',
-    width: '180px',
+    background: 'none',
+    color: 'var(--text-muted)',
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontSize: '0.78rem',
+    transition: 'all 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
     fontFamily: 'inherit',
-    textAlign: 'center',
-    caretColor: 'var(--accent)',
+    letterSpacing: '-0.01em',
+  },
+
+  // Amount currency suffix
+  amountCurrencySuffix: {
+    position: 'absolute',
+    right: '10px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    color: 'var(--text-faint)',
+    userSelect: 'none',
+    pointerEvents: 'none',
   },
 
   // Regular fields

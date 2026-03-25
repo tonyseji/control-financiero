@@ -3,6 +3,7 @@ import { useTransactions } from '../hooks/useTransactions'
 import { useAccounts } from '../hooks/useAccounts'
 import { formatCurrency, monthRange } from '../utils/formatters'
 import MonthlyChart from '../components/charts/MonthlyChart'
+import { isTransfer, isSaving, isInvestment, isRealExpense, isIncome as isIncomeClassifier } from '../utils/txClassifier'
 
 const MONTH_NAMES  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 const SHORT_MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
@@ -10,11 +11,31 @@ const SHORT_MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct
 const DONUT_PALETTE = ['#3b82f6', '#22c55e', '#f59e0b', '#a855f7', '#06b6d4', '#f43f5e']
 
 const BUDGET_GROUPS = [
-  { catTypes: ['fixed_expense'],    label: 'Gastos fijos',    icon: '🏠', color: '#6366f1', saving: false, targetPct: 40 },
-  { catTypes: ['variable_expense'], label: 'Gastos variables', icon: '🛒', color: '#f43f5e', saving: false, targetPct: 25 },
-  { catTypes: ['saving'],           label: 'Ahorro',          icon: '💰', color: '#06b6d4', saving: true,  targetPct: 15 },
-  { catTypes: ['investment'],       label: 'Inversión',       icon: '📊', color: '#10b981', saving: true,  targetPct: 15 },
+  { catTypes: ['fixed_expense'],    label: 'Gastos fijos',    type: 'home',         color: '#6366f1', saving: false, targetPct: 40 },
+  { catTypes: ['variable_expense'], label: 'Gastos variables', type: 'shopping-cart', color: '#f43f5e', saving: false, targetPct: 25 },
+  { catTypes: ['saving'],           label: 'Ahorro',          type: 'pocket',       color: '#06b6d4', saving: true,  targetPct: 15 },
+  { catTypes: ['investment'],       label: 'Inversión',       type: 'investment',   color: '#10b981', saving: true,  targetPct: 15 },
 ]
+
+function BudgetIcon({ type, color }) {
+  const props = { width: 15, height: 15, viewBox: '0 0 24 24', fill: 'none', stroke: color, strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  switch (type) {
+    case 'home':
+      return <svg {...props}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    case 'shopping-cart':
+      return <svg {...props}><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    case 'archive':
+      return <svg {...props}><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+    case 'pocket':
+      return <svg {...props}><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+    case 'trending-up':
+      return <svg {...props}><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+    case 'investment':
+      return <svg {...props}><rect x="18" y="2" width="4" height="20"/><rect x="10" y="8" width="4" height="14"/><rect x="2" y="14" width="4" height="8"/></svg>
+    default:
+      return null
+  }
+}
 
 function catTypeBadge(catType) {
   switch (catType) {
@@ -23,6 +44,7 @@ function catTypeBadge(catType) {
     case 'variable_expense': return { cls: 'gv',  label: 'Gasto var.' }
     case 'saving':           return { cls: 'aho', label: 'Ahorro' }
     case 'investment':       return { cls: 'inv', label: 'Inversión' }
+    case 'transfer':         return { cls: 'tra', label: 'Transferencia ↔' }
     default:                 return { cls: 'gv',  label: 'Gasto' }
   }
 }
@@ -66,7 +88,7 @@ function DonutChart({ data }) {
   })
 
   return (
-    <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
       <svg width={SIZE} height={SIZE} style={{ flexShrink: 0 }}>
         {slices.map((sl, i) => (
           <path key={i} d={arcPath(sl.start, sl.end)} fill={sl.color} opacity={0.9} />
@@ -94,12 +116,33 @@ function DonutChart({ data }) {
 // ── TxRow (formato v1) ────────────────────────────────────────────────────────
 function TxRow({ tx, onEdit, onDelete }) {
   const [confirming, setConfirming] = useState(false)
-  const isIncome = tx.tx_type === 'income'
+  const isIncTx    = isIncomeClassifier(tx)
+  const isTransTx  = isTransfer(tx)
+  const isSavTx    = isSaving(tx)
+  const isInvTx    = isInvestment(tx)
   const catColor = tx.categories?.cat_color ?? '#2e3558'
-  const catName  = tx.categories?.cat_name  ?? (isIncome ? 'Ingreso' : 'Gasto')
+  const catName  = tx.categories?.cat_name  ?? (isIncTx ? 'Ingreso' : 'Gasto')
   const accName  = tx.accounts?.acc_name
-  const badge    = catTypeBadge(tx.categories?.cat_type)
+  const badge    = catTypeBadge(isTransTx ? 'transfer' : tx.categories?.cat_type)
   const dateStr  = new Date(tx.tx_date + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+
+  const amountStyle = isTransTx
+    ? { color: 'var(--text-muted)' }
+    : (isSavTx || isInvTx)
+      ? { color: 'var(--cyan)' }
+      : null
+
+  const amountCls = isTransTx
+    ? 'num'
+    : (isSavTx || isInvTx)
+      ? 'num'
+      : isIncTx
+        ? 'income num'
+        : 'expense num'
+
+  const amountStr = isTransTx
+    ? formatCurrency(tx.tx_amount)
+    : (isIncTx ? '+' : '−') + formatCurrency(tx.tx_amount)
 
   async function handleDelete() {
     if (!confirming) { setConfirming(true); return }
@@ -108,7 +151,7 @@ function TxRow({ tx, onEdit, onDelete }) {
 
   return (
     <div className="tx-item">
-      <div className="tx-dot" style={{ background: catColor }} />
+      <div className="tx-dot" style={{ background: isTransTx ? 'var(--text-faint)' : catColor }} />
       <div className="tx-info">
         <div className="tx-cat">{catName}</div>
         {tx.tx_notes && <div className="tx-note">{tx.tx_notes}</div>}
@@ -118,12 +161,12 @@ function TxRow({ tx, onEdit, onDelete }) {
         <div className="tx-date">{dateStr}</div>
         <div className={`tx-type-badge ${badge.cls}`}>{badge.label}</div>
       </div>
-      <div className={`tx-amount ${isIncome ? 'income' : 'expense'} num`}>
-        {isIncome ? '+' : '−'}{formatCurrency(tx.tx_amount)}
+      <div className={`tx-amount ${amountCls}`} style={amountStyle}>
+        {amountStr}
       </div>
       {(onEdit || onDelete) && (
         <div className="tx-actions">
-          {onEdit && !tx.tx_transfer_pair_id && (
+          {onEdit && !isTransTx && (
             <button className="btn-sm" onClick={() => onEdit(tx)} title="Editar">✏</button>
           )}
           {onDelete && (
@@ -143,7 +186,11 @@ function TxRow({ tx, onEdit, onDelete }) {
 
 // ── DateGroup (cabecera de fecha + transacciones) ─────────────────────────────
 function DateGroup({ date, txs, onEdit, onDelete }) {
-  const dayNet = txs.reduce((s, tx) => s + (tx.tx_type === 'income' ? tx.tx_amount : -tx.tx_amount), 0)
+  const dayNet = txs.reduce((s, tx) => {
+    if (isTransfer(tx)) return s
+    if (isIncomeClassifier(tx)) return s + tx.tx_amount
+    return s - tx.tx_amount
+  }, 0)
   const netCls = dayNet > 0 ? 'pos' : dayNet < 0 ? 'neg' : 'neu'
   const netStr = (dayNet >= 0 ? '+' : '−') + formatCurrency(Math.abs(dayNet))
   const label  = new Date(date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -217,15 +264,15 @@ export default function Dashboard({ onNavigate = null }) {
     let income = 0, expense = 0, saving = 0
     const byCategory = {}, byType = {}
     for (const tx of transactions) {
+      if (isTransfer(tx)) continue
       const catType = tx.categories?.cat_type
-      if (tx.tx_type === 'income') {
+      if (isIncomeClassifier(tx)) {
         income += tx.tx_amount
-      } else if (catType === 'saving' || catType === 'investment') {
+      } else if (isSaving(tx) || isInvestment(tx)) {
         saving += tx.tx_amount
-      } else {
+        byType[catType ?? 'saving'] = (byType[catType ?? 'saving'] ?? 0) + tx.tx_amount
+      } else if (isRealExpense(tx)) {
         expense += tx.tx_amount
-      }
-      if (tx.tx_type !== 'income') {
         const name  = tx.categories?.cat_name  ?? 'Sin categoría'
         const color = tx.categories?.cat_color ?? '#2e3558'
         byCategory[name] = byCategory[name] ?? { total: 0, color }
@@ -233,7 +280,7 @@ export default function Dashboard({ onNavigate = null }) {
         byType[catType ?? 'variable_expense'] = (byType[catType ?? 'variable_expense'] ?? 0) + tx.tx_amount
       }
     }
-    return { income, expense, saving, balance: income - expense - saving, byCategory, byType }
+    return { income, expense, saving, balance: income - expense, byCategory, byType }
   }, [transactions])
 
   const totalBalance = useMemo(
@@ -266,37 +313,41 @@ export default function Dashboard({ onNavigate = null }) {
   const chartData = useMemo(() => {
     const map = {}
     for (const tx of chartTx) {
+      if (isTransfer(tx)) continue
       const key = tx.tx_date.slice(0, 7)
-      if (!map[key]) map[key] = { income: 0, expenses: 0 }
-      if (tx.tx_type === 'income') map[key].income   += tx.tx_amount
-      else                         map[key].expenses  += tx.tx_amount
+      if (!map[key]) map[key] = { income: 0, expenses: 0, savingInv: 0 }
+      if (isIncomeClassifier(tx))                       map[key].income    += tx.tx_amount
+      else if (isSaving(tx) || isInvestment(tx))        map[key].savingInv += tx.tx_amount
+      else if (isRealExpense(tx))                       map[key].expenses  += tx.tx_amount
     }
     if (chartMode === 'year') {
       return Array.from({ length: 12 }, (_, i) => {
         const key = `${chartY}-${String(i + 1).padStart(2, '0')}`
-        return { key, label: SHORT_MONTHS[i], ...(map[key] ?? { income: 0, expenses: 0 }) }
+        return { key, label: SHORT_MONTHS[i], ...(map[key] ?? { income: 0, expenses: 0, savingInv: 0 }) }
       })
     }
     return Array.from({ length: 6 }, (_, i) => {
       const d   = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
       const lbl = `${SHORT_MONTHS[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`
-      return { key, label: lbl, ...(map[key] ?? { income: 0, expenses: 0 }) }
+      return { key, label: lbl, ...(map[key] ?? { income: 0, expenses: 0, savingInv: 0 }) }
     })
   }, [chartTx, chartMode, chartY])
 
   // Resumen anual (solo en modo year)
   const annualSummary = useMemo(() => {
     if (chartMode !== 'year') return null
-    let totalIncome = 0, totalExpenses = 0
+    let totalIncome = 0, totalExpenses = 0, totalSaving = 0
     for (const tx of chartTx) {
-      if (tx.tx_type === 'income') totalIncome   += tx.tx_amount
-      else                         totalExpenses  += tx.tx_amount
+      if (isTransfer(tx)) continue
+      if (isIncomeClassifier(tx))                      totalIncome   += tx.tx_amount
+      else if (isSaving(tx) || isInvestment(tx))       totalSaving   += tx.tx_amount
+      else if (isRealExpense(tx))                      totalExpenses += tx.tx_amount
     }
-    const annualBal = totalIncome - totalExpenses
+    const annualBal = totalIncome - totalExpenses - totalSaving
     const expPct    = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0
-    const savRate   = totalIncome > 0 ? Math.round((annualBal / totalIncome) * 100) : 0
-    return { totalIncome, totalExpenses, monthlyAvg: totalIncome / 12, annualBal, expPct, savRate }
+    const savRate   = totalIncome > 0 ? Math.round((totalSaving   / totalIncome) * 100) : 0
+    return { totalIncome, totalExpenses, totalSaving, monthlyAvg: totalIncome / 12, annualBal, expPct, savRate }
   }, [chartTx, chartMode])
 
   const monthLabel = MONTH_NAMES[month - 1]
@@ -324,7 +375,11 @@ export default function Dashboard({ onNavigate = null }) {
         <div className="stat-card c-balance">
           <div className="kpi-header">
             <div className="kpi-title">Balance del mes</div>
-            <div className="kpi-icon-badge balance">⚖️</div>
+            <div className="kpi-icon-badge balance">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
           </div>
           <div className="kpi-value num">{formatCurrency(balance)}</div>
           <div className={`kpi-trend ${balance >= 0 ? 'pos' : 'neg'}`}>
@@ -334,7 +389,11 @@ export default function Dashboard({ onNavigate = null }) {
         <div className="stat-card c-income">
           <div className="kpi-header">
             <div className="kpi-title">Ingresos</div>
-            <div className="kpi-icon-badge income">📈</div>
+            <div className="kpi-icon-badge income">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+              </svg>
+            </div>
           </div>
           <div className="kpi-value num">{formatCurrency(income)}</div>
           <div className="kpi-sub">{transactions.filter(t => t.tx_type === 'income').length} movimientos</div>
@@ -342,7 +401,11 @@ export default function Dashboard({ onNavigate = null }) {
         <div className="stat-card c-expense">
           <div className="kpi-header">
             <div className="kpi-title">Gastos</div>
-            <div className="kpi-icon-badge expense">📉</div>
+            <div className="kpi-icon-badge expense">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>
+              </svg>
+            </div>
           </div>
           <div className="kpi-value num">{formatCurrency(expense)}</div>
           {income > 0
@@ -355,7 +418,12 @@ export default function Dashboard({ onNavigate = null }) {
         <div className="stat-card c-saving">
           <div className="kpi-header">
             <div className="kpi-title">Ahorro / Inv.</div>
-            <div className="kpi-icon-badge saving">💧</div>
+            <div className="kpi-icon-badge saving">
+              {/* Gota de agua — icono semántico para ahorro */}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+              </svg>
+            </div>
           </div>
           <div className="kpi-value num">{formatCurrency(saving)}</div>
           {income > 0
@@ -389,10 +457,10 @@ export default function Dashboard({ onNavigate = null }) {
               <div key={g.label} className={`budget-item${isOver ? ' over' : ''}`}>
                 <div className="budget-item-hd">
                   <div className="budget-item-label">
-                    <span className="budget-item-icon">{g.icon}</span>
+                    <span className="budget-item-icon"><BudgetIcon type={g.type} color={g.color} /></span>
                     <span>{g.label}</span>
                   </div>
-                  <span className={`budget-item-pct ${pctCls}`}>{Math.round(pctInc)}%</span>
+                  <span className={`budget-item-pct ${pctCls}`}>{Math.round(income > 0 ? (pctInc / g.targetPct) * 100 : 0)}%</span>
                 </div>
                 <div className="budget-bar-track">
                   <div className="budget-bar-fill" style={{ width: `${barPct}%`, background: barColor }} />
@@ -451,9 +519,10 @@ export default function Dashboard({ onNavigate = null }) {
       {annualSummary && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '.75rem', marginBottom: '1.2rem' }}>
           {[
-            { label: 'Ingresos totales', value: formatCurrency(annualSummary.totalIncome), sub: `Media mensual: ${formatCurrency(annualSummary.monthlyAvg)}`, color: 'var(--income)' },
-            { label: 'Gastos totales',   value: formatCurrency(annualSummary.totalExpenses), sub: `${annualSummary.expPct}% de ingresos`, color: 'var(--expense)' },
-            { label: 'Balance anual',    value: formatCurrency(annualSummary.annualBal), sub: annualSummary.annualBal >= 0 ? `Tasa ahorro: ${annualSummary.savRate}%` : 'Año en déficit', color: annualSummary.annualBal >= 0 ? 'var(--income)' : 'var(--expense)' },
+            { label: 'Ingresos totales', value: formatCurrency(annualSummary.totalIncome),   sub: `Media mensual: ${formatCurrency(annualSummary.monthlyAvg)}`, color: 'var(--income)' },
+            { label: 'Gastos reales',    value: formatCurrency(annualSummary.totalExpenses), sub: `${annualSummary.expPct}% de ingresos`, color: 'var(--expense)' },
+            { label: 'Ahorro / Inv.',    value: formatCurrency(annualSummary.totalSaving),   sub: `Tasa ahorro: ${annualSummary.savRate}%`, color: 'var(--cyan)' },
+            { label: 'Balance anual',    value: formatCurrency(annualSummary.annualBal), sub: annualSummary.annualBal >= 0 ? 'Superávit' : 'Año en déficit', color: annualSummary.annualBal >= 0 ? 'var(--income)' : 'var(--expense)' },
           ].map(card => (
             <div key={card.label} className="chart-card">
               <div className="stat-label">{card.label}</div>

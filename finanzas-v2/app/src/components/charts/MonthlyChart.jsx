@@ -1,99 +1,119 @@
-// Gráfica de barras SVG nativa — sin dependencias externas.
-// Props: data = [{ key, label, income, expenses }]
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer,
+} from 'recharts'
 
-const BAR_W     = 18   // ancho de cada barra
-const BAR_GAP   = 4    // gap entre las dos barras del mismo mes
-const GROUP_GAP = 20   // gap entre grupos de meses
-const CHART_H   = 120  // altura del área de barras
-const PADDING_B = 24   // espacio para labels de mes
-const PADDING_T = 8    // espacio superior
-const SVG_H     = CHART_H + PADDING_B + PADDING_T
+// Tooltip personalizado — usa variables CSS para compatibilidad dark/light
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div style={{
+      background: 'var(--bg-card)',
+      border: '1px solid var(--border)',
+      borderRadius: 8,
+      padding: '0.6rem 0.85rem',
+      fontSize: '0.78rem',
+      boxShadow: 'var(--shadow)',
+      minWidth: 140,
+    }}>
+      <p style={{ color: 'var(--text-muted)', fontWeight: 600, marginBottom: '0.35rem' }}>{label}</p>
+      {payload.map(p => (
+        <div key={p.dataKey} style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          fontWeight: 600,
+          fontVariantNumeric: 'tabular-nums',
+        }}>
+          <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>
+            {p.dataKey === 'income' ? 'Ingresos' : 'Gastos'}
+          </span>
+          <span style={{ color: p.stroke }}>
+            {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(p.value)}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function MonthlyChart({ data }) {
   if (!data || data.length === 0) return null
 
-  const maxVal = Math.max(...data.flatMap(d => [d.income, d.expenses]), 1)
-
-  const groupW  = BAR_W * 2 + BAR_GAP
-  const totalW  = data.length * groupW + (data.length - 1) * GROUP_GAP
-  const viewBox = `0 0 ${totalW} ${SVG_H}`
-
-  function barHeight(val) {
-    return Math.max((val / maxVal) * CHART_H, val > 0 ? 2 : 0)
-  }
-
-  // Usamos currentColor trick via un SVG inline con fill hardcodeado en CSS vars.
-  // Como SVG no puede leer CSS vars en atributos fill directamente, usamos un
-  // pequeño workaround: definimos los colores en un <defs> con un rectángulo de
-  // referencia invisible, o simplemente usamos los colores directamente como
-  // strings CSS var() dentro de un style= de React (que sí funciona).
-  const colorIncome  = 'var(--income)'
-  const colorExpense = 'var(--expense)'
-
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <svg viewBox={viewBox} width="100%" style={{ display: 'block', maxWidth: totalW * 1.5 }}>
-        {data.map((d, i) => {
-          const x = i * (groupW + GROUP_GAP)
+    <div style={{ width: '100%' }}>
+      <ResponsiveContainer width="100%" height={200}>
+        <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -8 }}>
+          <defs>
+            <linearGradient id="fillIncome" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%"  stopColor="#22c55e" stopOpacity={0.18} />
+              <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="fillExpense" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%"  stopColor="#f43f5e" stopOpacity={0.15} />
+              <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+            </linearGradient>
+          </defs>
 
-          const hIncome  = barHeight(d.income)
-          const hExpense = barHeight(d.expenses)
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="var(--border)"
+            vertical={false}
+          />
 
-          const yIncome  = PADDING_T + CHART_H - hIncome
-          const yExpense = PADDING_T + CHART_H - hExpense
+          <XAxis
+            dataKey="label"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fontSize: 11, fill: 'var(--text-faint)', fontFamily: 'inherit' }}
+            dy={6}
+          />
 
-          const xIncome  = x
-          const xExpense = x + BAR_W + BAR_GAP
+          <YAxis
+            axisLine={false}
+            tickLine={false}
+            tick={{ fontSize: 11, fill: 'var(--text-faint)', fontFamily: 'inherit' }}
+            tickFormatter={v => v >= 1000 ? `€${(v / 1000).toFixed(0)}k` : `€${v}`}
+            width={42}
+            tickCount={5}
+            allowDecimals={false}
+            domain={['auto', 'auto']}
+          />
 
-          const labelX = x + groupW / 2
-          const labelY = SVG_H - 4
+          <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border)', strokeWidth: 1 }} />
 
-          return (
-            <g key={d.key}>
-              {/* Barra ingresos */}
-              <rect
-                x={xIncome} y={yIncome}
-                width={BAR_W} height={hIncome}
-                rx={3} fill={colorIncome} opacity={0.85}
-              />
-              {/* Barra gastos */}
-              <rect
-                x={xExpense} y={yExpense}
-                width={BAR_W} height={hExpense}
-                rx={3} fill={colorExpense} opacity={0.85}
-              />
-              {/* Label mes */}
-              <text
-                x={labelX} y={labelY}
-                textAnchor="middle"
-                fontSize={9}
-                fill="var(--text-faint)"
-                fontFamily="inherit"
-              >
-                {d.label}
-              </text>
-            </g>
-          )
-        })}
-      </svg>
+          <Area
+            type="monotone"
+            dataKey="income"
+            stroke="#22c55e"
+            strokeWidth={1.5}
+            fill="url(#fillIncome)"
+            dot={false}
+            activeDot={{ r: 4, fill: '#22c55e', stroke: 'var(--bg-card)', strokeWidth: 2 }}
+          />
+          <Area
+            type="monotone"
+            dataKey="expenses"
+            stroke="#f43f5e"
+            strokeWidth={1.5}
+            fill="url(#fillExpense)"
+            dot={false}
+            activeDot={{ r: 4, fill: '#f43f5e', stroke: 'var(--bg-card)', strokeWidth: 2 }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
 
-      {/* Leyenda */}
-      <div style={s.legend}>
-        <span style={s.legendItem}>
-          <span style={{ ...s.dot, background: colorIncome }} />
+      {/* Leyenda — alineada con el área de datos (compensando el ancho del YAxis) */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '1.25rem', marginTop: '0.5rem', paddingLeft: 42 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.73rem', color: 'var(--text-muted)' }}>
+          <span style={{ width: 12, height: 2.5, borderRadius: 2, background: '#22c55e', flexShrink: 0, display: 'inline-block' }} />
           Ingresos
         </span>
-        <span style={s.legendItem}>
-          <span style={{ ...s.dot, background: colorExpense }} />
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.73rem', color: 'var(--text-muted)' }}>
+          <span style={{ width: 12, height: 2.5, borderRadius: 2, background: '#f43f5e', flexShrink: 0, display: 'inline-block' }} />
           Gastos
         </span>
       </div>
     </div>
   )
-}
-
-const s = {
-  legend:     { display: 'flex', gap: '1rem', marginTop: '0.5rem' },
-  legendItem: { display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-muted)' },
-  dot:        { width: 8, height: 8, borderRadius: 2, flexShrink: 0 },
 }

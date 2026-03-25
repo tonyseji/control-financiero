@@ -12,6 +12,8 @@ import Categories from './views/Categories'
 import Budget from './views/Budget'
 import Settings from './views/Settings'
 import Recurring from './views/Recurring'
+import Goals from './views/Goals'
+import Analysis from './views/Analysis'
 
 const IS_STAGING = import.meta.env.VITE_APP_ENV === 'staging'
 
@@ -79,13 +81,15 @@ export default function App() {
       case 'categories':   return <Categories />
       case 'budget':       return <Budget />
       case 'recurring':    return <Recurring />
+      case 'goals':        return <Goals />
+      case 'analysis':     return <Analysis />
       case 'settings':     return <Settings profile={profile} onProfileUpdate={loadProfile} onNavigate={navigate} />
       default:             return <Dashboard onNavigate={navigate} />
     }
   }
 
   return (
-    <Layout view={view} onNavigate={navigate}>
+    <Layout view={view} onNavigate={navigate} profile={profile}>
       {renderView()}
     </Layout>
   )

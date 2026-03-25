@@ -12,8 +12,8 @@ const EXPENSE_TYPES = ['fixed_expense', 'variable_expense', 'saving', 'investmen
 
 // Color de la barra según porcentaje consumido (gasto: rojo malo; ahorro: verde bueno)
 function barColor(pct, inverse = false) {
-  if (inverse) return pct >= 100 ? '#4ade80' : pct >= 50 ? '#facc15' : '#f87171'
-  return pct >= 100 ? '#f87171' : pct >= 80 ? '#facc15' : '#4ade80'
+  if (inverse) return pct >= 100 ? '#16a34a' : pct >= 50 ? '#d97706' : '#dc2626'
+  return pct >= 100 ? '#dc2626' : pct >= 80 ? '#d97706' : '#16a34a'
 }
 
 export default function Budget() {
@@ -95,12 +95,16 @@ function ConfigSection({ config, editing, onEdit, onSave, onCancel }) {
           <button style={s.editBtn} onClick={onEdit}>Editar</button>
         </div>
         {config ? (
-          <div style={s.configGrid}>
-            <ConfigItem label="Ingreso objetivo" value={config.fcfg_monthly_income_target ? formatCurrency(config.fcfg_monthly_income_target) : '—'} />
-            <ConfigItem label="Gastos fijos" value={formatPct(config.fcfg_pct_fixed_expense ?? 0)} />
-            <ConfigItem label="Gastos variables" value={formatPct(config.fcfg_pct_variable_expense ?? 0)} />
-            <ConfigItem label="Ahorro" value={formatPct(config.fcfg_pct_saving ?? 0)} />
-            <ConfigItem label="Inversión" value={formatPct(config.fcfg_pct_investment ?? 0)} />
+          <div>
+            <div style={s.configIncomeRow}>
+              <ConfigItem label="Ingreso objetivo" value={config.fcfg_monthly_income_target ? formatCurrency(config.fcfg_monthly_income_target) : '—'} centered />
+            </div>
+            <div style={s.configGrid}>
+              <ConfigItem label="Gastos fijos" value={formatPct(config.fcfg_pct_fixed_expense ?? 0)} />
+              <ConfigItem label="Gastos variables" value={formatPct(config.fcfg_pct_variable_expense ?? 0)} />
+              <ConfigItem label="Ahorro" value={formatPct(config.fcfg_pct_saving ?? 0)} />
+              <ConfigItem label="Inversión" value={formatPct(config.fcfg_pct_investment ?? 0)} />
+            </div>
           </div>
         ) : (
           <p style={s.emptyConfig}>Configura tu ingreso objetivo y distribución por tipo de gasto.</p>
@@ -138,9 +142,9 @@ function ConfigSection({ config, editing, onEdit, onSave, onCancel }) {
   )
 }
 
-function ConfigItem({ label, value }) {
+function ConfigItem({ label, value, centered }) {
   return (
-    <div style={s.configItem}>
+    <div style={{ ...s.configItem, ...(centered ? { alignItems: 'center', textAlign: 'center' } : {}) }}>
       <span style={s.configLabel}>{label}</span>
       <span style={s.configValue}>{value}</span>
     </div>
@@ -173,10 +177,10 @@ function OverviewSection({ config, transactions }) {
   }, [transactions])
 
   const groups = [
-    { type: 'fixed_expense',    pct: config.fcfg_pct_fixed_expense ?? 0,    inverse: false },
-    { type: 'variable_expense', pct: config.fcfg_pct_variable_expense ?? 0, inverse: false },
-    { type: 'saving',           pct: config.fcfg_pct_saving ?? 0,           inverse: true  },
-    { type: 'investment',       pct: config.fcfg_pct_investment ?? 0,       inverse: true  },
+    { type: 'fixed_expense',    pct: config.fcfg_pct_fixed_expense ?? 0,    color: '#f43f5e' },
+    { type: 'variable_expense', pct: config.fcfg_pct_variable_expense ?? 0, color: '#22c55e' },
+    { type: 'saving',           pct: config.fcfg_pct_saving ?? 0,           color: '#06b6d4' },
+    { type: 'investment',       pct: config.fcfg_pct_investment ?? 0,       color: '#f59e0b' },
   ].filter(g => g.pct > 0)
 
   if (groups.length === 0) return null
@@ -184,11 +188,10 @@ function OverviewSection({ config, transactions }) {
   return (
     <section style={s.card}>
       <h2 style={s.cardTitle}>Resumen del mes</h2>
-      {groups.map(({ type, pct, inverse }) => {
+      {groups.map(({ type, pct, color }) => {
         const limit  = (pct * target) / 100
         const spent  = spentByType[type] ?? 0
         const usedPct = limit > 0 ? Math.min(Math.round((spent / limit) * 100), 100) : 0
-        const color  = barColor(usedPct, inverse)
         return (
           <div key={type} style={s.overviewRow}>
             <div style={s.overviewTop}>
@@ -348,51 +351,52 @@ function BudgetRow({ bud, spent, usedPct, color, onDelete }) {
 
 const s = {
   page:     { maxWidth: 640, margin: '0 auto' },
-  loading:  { padding: '2rem', color: '#555', textAlign: 'center' },
-  title:    { fontSize: '1.4rem', fontWeight: 700, color: '#fff' },
-  subtitle: { fontSize: '0.85rem', color: '#555', marginBottom: '1.5rem', textTransform: 'capitalize' },
+  loading:  { padding: '2rem', color: 'var(--text-muted)', textAlign: 'center' },
+  title:    { fontSize: '1.4rem', fontWeight: 700, color: 'var(--text)' },
+  subtitle: { fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.5rem', textTransform: 'capitalize' },
 
-  card:       { background: '#1a1a1a', border: '1px solid #222', borderRadius: 12, padding: '1.25rem', marginBottom: '1rem' },
+  card:       { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '1.25rem', marginBottom: '1rem', boxShadow: 'var(--shadow-card)' },
   cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' },
-  cardTitle:  { fontSize: '0.85rem', fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' },
+  cardTitle:  { fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' },
 
-  editBtn:  { background: 'none', border: '1px solid #333', borderRadius: 6, color: '#aaa', padding: '0.3rem 0.7rem', cursor: 'pointer', fontSize: '0.8rem' },
-  empty:    { color: '#444', fontSize: '0.85rem', padding: '0.5rem 0' },
-  error:    { color: '#f87171', fontSize: '0.85rem', margin: 0 },
+  editBtn:  { background: 'none', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-muted)', padding: '0.3rem 0.7rem', cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'var(--font)' },
+  empty:    { color: 'var(--text-faint)', fontSize: '0.85rem', padding: '0.5rem 0' },
+  error:    { color: 'var(--expense)', fontSize: '0.85rem', margin: 0 },
 
-  emptyConfig: { color: '#555', fontSize: '0.85rem' },
-  configGrid:  { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem' },
+  emptyConfig: { color: 'var(--text-muted)', fontSize: '0.85rem' },
+  configIncomeRow: { display: 'flex', justifyContent: 'center', paddingBottom: '0.75rem', marginBottom: '0.75rem', borderBottom: '1px solid var(--border)' },
+  configGrid:  { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' },
   configItem:  { display: 'flex', flexDirection: 'column', gap: 2 },
-  configLabel: { fontSize: '0.7rem', color: '#555', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' },
-  configValue: { fontSize: '0.95rem', color: '#ddd', fontWeight: 600 },
+  configLabel: { fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' },
+  configValue: { fontSize: '0.95rem', color: 'var(--text)', fontWeight: 600 },
 
   configForm: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
   pctGrid:    { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' },
   pctTotal:   { fontSize: '0.85rem', fontWeight: 600, margin: 0 },
   formActions:{ display: 'flex', gap: '0.5rem' },
-  saveBtn:    { flex: 1, padding: '0.65rem', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem' },
-  cancelBtn:  { padding: '0.65rem 1rem', background: 'none', border: '1px solid #333', color: '#888', borderRadius: 8, cursor: 'pointer', fontSize: '0.9rem' },
+  saveBtn:    { flex: 1, padding: '0.65rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', fontFamily: 'var(--font)' },
+  cancelBtn:  { padding: '0.65rem 1rem', background: 'none', border: '1px solid var(--border)', color: 'var(--text-muted)', borderRadius: 8, cursor: 'pointer', fontSize: '0.9rem', fontFamily: 'var(--font)' },
 
-  label: { display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.8rem', color: '#888', fontWeight: 500 },
-  input: { background: '#111', border: '1px solid #2a2a2a', borderRadius: 8, padding: '0.6rem 0.8rem', color: '#fff', fontSize: '0.9rem', outline: 'none' },
+  label: { display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 },
+  input: { background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.6rem 0.8rem', color: 'var(--text)', fontSize: '0.9rem', outline: 'none' },
 
   overviewRow:    { marginBottom: '20px' },
   overviewTop:    { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.4rem' },
-  overviewLabel:  { fontSize: '0.88rem', color: '#ccc', fontWeight: 500 },
+  overviewLabel:  { fontSize: '0.88rem', color: 'var(--text)', fontWeight: 500 },
   overviewAmounts:{ fontSize: '0.88rem', fontWeight: 600 },
-  overviewLimit:  { color: '#555', fontWeight: 400 },
+  overviewLimit:  { color: 'var(--text-muted)', fontWeight: 400 },
 
-  barTrack: { height: 6, background: '#2a2a2a', borderRadius: 3, overflow: 'hidden' },
+  barTrack: { height: 6, background: 'var(--bg-layer2)', borderRadius: 3, overflow: 'hidden' },
   barFill:  { height: '100%', borderRadius: 3, transition: 'width 0.3s ease' },
   barPct:   { fontSize: '0.7rem', fontWeight: 600, marginTop: 3, display: 'block' },
 
-  budgetForm: { display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', background: '#111', borderRadius: 8, padding: '0.75rem' },
+  budgetForm: { display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', background: 'var(--bg-hover)', borderRadius: 8, padding: '0.75rem' },
   budgetRow:  { marginBottom: '0.75rem' },
   budgetTop:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' },
-  budgetCatName: { fontSize: '0.88rem', color: '#ccc', fontWeight: 500 },
+  budgetCatName: { fontSize: '0.88rem', color: 'var(--text)', fontWeight: 500 },
   budgetRight:   { display: 'flex', alignItems: 'center', gap: '0.5rem' },
   budgetAmounts: { fontSize: '0.85rem', fontWeight: 600 },
-  budgetLimit:   { color: '#555', fontWeight: 400 },
-  deleteBtn:     { background: 'none', border: 'none', color: '#555', cursor: 'pointer', fontSize: '0.85rem', padding: '0 4px' },
-  deleteBtnConfirm: { color: '#f87171' },
+  budgetLimit:   { color: 'var(--text-muted)', fontWeight: 400 },
+  deleteBtn:     { background: 'none', border: 'none', color: 'var(--text-faint)', cursor: 'pointer', fontSize: '0.85rem', padding: '0 4px' },
+  deleteBtnConfirm: { color: 'var(--expense)' },
 }

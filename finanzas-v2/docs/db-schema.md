@@ -23,6 +23,7 @@
 | `recurring_transactions` | `rec` |
 | `financial_config` | `fcfg` |
 | `budgets` | `bud` |
+| `goals` | `goal` |
 
 ---
 
@@ -202,6 +203,27 @@ LIMIT 1;
 
 ---
 
+### `goals`
+Objetivos de ahorro personales. `goal_saved` es un acumulado manual (el usuario va añadiendo lo que aparta), **independiente** del sistema de cuentas y transacciones — los goals son metas con seguimiento propio.
+
+| Campo | Tipo | Label ES | Notas |
+|---|---|---|---|
+| `goal_id` | uuid PK | — | |
+| `goal_usr_id` | uuid FK | — | → `auth.users.id` |
+| `goal_name` | text | Nombre | Ej: "Fondo emergencia", "Viaje Japón" |
+| `goal_category` | text optionset | Categoría | `emergency` · `travel` · `car` · `home` · `education` · `retirement` · `other` |
+| `goal_target` | numeric(15,2) | Objetivo | Importe total a alcanzar; > 0 |
+| `goal_saved` | numeric(15,2) | Ahorrado | Acumulado manual; se incrementa via "Añadir ahorro" |
+| `goal_monthly` | numeric(15,2) | Aportación mensual | Referencia orientativa (no genera transacciones) |
+| `goal_deadline` | date | Fecha límite | null = sin plazo |
+| `goal_is_active` | boolean | Activo | false = soft-delete (historial preservado) |
+| `goal_created_at` | timestamptz | — | |
+| `goal_updated_at` | timestamptz | — | Auto-actualizado por trigger |
+
+**Decisión de diseño:** `goal_saved` es columna directa, no calculada desde `transactions`. Las metas de ahorro son independientes del sistema de cuentas; el usuario aporta manualmente cuánto ha apartado. Esto permite goals de ahorro fuera de las cuentas registradas en la app (hucha física, cuenta externa, etc.).
+
+---
+
 ## Relaciones entre tablas
 
 ```
@@ -212,7 +234,8 @@ auth.users
     ├── transactions              (1:N)
     ├── recurring_transactions    (1:N)
     ├── financial_config          (1:1, opcional)
-    └── budgets                   (1:N, opcional)
+    ├── budgets                   (1:N, opcional)
+    └── goals                     (1:N, opcional)
 
 accounts     ──► transactions           (acc_id → tx_acc_id)
 accounts     ──► recurring_transactions (acc_id → rec_acc_id)
@@ -240,3 +263,5 @@ recurring    ──► transactions           (rec_id → tx_rec_id)
 | `tx_metadata JSONB` | Datos extra de IA (OCR, etc.) sin alterar esquema |
 | Suma de % ≤ 100 en `financial_config` | Constraint a nivel de tabla; el resto es buffer libre |
 | `bud_end_date` nullable | null = presupuesto indefinido; facilita query "presupuesto activo hoy" |
+| `goal_saved` columna directa (no calculada) | Goals son independientes del sistema de cuentas; permite metas en efectivo o cuentas externas sin registrar |
+| `goal_is_active` soft-delete | Preserva historial de metas completadas o canceladas |

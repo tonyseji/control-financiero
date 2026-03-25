@@ -1,113 +1,147 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signOut } from '../../services/auth'
 import SearchModal from '../modals/SearchModal'
+
+const THEME_KEY = 'cf_v2_theme'
+function getTheme() {
+  return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light'
+}
+function applyTheme(theme) {
+  if (theme === 'dark') document.documentElement.classList.add('dark')
+  else                  document.documentElement.classList.remove('dark')
+  localStorage.setItem(THEME_KEY, theme)
+}
 
 const NAV_ITEMS = [
   { key: 'dashboard',    label: 'Inicio',       icon: IconHome },
   { key: 'transactions', label: 'Movimientos',  icon: IconList },
   { key: 'add',          label: 'Añadir',        icon: IconPlus },
   { key: 'budget',       label: 'Presupuesto',  icon: IconChart },
+  { key: 'accounts',     label: 'Cuentas',      icon: IconCreditCard },
+  { key: 'goals',        label: 'Objetivos',    icon: IconTarget },
+  { key: 'analysis',     label: 'Análisis',     icon: IconLineChart },
   { key: 'settings',     label: 'Ajustes',      icon: IconGear },
 ]
 
-export default function Layout({ view, onNavigate, children }) {
+export default function Layout({ view, onNavigate, children, profile }) {
   const [searchOpen, setSearchOpen] = useState(false)
+  const [theme, setTheme] = useState(getTheme)
+
+  function toggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark'
+    setTheme(next)
+    applyTheme(next)
+  }
+
+  const initials = profile?.prof_full_name
+    ? profile.prof_full_name.split(' ').map(n => n[0]).slice(0, 2).join('')
+    : '?'
 
   return (
-    <div style={s.root}>
+    <div className="app-root">
       {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} />}
 
       {/* ── Sidebar — solo desktop ──────────────────────────────────────── */}
-      <aside style={s.sidebar}>
+      <aside className="sidebar">
         {/* Logo */}
-        <div style={s.logo}>
-          <div style={s.logoMark}>
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-mark">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#4f91ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <span style={s.logoText}>Finanzas</span>
+          <span className="sidebar-logo-text">Finanzas</span>
         </div>
 
         {/* Navegación */}
-        <nav style={s.nav}>
-          <p style={s.navLabel}>MENÚ</p>
-          {NAV_ITEMS.map(item => {
-            const active = view === item.key
-            return (
-              <button
-                key={item.key}
-                style={{ ...s.navItem, ...(active ? s.navItemActive : {}) }}
-                onClick={() => onNavigate(item.key)}
-              >
-                {active && <span style={s.navActiveBar} />}
-                <span style={{ ...s.navIcon, ...(active ? s.navIconActive : {}) }}>
-                  <item.icon size={18} />
-                </span>
-                <span style={{ ...s.navText, ...(active ? s.navTextActive : {}) }}>
-                  {item.label}
-                </span>
-              </button>
-            )
-          })}
+        <nav className="sidebar-nav">
+          <p className="sidebar-nav-label">MENÚ</p>
+          {NAV_ITEMS.map(item => (
+            <button
+              key={item.key}
+              className={`sidebar-nav-item${view === item.key ? ' active' : ''}`}
+              onClick={() => onNavigate(item.key)}
+            >
+              <span className="nav-active-bar" />
+              <span className="nav-icon"><item.icon size={18} /></span>
+              <span className="nav-text">{item.label}</span>
+            </button>
+          ))}
         </nav>
 
-        {/* Divider */}
-        <div style={s.divider} />
+        {/* Divider + buscar + tema */}
+        <div className="sidebar-divider" />
+        <div className="sidebar-bottom">
+          <button className="sidebar-nav-item" onClick={() => setSearchOpen(true)}>
+            <span className="nav-icon"><IconSearch size={18} /></span>
+            <span className="nav-text">Buscar</span>
+          </button>
+          <button className="sidebar-nav-item" onClick={toggleTheme} title={theme === 'dark' ? 'Cambiar a claro' : 'Cambiar a oscuro'}>
+            <span className="nav-icon">
+              {theme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
+            </span>
+            <span className="nav-text">{theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}</span>
+          </button>
+        </div>
 
-        {/* Buscar */}
-        <button style={s.searchBtn} onClick={() => setSearchOpen(true)}>
-          <span style={s.navIcon}>
-            <IconSearch size={18} />
-          </span>
-          <span style={s.navText}>Buscar</span>
-        </button>
-
-        {/* Cerrar sesión */}
-        <button style={s.signOutBtn} onClick={() => signOut()}>
-          <IconLogOut size={16} />
-          <span>Cerrar sesión</span>
-        </button>
+        {/* Usuario + cerrar sesión */}
+        {profile && (
+          <div className="sidebar-user">
+            <div className="sidebar-user-avatar">{initials}</div>
+            <div className="sidebar-user-info">
+              <p className="sidebar-user-name">{profile.prof_full_name ?? profile.prof_email}</p>
+              <p className="sidebar-user-role">{profile.prof_role ?? 'Personal'}</p>
+            </div>
+          </div>
+        )}
+        <div className="sidebar-bottom">
+          <button className="sidebar-sign-out" onClick={() => signOut()}>
+            <IconLogOut size={16} />
+            <span>Cerrar sesión</span>
+          </button>
+        </div>
       </aside>
 
       {/* ── Contenido principal ─────────────────────────────────────────── */}
-      <main data-main style={s.main}>
+      <main className="app-main">
         {/* Header móvil */}
-        <div style={s.mobileHeader}>
-          <div style={s.mobileLogo}>
-            <div style={s.logoMark}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <div className="mobile-header">
+          <div className="mobile-logo">
+            <div className="sidebar-logo-mark" style={{ width: 28, height: 28 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#4f91ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <span style={s.logoText}>Finanzas</span>
+            <span className="sidebar-logo-text">Finanzas</span>
           </div>
-          <button style={s.searchTopBtn} onClick={() => setSearchOpen(true)} title="Buscar">
-            <IconSearch size={18} />
-          </button>
+          <div style={{ display: 'flex', gap: '0.25rem' }}>
+            <button className="search-top-btn" onClick={toggleTheme} title={theme === 'dark' ? 'Cambiar a claro' : 'Cambiar a oscuro'}>
+              {theme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
+            </button>
+            <button className="search-top-btn" onClick={() => setSearchOpen(true)} title="Buscar">
+              <IconSearch size={18} />
+            </button>
+          </div>
         </div>
 
         {children}
       </main>
 
       {/* ── Bottom nav — solo móvil ─────────────────────────────────────── */}
-      <nav data-bottom-nav style={s.bottomNav}>
-        {NAV_ITEMS.map(item => {
-          const active = view === item.key
-          return (
-            <button
-              key={item.key}
-              style={{ ...s.bottomItem, ...(active ? s.bottomItemActive : {}) }}
-              onClick={() => onNavigate(item.key)}
-            >
-              {item.key === 'add'
-                ? <span style={s.addFab}><item.icon size={20} /></span>
-                : <item.icon size={20} />
-              }
-              <span style={s.bottomLabel}>{item.label}</span>
-            </button>
-          )
-        })}
+      <nav className="bottom-nav">
+        {NAV_ITEMS.map(item => (
+          <button
+            key={item.key}
+            className={`bottom-nav-item${view === item.key ? ' active' : ''}`}
+            onClick={() => onNavigate(item.key)}
+          >
+            {item.key === 'add'
+              ? <span className="bottom-nav-add-fab"><item.icon size={20} /></span>
+              : <item.icon size={20} />
+            }
+            <span className="bottom-nav-label">{item.label}</span>
+          </button>
+        ))}
       </nav>
     </div>
   )
@@ -184,265 +218,53 @@ function IconLogOut({ size = 24 }) {
   )
 }
 
-// ── Estilos ─────────────────────────────────────────────────────────────────────
-
-const s = {
-  root: {
-    display: 'flex',
-    minHeight: '100vh',
-    background: 'var(--bg)',
-    color: 'var(--text)',
-  },
-
-  // Sidebar
-  sidebar: {
-    width: 'var(--sidebar-w)',
-    background: 'rgba(22,27,46,0.97)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    borderRight: '1px solid var(--border)',
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '1.5rem 0 1rem',
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    height: '100vh',
-    zIndex: 50,
-  },
-
-  // Logo
-  logo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.6rem',
-    padding: '0 1.25rem',
-    marginBottom: '1.75rem',
-  },
-  logoMark: {
-    width: 34,
-    height: 34,
-    background: 'var(--accent-soft)',
-    border: '1px solid var(--accent-glow)',
-    borderRadius: 10,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  logoText: {
-    fontSize: '0.95rem',
-    fontWeight: 700,
-    color: 'var(--text)',
-    letterSpacing: '-0.01em',
-  },
-
-  // Nav
-  nav: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '0 0.75rem',
-    gap: 2,
-  },
-  navLabel: {
-    fontSize: '0.65rem',
-    fontWeight: 700,
-    color: 'var(--text-faint)',
-    letterSpacing: '0.08em',
-    padding: '0 0.75rem',
-    marginBottom: '0.5rem',
-  },
-  navItem: {
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.65rem',
-    padding: '0.6rem 0.875rem',
-    borderRadius: 'var(--radius-sm)',
-    border: 'none',
-    background: 'none',
-    color: 'var(--text-muted)',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-    fontWeight: 500,
-    textAlign: 'left',
-    width: '100%',
-    transition: 'background var(--transition), color var(--transition)',
-  },
-  navItemActive: {
-    background: 'var(--bg-hover)',
-    color: 'var(--text)',
-  },
-  navActiveBar: {
-    position: 'absolute',
-    left: 0,
-    top: '20%',
-    bottom: '20%',
-    width: 3,
-    background: 'var(--accent)',
-    borderRadius: '0 99px 99px 0',
-  },
-  navIcon: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 20,
-    color: 'inherit',
-    flexShrink: 0,
-  },
-  navIconActive: { color: 'var(--accent)' },
-  navText: {
-    fontSize: '0.875rem',
-    color: 'inherit',
-  },
-  navTextActive: { color: 'var(--text)', fontWeight: 700 },
-
-  // Divider
-  divider: {
-    height: 1,
-    background: 'var(--border)',
-    margin: '0.75rem 1.25rem',
-  },
-
-  // Search button (same style as nav item)
-  searchBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.6rem',
-    padding: '0.55rem 0.75rem',
-    margin: '0 0.75rem',
-    borderRadius: 'var(--radius-sm)',
-    border: 'none',
-    background: 'none',
-    color: 'var(--text-muted)',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-    fontWeight: 500,
-    width: 'calc(100% - 1.5rem)',
-    textAlign: 'left',
-  },
-
-  // Sign out
-  signOutBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    margin: '0.5rem 1.25rem 0',
-    padding: '0.5rem 0.75rem',
-    background: 'none',
-    border: '1px solid var(--border)',
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--text-faint)',
-    cursor: 'pointer',
-    fontSize: '0.8rem',
-    fontWeight: 500,
-    transition: 'border-color var(--transition), color var(--transition)',
-  },
-
-  // Main content
-  main: {
-    flex: 1,
-    marginLeft: 'var(--sidebar-w)',
-    padding: '1.5rem 2rem',
-    maxWidth: '100%',
-    overflowX: 'hidden',
-    minHeight: '100vh',
-  },
-
-  // Mobile header
-  mobileHeader: {
-    display: 'none',
-  },
-  mobileLogo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  },
-
-  // Search top button (desktop)
-  searchTopBtn: {
-    background: 'var(--bg-card)',
-    border: '1px solid var(--border)',
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--text-muted)',
-    cursor: 'pointer',
-    padding: '0.4rem 0.5rem',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'border-color var(--transition), color var(--transition)',
-  },
-
-  // Bottom nav
-  bottomNav: {
-    display: 'none',
-    position: 'fixed',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    background: 'rgba(22,27,46,0.97)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    borderTop: '1px solid var(--border)',
-    flexDirection: 'row',
-    zIndex: 100,
-    paddingBottom: 'env(safe-area-inset-bottom)',
-  },
-  bottomItem: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    padding: '0.6rem 0.25rem',
-    background: 'none',
-    border: 'none',
-    color: 'var(--text-faint)',
-    cursor: 'pointer',
-    fontSize: '0.62rem',
-    fontWeight: 500,
-    transition: 'color var(--transition)',
-  },
-  bottomItemActive: {
-    color: 'var(--accent)',
-  },
-  bottomLabel: {
-    fontSize: '0.62rem',
-    letterSpacing: '0.01em',
-  },
-  addFab: {
-    width: 40,
-    height: 40,
-    background: 'var(--accent)',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#fff',
-    marginBottom: 2,
-    boxShadow: '0 2px 12px var(--accent-glow)',
-  },
+function IconCreditCard({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+      <line x1="1" y1="10" x2="23" y2="10"/>
+    </svg>
+  )
 }
 
-// ── Mobile header visibility via CSS ────────────────────────────────────────────
-// Inject style once
-if (typeof document !== 'undefined') {
-  const id = '__layout-mobile-css'
-  if (!document.getElementById(id)) {
-    const style = document.createElement('style')
-    style.id = id
-    style.textContent = `
-      @media (max-width: 768px) {
-        [data-main] > div:first-child { display: flex !important; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
-      }
-      @media (min-width: 769px) {
-        [data-main] > div:first-child { display: none !important; }
-      }
-      .nav-item:hover { background: var(--bg-hover) !important; color: var(--text) !important; }
-      .sign-out-btn:hover { border-color: var(--text-faint) !important; color: var(--text-muted) !important; }
-    `
-    document.head.appendChild(style)
-  }
+function IconTarget({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <circle cx="12" cy="12" r="6"/>
+      <circle cx="12" cy="12" r="2"/>
+    </svg>
+  )
+}
+
+function IconLineChart({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+  )
+}
+
+function IconSun({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3"/>
+      <line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/>
+      <line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+  )
+}
+
+function IconMoon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  )
 }

@@ -1,13 +1,17 @@
 import { useState, useMemo } from 'react'
 import { useTransactions } from '../hooks/useTransactions'
 import { formatCurrency, monthRange } from '../utils/formatters'
+import { isTransfer, isSaving, isInvestment, isRealExpense, isIncome } from '../utils/txClassifier'
 
 const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 
 const TYPE_OPTIONS = [
-  { value: '', label: 'Todos los tipos' },
-  { value: 'income',  label: 'Ingresos' },
-  { value: 'expense', label: 'Gastos' },
+  { value: '',           label: 'Todos los tipos' },
+  { value: 'income',     label: 'Ingresos' },
+  { value: 'expense',    label: 'Gastos reales' },
+  { value: 'saving',     label: 'Ahorro' },
+  { value: 'investment', label: 'Inversión' },
+  { value: 'transfer',   label: 'Transferencias' },
 ]
 
 function catTypeBadge(catType) {
@@ -17,14 +21,36 @@ function catTypeBadge(catType) {
     case 'variable_expense': return { cls: 'gv',  label: 'Gasto var.' }
     case 'saving':           return { cls: 'aho', label: 'Ahorro' }
     case 'investment':       return { cls: 'inv', label: 'Inversión' }
+    case 'transfer':         return { cls: 'tra', label: 'Transferencia ↔' }
     default:                 return { cls: 'gv',  label: 'Gasto' }
   }
+}
+
+function exportCSV(txs, filename) {
+  const rows = [['Fecha','Nota','Categoría','Tipo','Cuenta','Importe']]
+  for (const tx of txs) {
+    rows.push([
+      tx.tx_date?.slice(0, 10) ?? '',
+      tx.tx_notes ?? '',
+      tx.categories?.cat_name ?? '',
+      tx.tx_type ?? '',
+      tx.accounts?.acc_name ?? '',
+      (tx.tx_type === 'income' ? '' : '-') + (tx.tx_amount ?? 0),
+    ])
+  }
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url  = URL.createObjectURL(blob)
+  const a    = Object.assign(document.createElement('a'), { href: url, download: filename })
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 export default function Transactions({ onEdit }) {
   const now = new Date()
   const [year,  setYear]  = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
+  const [exportOpen, setExportOpen] = useState(false)
 
   // Filtros
   const [filterType,    setFilterType]    = useState('')
@@ -32,8 +58,9 @@ export default function Transactions({ onEdit }) {
   const [filterAccId,   setFilterAccId]   = useState('')
   const [filterText,    setFilterText]    = useState('')
 
-  const { from, to }                      = useMemo(() => monthRange(year, month), [year, month])
-  const { transactions, loading, remove } = useTransactions({ from, to })
+  const { from, to }                          = useMemo(() => monthRange(year, month), [year, month])
+  const { transactions, loading, remove }     = useTransactions({ from, to })
+  const { transactions: allYear }             = useTransactions({ from: `${year}-01-01`, to: `${year}-12-31` })
 
   // ── Opciones derivadas de las transacciones cargadas ─────────────────────
 
@@ -64,8 +91,11 @@ export default function Transactions({ onEdit }) {
   const filtered = useMemo(() => {
     return transactions.filter(tx => {
       if (filterType) {
-        if (filterType === 'income'  && tx.tx_type !== 'income')  return false
-        if (filterType === 'expense' && tx.tx_type === 'income')  return false
+        if (filterType === 'income'     && !isIncome(tx))            return false
+        if (filterType === 'expense'    && !isRealExpense(tx))        return false
+        if (filterType === 'saving'     && !isSaving(tx))             return false
+        if (filterType === 'investment' && !isInvestment(tx))         return false
+        if (filterType === 'transfer'   && !isTransfer(tx))           return false
       }
       if (filterCatId && tx.categories?.cat_id !== filterCatId) return false
       if (filterAccId && tx.accounts?.acc_id   !== filterAccId) return false
@@ -81,13 +111,15 @@ export default function Transactions({ onEdit }) {
 
   // ── Métricas de las transacciones filtradas ───────────────────────────────
 
-  const { income, expenses, balance } = useMemo(() => {
-    let income = 0, expenses = 0
+  const { income, expenses, savingInv, balance } = useMemo(() => {
+    let income = 0, expenses = 0, savingInv = 0
     for (const tx of filtered) {
-      if (tx.tx_type === 'income') income += tx.tx_amount
-      else expenses += tx.tx_amount
+      if (isTransfer(tx))                              continue
+      if (isIncome(tx))                                income    += tx.tx_amount
+      else if (isSaving(tx) || isInvestment(tx))       savingInv += tx.tx_amount
+      else if (isRealExpense(tx))                      expenses  += tx.tx_amount
     }
-    return { income, expenses, balance: income - expenses }
+    return { income, expenses, savingInv, balance: income - expenses }
   }, [filtered])
 
   // ── Agrupación por fecha ──────────────────────────────────────────────────
@@ -134,7 +166,30 @@ export default function Transactions({ onEdit }) {
           <h1 style={s.headerTitle}>{MONTH_NAMES[month - 1]} {year}</h1>
           {!loading && <p style={s.headerSub}>{filtered.length} movimientos este mes</p>}
         </div>
-        <div style={s.navBtns}>
+        <div style={{ display: 'flex', gap: '0.4rem', marginTop: 4, alignItems: 'center' }}>
+          {/* Export dropdown */}
+          <div style={{ position: 'relative' }}>
+            <button
+              style={{ ...s.navBtn, width: 'auto', padding: '0 10px', gap: 5, display: 'flex', alignItems: 'center', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)' }}
+              onClick={() => setExportOpen(o => !o)}
+              title="Exportar CSV"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Exportar
+            </button>
+            {exportOpen && (
+              <div style={s.exportMenu} onMouseLeave={() => setExportOpen(false)}>
+                <button style={s.exportItem} onClick={() => { exportCSV(filtered, `movimientos-${MONTH_NAMES[month-1].toLowerCase()}-${year}.csv`); setExportOpen(false) }}>
+                  Mes actual ({filtered.length})
+                </button>
+                <button style={s.exportItem} onClick={() => { exportCSV(allYear, `movimientos-${year}.csv`); setExportOpen(false) }}>
+                  Año completo ({allYear.length})
+                </button>
+              </div>
+            )}
+          </div>
           <button style={s.navBtn} onClick={prevMonth} title="Mes anterior">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"/>
@@ -151,8 +206,11 @@ export default function Transactions({ onEdit }) {
       {/* ── Resumen (sobre transacciones FILTRADAS) ────────────────────────── */}
       {!loading && filtered.length > 0 && (
         <div style={s.summary}>
-          <SummaryPill label="Ingresos" value={`+${formatCurrency(income)}`}   color="var(--income)"  />
-          <SummaryPill label="Gastos"   value={`−${formatCurrency(expenses)}`} color="var(--expense)" />
+          <SummaryPill label="Ingresos"    value={`+${formatCurrency(income)}`}      color="var(--income)"  />
+          <SummaryPill label="Gastos"      value={`−${formatCurrency(expenses)}`}    color="var(--expense)" />
+          {savingInv > 0 && (
+            <SummaryPill label="Ahorro/Inv." value={formatCurrency(savingInv)} color="var(--cyan)"    />
+          )}
           <SummaryPill
             label="Balance"
             value={`${balance >= 0 ? '+' : '−'}${formatCurrency(Math.abs(balance))}`}
@@ -251,8 +309,11 @@ export default function Transactions({ onEdit }) {
       {/* ── Grupos por fecha ──────────────────────────────────────────────── */}
       <div className="tx-list">
         {grouped.map(([date, txs]) => {
-          const dayNet = txs.reduce((sum, tx) =>
-            tx.tx_type === 'income' ? sum + tx.tx_amount : sum - tx.tx_amount, 0)
+          const dayNet = txs.reduce((sum, tx) => {
+            if (isTransfer(tx)) return sum
+            if (isIncome(tx)) return sum + tx.tx_amount
+            return sum - tx.tx_amount
+          }, 0)
           const label = new Date(date + 'T12:00:00').toLocaleDateString('es-ES', {
             weekday: 'long', day: 'numeric', month: 'long',
           })
@@ -287,13 +348,33 @@ function SummaryPill({ label, value, color }) {
 }
 
 function TxRow({ tx, onDelete, onEdit }) {
-  const isIncome   = tx.tx_type === 'income'
-  const isTransfer = !!tx.tx_transfer_pair_id
+  const transfer   = isTransfer(tx)
+  const income     = isIncome(tx)
+  const saving     = isSaving(tx)
+  const investment = isInvestment(tx)
   const [confirming, setConfirming] = useState(false)
   const catColor = tx.categories?.cat_color ?? '#2e3558'
-  const catName  = tx.categories?.cat_name  ?? (isIncome ? 'Ingreso' : 'Gasto')
+  const catName  = tx.categories?.cat_name  ?? (income ? 'Ingreso' : 'Gasto')
   const accName  = tx.accounts?.acc_name
-  const badge    = catTypeBadge(tx.categories?.cat_type)
+  const badge    = catTypeBadge(transfer ? 'transfer' : tx.categories?.cat_type)
+
+  // Amount color: transfer = neutral (text-muted), saving/investment = cyan, income = green, expense = red
+  const amountStyle = transfer ? { color: 'var(--text-muted)' } : null
+
+  const amountCls = transfer
+    ? 'num'
+    : (saving || investment)
+      ? 'saving num'
+      : income
+        ? 'income num'
+        : 'expense num'
+
+  // Amount sign: transfer = no sign, saving/investment = no sign (teal color makes it clear), income = +, expense = −
+  const amountStr = transfer || saving || investment
+    ? formatCurrency(tx.tx_amount)
+    : income
+      ? `+${formatCurrency(tx.tx_amount)}`
+      : `−${formatCurrency(tx.tx_amount)}`
 
   async function handleDelete() {
     if (!confirming) { setConfirming(true); return }
@@ -302,7 +383,7 @@ function TxRow({ tx, onDelete, onEdit }) {
 
   return (
     <div className="tx-item tx-row-hover">
-      <div className="tx-dot" style={{ background: catColor }} />
+      <div className="tx-dot" style={{ background: transfer ? 'var(--text-faint)' : catColor }} />
       <div className="tx-info">
         <div className="tx-cat">{catName}</div>
         {tx.tx_notes && <div className="tx-note">{tx.tx_notes}</div>}
@@ -312,12 +393,12 @@ function TxRow({ tx, onDelete, onEdit }) {
       <div className="tx-meta">
         <div className={`tx-type-badge ${badge.cls}`}>{badge.label}</div>
       </div>
-      <div className={`tx-amount ${isIncome ? 'income' : 'expense'} num`}>
-        {isIncome ? '+' : '−'}{formatCurrency(tx.tx_amount)}
+      <div className={`tx-amount ${amountCls}`} style={amountStyle}>
+        {amountStr}
       </div>
       {(onEdit || onDelete) && (
         <div className="tx-actions tx-actions-reveal">
-          {!isTransfer && onEdit && (
+          {!transfer && onEdit && (
             <button className="btn-sm" onClick={() => onEdit(tx)} title="Editar">✏</button>
           )}
           {onDelete && (
@@ -434,4 +515,31 @@ const s = {
   },
 
   loadingWrap: { display: 'flex', flexDirection: 'column', gap: '1rem' },
+
+  exportMenu: {
+    position: 'absolute',
+    top: '110%',
+    right: 0,
+    background: 'var(--bg-card)',
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--radius-btn)',
+    boxShadow: 'var(--shadow)',
+    minWidth: 190,
+    zIndex: 50,
+    overflow: 'hidden',
+  },
+  exportItem: {
+    display: 'block',
+    width: '100%',
+    padding: '0.6rem 1rem',
+    background: 'none',
+    border: 'none',
+    color: 'var(--text)',
+    fontSize: '0.82rem',
+    fontWeight: 500,
+    cursor: 'pointer',
+    textAlign: 'left',
+    fontFamily: 'inherit',
+    transition: 'background var(--transition)',
+  },
 }

@@ -3,12 +3,26 @@ import { signOut, requestPasswordReset } from '../services/auth'
 import { supabase } from '../services/supabase'
 
 const CURRENCIES = ['EUR', 'USD', 'GBP']
+const THEME_KEY  = 'cf_v2_theme'
+
+function getTheme() {
+  return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light'
+}
+function applyTheme(theme) {
+  if (theme === 'dark') document.documentElement.classList.add('dark')
+  else                  document.documentElement.classList.remove('dark')
+  localStorage.setItem(THEME_KEY, theme)
+}
 
 export default function Settings({ profile, onProfileUpdate, onNavigate }) {
-  const [email,          setEmail]          = useState(null)
-  const [currency,       setCurrency]       = useState(profile?.prof_currency ?? 'EUR')
-  const [pwdStatus,      setPwdStatus]      = useState(null) // null | 'sending' | 'ok' | 'error'
-  const [pwdError,       setPwdError]       = useState('')
+  const [email,       setEmail]       = useState(null)
+  const [currency,    setCurrency]    = useState(profile?.prof_currency ?? 'EUR')
+  const [pwdStatus,   setPwdStatus]   = useState(null)
+  const [pwdError,    setPwdError]    = useState('')
+  const [editName,    setEditName]    = useState(false)
+  const [nameVal,     setNameVal]     = useState(profile?.prof_full_name ?? '')
+  const [nameSaving,  setNameSaving]  = useState(false)
+  const [nameError,   setNameError]   = useState('')
 
   // Cargar email desde la sesión de Supabase
   useEffect(() => {
@@ -18,6 +32,25 @@ export default function Settings({ profile, onProfileUpdate, onNavigate }) {
     })
     return () => { cancelled = true }
   }, [])
+
+  async function handleSaveName(e) {
+    e.preventDefault()
+    if (!nameVal.trim()) return
+    setNameSaving(true); setNameError('')
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ prof_full_name: nameVal.trim() })
+        .eq('prof_id', profile.prof_id)
+      if (error) throw error
+      await onProfileUpdate()
+      setEditName(false)
+    } catch (err) {
+      setNameError(err?.message ?? 'Error al guardar')
+    } finally {
+      setNameSaving(false)
+    }
+  }
 
   async function handlePasswordReset() {
     const addr = email || profile?.prof_email
@@ -59,10 +92,28 @@ export default function Settings({ profile, onProfileUpdate, onNavigate }) {
         </div>
       </div>
 
-      {/* ── Info (solo admin ve el rol) ────────────────────────────────── */}
+      {/* ── Nombre editable ───────────────────────────────────────────── */}
       <div style={s.section}>
         <p style={s.fieldLabel}>Nombre</p>
-        <p style={s.fieldValue}>{profile?.prof_full_name ?? '—'}</p>
+        {editName ? (
+          <form onSubmit={handleSaveName} style={{ display: 'flex', gap: '0.4rem', marginTop: '0.35rem', flexWrap: 'wrap' }}>
+            <input
+              style={{ ...s.fieldInput, flex: 1 }}
+              value={nameVal}
+              onChange={e => setNameVal(e.target.value)}
+              autoFocus
+              required
+            />
+            <button style={s.smallBtn} type="submit" disabled={nameSaving}>{nameSaving ? '…' : 'Guardar'}</button>
+            <button style={s.smallBtnGhost} type="button" onClick={() => { setEditName(false); setNameVal(profile?.prof_full_name ?? '') }}>Cancelar</button>
+            {nameError && <p style={s.feedbackErr}>{nameError}</p>}
+          </form>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.2rem' }}>
+            <p style={s.fieldValue}>{profile?.prof_full_name ?? '—'}</p>
+            <button style={s.editNameBtn} onClick={() => { setEditName(true); setNameVal(profile?.prof_full_name ?? '') }}>Editar</button>
+          </div>
+        )}
       </div>
 
       {isAdmin && (
@@ -126,11 +177,6 @@ export default function Settings({ profile, onProfileUpdate, onNavigate }) {
 
       {/* ── Gestión ───────────────────────────────────────────────────── */}
       <p style={s.groupLabel}>Gestión</p>
-
-      <button style={s.navBtn} onClick={() => onNavigate('accounts')}>
-        <span>Cuentas bancarias</span>
-        <span style={s.chevron}>›</span>
-      </button>
 
       <button style={s.navBtn} onClick={() => onNavigate('categories')}>
         <span>Categorías</span>
@@ -330,6 +376,25 @@ const s = {
   chevron: {
     color: 'var(--text-faint)',
     fontSize: '1.1rem',
+  },
+
+  // Nombre editable
+  fieldInput: {
+    background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8,
+    padding: '0.45rem 0.75rem', color: 'var(--text)', fontSize: '0.9rem',
+    outline: 'none', fontFamily: 'inherit',
+  },
+  smallBtn: {
+    background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 7,
+    padding: '0.45rem 0.85rem', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+  },
+  smallBtnGhost: {
+    background: 'none', border: '1px solid var(--border)', color: 'var(--text-faint)',
+    borderRadius: 7, padding: '0.45rem 0.85rem', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+  },
+  editNameBtn: {
+    background: 'none', border: '1px solid var(--border)', color: 'var(--text-faint)',
+    borderRadius: 6, padding: '0.2rem 0.55rem', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
   },
 
   // Sign out
