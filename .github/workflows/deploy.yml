@@ -49,6 +49,9 @@ jobs:
       - name: Build V2
         working-directory: finanzas-v2/app
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Merge V2 into dist/v2
         run: |
