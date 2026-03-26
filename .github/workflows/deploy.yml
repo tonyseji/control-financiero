@@ -20,6 +20,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Debug env lengths
+        run: |
+          echo "URL length: ${#VITE_SUPABASE_URL}"
+          echo "KEY length: ${#VITE_SUPABASE_ANON_KEY}"
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
       - name: Setup Node.js (V1)
         uses: actions/setup-node@v4
         with:
