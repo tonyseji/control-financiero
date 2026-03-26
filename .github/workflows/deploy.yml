@@ -20,20 +20,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js (V1)
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: control-financiero-app/package-lock.json
 
-      - name: Instalar dependencias
+      - name: Instalar dependencias V1
         working-directory: control-financiero-app
         run: npm ci
 
-      - name: Build
+      - name: Build V1
         working-directory: control-financiero-app
         run: npm run build
+
+      - name: Setup Node.js (V2)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: finanzas-v2/app/package-lock.json
+
+      - name: Instalar dependencias V2
+        working-directory: finanzas-v2/app
+        run: npm ci
+
+      - name: Build V2
+        working-directory: finanzas-v2/app
+        run: npm run build
+
+      - name: Merge V2 into dist/v2
+        run: |
+          mkdir -p control-financiero-app/dist/v2
+          cp -r finanzas-v2/app/dist/. control-financiero-app/dist/v2/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
