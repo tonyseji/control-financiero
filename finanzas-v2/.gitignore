@@ -1,10 +1,27 @@
+# Dependencias
+node_modules/
+app/node_modules/
+
+# Build output
+dist/
+app/dist/
+
 # Supabase CLI temporales
 supabase/.temp/
 
-# Variables de entorno con valores reales
-app/.env.local
-app/.env.staging
-app/.env.production
+# Variables de entorno (nunca commitear)
+.env
+.env.*
+!.env.example
+app/.env
+app/.env.*
+!app/.env.example
 
 # Claude Code worktrees (temporales, no son parte del proyecto)
 .claude/worktrees/
+
+# Logs y temporales
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db

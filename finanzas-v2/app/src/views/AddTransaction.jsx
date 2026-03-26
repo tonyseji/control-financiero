@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTransactions } from '../hooks/useTransactions'
 import { useAccounts } from '../hooks/useAccounts'
 import { useCategories } from '../hooks/useCategories'
+import { useVoiceInput } from '../hooks/useVoiceInput'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -17,6 +18,8 @@ export default function AddTransaction({ onSuccess, editTx }) {
   const { add, update, addTransfer } = useTransactions()
   const { accounts } = useAccounts()
   const { categories } = useCategories()
+  const { isListening, transcript, parsedFields, supported, error: voiceError, startListening, stopListening } =
+    useVoiceInput({ categories, accounts })
 
   const [type, setType]         = useState(editTx?.tx_type ?? 'expense')
   const [subtype, setSubtype]   = useState(editTx ? inferSubtype(editTx) : 'fixed_expense')
@@ -28,6 +31,11 @@ export default function AddTransaction({ onSuccess, editTx }) {
   const [notes, setNotes]       = useState(editTx?.tx_notes ?? '')
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState(null)
+  const [voiceFeedback, setVoiceFeedback] = useState(null) // mensaje tras autorrelleno
+
+  // Track which fields the user has manually edited after the last voice fill.
+  // Prevents voice from overwriting deliberate user changes.
+  const userEdited = useRef({ amount: false, date: false, catId: false, type: false })
 
   const isTransfer = type === 'transfer'
 
@@ -43,13 +51,54 @@ export default function AddTransaction({ onSuccess, editTx }) {
     if (isEdit) return
     const first = filteredCats[0]
     setCatId(first ? first.cat_id : '')
-  }, [type, categories])
+  }, [type, subtype, categories]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Aplicar parsedFields cuando llegan (respetando ediciones manuales) ────
+  //
+  // Los flags en userEdited.current se ponen a true cuando el usuario edita
+  // manualmente un campo. Se resetean a false cuando comienza una nueva sesión
+  // de voz (ver startListening en useVoiceInput, que llama setParsedFields(null),
+  // lo cual no dispara este effect). El reset aquí está en el handler del botón mic.
   useEffect(() => {
-    if (isEdit) return
-    const first = filteredCats[0]
-    setCatId(first ? first.cat_id : '')
-  }, [subtype])
+    if (!parsedFields) return
+
+    // amount — solo si el usuario no lo ha editado manualmente
+    if (parsedFields.amount !== null && !userEdited.current.amount) {
+      setAmount(String(parsedFields.amount))
+    }
+
+    // date — solo si se detectó una fecha explícita y el usuario no la cambió
+    if (parsedFields.date !== null && !userEdited.current.date) {
+      setDate(parsedFields.date)
+    }
+
+    // type + subtype + catId — solo si no es modo edición y el usuario no los cambió
+    if (!isEdit) {
+      if (!userEdited.current.type) {
+        setType(parsedFields.txType)
+        // Inferir subtype desde la categoría encontrada, si aplica
+        if (parsedFields.categoryId) {
+          const matchedCat = categories.find(c => c.cat_id === parsedFields.categoryId)
+          if (matchedCat && ['fixed_expense', 'variable_expense', 'saving', 'investment'].includes(matchedCat.cat_type)) {
+            setSubtype(matchedCat.cat_type)
+          }
+        }
+      }
+      if (!userEdited.current.catId && parsedFields.categoryId) {
+        setCatId(parsedFields.categoryId)
+      }
+    }
+
+    // note — siempre rellenar con el transcript completo cuando llega
+    if (parsedFields.note) {
+      setNotes(parsedFields.note)
+    }
+
+    // Mostrar feedback breve de lo que se entendió
+    setVoiceFeedback(`Entendí: "${transcript}"`)
+    const timer = setTimeout(() => setVoiceFeedback(null), 4000)
+    return () => clearTimeout(timer)
+  }, [parsedFields, categories, transcript]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -86,7 +135,7 @@ export default function AddTransaction({ onSuccess, editTx }) {
           tx_cat_id: catId,
           tx_acc_id: accId,
           tx_notes:  notes || null,
-          tx_source: 'manual',
+          tx_source: parsedFields ? 'voice' : 'manual',
         })
       }
       onSuccess?.()
@@ -99,7 +148,6 @@ export default function AddTransaction({ onSuccess, editTx }) {
 
   // Colors by type
   const typeColor = type === 'income' ? 'var(--income)' : type === 'transfer' ? 'var(--accent)' : 'var(--expense)'
-  const typeBg    = type === 'income' ? 'var(--income-soft)' : type === 'transfer' ? 'var(--accent-soft)' : 'var(--expense-soft)'
 
   return (
     <div style={s.page}>
@@ -107,15 +155,44 @@ export default function AddTransaction({ onSuccess, editTx }) {
       {/* ── Header ────────────────────────────────────────────────────────── */}
       <div style={s.header}>
         <p style={s.headerSub}>{isEdit ? 'Editar' : 'Nuevo'}</p>
-        <h1 style={s.headerTitle}>{isEdit ? 'Editar movimiento' : 'Añadir movimiento'}</h1>
+        <div style={s.headerRow}>
+          <h1 style={s.headerTitle}>{isEdit ? 'Editar movimiento' : 'Añadir movimiento'}</h1>
+          {supported && !isEdit && (
+            <button
+              type="button"
+              className={`voice-btn${isListening ? ' listening' : ''}`}
+              onClick={isListening ? stopListening : () => {
+                // Reset manual-edit flags so the next voice result can fill all fields
+                userEdited.current = { amount: false, date: false, catId: false, type: false }
+                startListening()
+              }}
+              aria-label={isListening ? 'Detener reconocimiento de voz' : 'Iniciar reconocimiento de voz'}
+              title={isListening ? 'Detener' : 'Rellenar con voz'}
+            >
+              {isListening ? <IconMicActive /> : <IconMic />}
+            </button>
+          )}
+        </div>
+        {isListening && (
+          <p style={s.voiceStatus} aria-live="polite">
+            <span style={s.voiceDot} />
+            Escuchando…
+          </p>
+        )}
+        {voiceFeedback && !isListening && (
+          <p style={s.voiceFeedback} aria-live="polite">{voiceFeedback}</p>
+        )}
+        {voiceError && (
+          <p style={s.voiceError} aria-live="assertive">{voiceError}</p>
+        )}
       </div>
 
       {/* ── Type toggle ──────────────────────────────────────────────────── */}
       <div style={s.typeToggle}>
-        <TypeButton active={type === 'expense'} onClick={() => setType('expense')} label="Gasto" />
-        <TypeButton active={type === 'income'}  onClick={() => setType('income')}  label="Ingreso" />
+        <TypeButton active={type === 'expense'} onClick={() => { userEdited.current.type = true; setType('expense') }} label="Gasto" />
+        <TypeButton active={type === 'income'}  onClick={() => { userEdited.current.type = true; setType('income') }}  label="Ingreso" />
         {!isEdit && (
-          <TypeButton active={type === 'transfer'} onClick={() => setType('transfer')} label="Transferencia" />
+          <TypeButton active={type === 'transfer'} onClick={() => { userEdited.current.type = true; setType('transfer') }} label="Transferencia" />
         )}
       </div>
 
@@ -142,7 +219,7 @@ export default function AddTransaction({ onSuccess, editTx }) {
               step="0.01"
               placeholder="0.00"
               value={amount}
-              onChange={e => setAmount(e.target.value)}
+              onChange={e => { userEdited.current.amount = true; setAmount(e.target.value) }}
               required
               autoFocus
             />
@@ -156,7 +233,7 @@ export default function AddTransaction({ onSuccess, editTx }) {
             style={s.input}
             type="date"
             value={date}
-            onChange={e => setDate(e.target.value)}
+            onChange={e => { userEdited.current.date = true; setDate(e.target.value) }}
             required
           />
         </FormField>
@@ -184,7 +261,7 @@ export default function AddTransaction({ onSuccess, editTx }) {
         {/* Categoría */}
         {!isTransfer && (
           <FormField label="Categoría">
-            <select style={s.input} value={catId} onChange={e => setCatId(e.target.value)} required>
+            <select style={s.input} value={catId} onChange={e => { userEdited.current.catId = true; setCatId(e.target.value) }} required>
               <option value="">— Selecciona —</option>
               {filteredCats.map(c => <option key={c.cat_id} value={c.cat_id}>{c.cat_name}</option>)}
             </select>
@@ -228,6 +305,38 @@ export default function AddTransaction({ onSuccess, editTx }) {
     </div>
   )
 }
+
+// ── Iconos SVG de micrófono ───────────────────────────────────────────────────
+
+function IconMic() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8"  y1="23" x2="16" y2="23"/>
+    </svg>
+  )
+}
+
+function IconMicActive() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
+      stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path fill="none" d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8"  y1="23" x2="16" y2="23"/>
+    </svg>
+  )
+}
+
+// ── Sub-components ────────────────────────────────────────────────────────────
 
 function SubtypeButton({ active, onClick, label }) {
   return (
@@ -280,6 +389,8 @@ function labelType(type) {
   return type === 'income' ? 'ingreso' : type === 'transfer' ? 'transferencia' : 'gasto'
 }
 
+// ── Styles ────────────────────────────────────────────────────────────────────
+
 const s = {
   page: { maxWidth: 520, margin: '0 auto', paddingBottom: '2rem' },
 
@@ -292,11 +403,48 @@ const s = {
     letterSpacing: '0.06em',
     marginBottom: '0.25rem',
   },
+  headerRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '0.5rem',
+  },
   headerTitle: {
     fontSize: '1.6rem',
     fontWeight: 800,
     color: 'var(--text)',
     letterSpacing: '-0.03em',
+  },
+
+  // Voice feedback messages
+  voiceStatus: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.4rem',
+    marginTop: '0.4rem',
+    fontSize: '0.8rem',
+    fontWeight: 500,
+    color: 'var(--expense)',
+  },
+  voiceDot: {
+    display: 'inline-block',
+    width: 7,
+    height: 7,
+    borderRadius: '50%',
+    background: 'var(--expense)',
+    flexShrink: 0,
+    animation: 'voice-pulse 1s ease-in-out infinite',
+  },
+  voiceFeedback: {
+    marginTop: '0.4rem',
+    fontSize: '0.78rem',
+    color: 'var(--text-muted)',
+    fontStyle: 'italic',
+  },
+  voiceError: {
+    marginTop: '0.4rem',
+    fontSize: '0.78rem',
+    color: 'var(--expense)',
   },
 
   // Type toggle — segmented control

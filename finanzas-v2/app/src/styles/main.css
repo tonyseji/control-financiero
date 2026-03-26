@@ -836,6 +836,27 @@ button:hover:not(:disabled) {
   text-transform: capitalize;
 }
 
+/* Botón ajustes junto al usuario */
+.sidebar-settings-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.sidebar-settings-btn:hover,
+.sidebar-settings-btn.active {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
 /* Botón cerrar sesión */
 .sidebar-sign-out {
   display: flex;
@@ -1100,3 +1121,52 @@ button:hover:not(:disabled) {
   font-family: var(--font);
 }
 .cat-budget-card-del:hover { color: var(--expense); }
+
+/* ── Voice input button ───────────────────────────────────────────────────────── */
+@keyframes voice-pulse {
+  0%, 100% { transform: scale(1);   opacity: 1;    }
+  50%       { transform: scale(1.5); opacity: 0.55; }
+}
+
+@keyframes voice-ring {
+  0%   { transform: scale(1);    opacity: 0.6; }
+  100% { transform: scale(1.85); opacity: 0;   }
+}
+
+.voice-btn {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  width:           42px;
+  height:          42px;
+  border-radius:   50%;
+  border:          1px solid var(--border);
+  background:      var(--bg-hover);
+  color:           var(--text-muted);
+  cursor:          pointer;
+  transition:      background var(--transition), color var(--transition), border-color var(--transition);
+  flex-shrink:     0;
+  position:        relative;
+}
+
+.voice-btn:hover {
+  background:    var(--bg-layer2);
+  color:         var(--text);
+  border-color:  var(--text-faint);
+}
+
+/* Ring animation behind the button when listening */
+.voice-btn.listening::before {
+  content:       '';
+  position:      absolute;
+  inset:         0;
+  border-radius: 50%;
+  border:        2px solid rgba(220, 38, 38, 0.5);
+  animation:     voice-ring 1.1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.voice-btn.listening {
+  background:   rgba(220, 38, 38, 0.12);
+  color:        var(--expense);
+  border-color: rgba(220, 38, 38, 0.35);
+}

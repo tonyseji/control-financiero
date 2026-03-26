@@ -92,9 +92,22 @@ Historial completo: `docs/progress-archive.md`
 - `ChartCard` acepta prop `headerRight` para alojar el toggle sin afectar a los demás charts.
 - Estilos `miniToggle / miniBtn / miniBtnActive` añadidos al objeto `s`, visualmente consistentes con el toggle global pero más pequeños.
 
-### Próximos pasos
+## 2026-03-26 — UI polish presupuesto + reorden navegación
 
-- [ ] Input por voz — `useVoiceInput.js` (Web Speech API) + botón micrófono en `AddTransaction.jsx`
-- [ ] Foto de ticket — Edge Function `receipt-ocr` + Claude Vision + botón cámara en `AddTransaction.jsx`
-- [ ] Validar app en navegador (staging) antes de añadir Fase 5
+**Budget.jsx:**
+- Desglose desplegable por categorías en el resumen mensual (solo categorías con gasto, orden mayor→menor)
+- Colores de importe/porcentaje en desglose usan texto por defecto (sin color heredado del tipo)
+- Gasto variable: color cambiado de verde `#22c55e` a naranja oscuro `#ea580c`
+
+**Layout.jsx + main.css:**
+- Nuevo orden del menú: Inicio → Movimientos → Análisis → Añadir → Presupuesto → Objetivos → Cuentas
+- Ajustes eliminado del menú principal; icono de rueda dentada junto al nombre del usuario (sidebar desktop) y en el header móvil
+
+### Próximos pasos — Fase 5 IA
+
+- [ ] **Input por voz** — `useVoiceInput.js` (Web Speech API) + botón micrófono en `AddTransaction.jsx`
+- [ ] **Foto de ticket** — Edge Function `receipt-ocr` + Claude Vision + botón cámara en `AddTransaction.jsx`
+- [ ] **Categorización automática** — sugerir categoría al escribir descripción, basado en historial
+- [ ] **Asesor financiero IA** — Edge Function `financial-advisor` + Claude API + UI chat
+- [ ] Validar app en navegador (staging) antes de cada feature de Fase 5
 - [ ] Crear proyecto producción en Supabase cuando staging esté OK

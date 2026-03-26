@@ -15,12 +15,11 @@ function applyTheme(theme) {
 const NAV_ITEMS = [
   { key: 'dashboard',    label: 'Inicio',       icon: IconHome },
   { key: 'transactions', label: 'Movimientos',  icon: IconList },
+  { key: 'analysis',     label: 'Análisis',     icon: IconLineChart },
   { key: 'add',          label: 'Añadir',        icon: IconPlus },
   { key: 'budget',       label: 'Presupuesto',  icon: IconChart },
-  { key: 'accounts',     label: 'Cuentas',      icon: IconCreditCard },
   { key: 'goals',        label: 'Objetivos',    icon: IconTarget },
-  { key: 'analysis',     label: 'Análisis',     icon: IconLineChart },
-  { key: 'settings',     label: 'Ajustes',      icon: IconGear },
+  { key: 'accounts',     label: 'Cuentas',      icon: IconCreditCard },
 ]
 
 export default function Layout({ view, onNavigate, children, profile }) {
@@ -84,7 +83,7 @@ export default function Layout({ view, onNavigate, children, profile }) {
           </button>
         </div>
 
-        {/* Usuario + cerrar sesión */}
+        {/* Usuario + ajustes */}
         {profile && (
           <div className="sidebar-user">
             <div className="sidebar-user-avatar">{initials}</div>
@@ -92,6 +91,13 @@ export default function Layout({ view, onNavigate, children, profile }) {
               <p className="sidebar-user-name">{profile.prof_full_name ?? profile.prof_email}</p>
               <p className="sidebar-user-role">{profile.prof_role ?? 'Personal'}</p>
             </div>
+            <button
+              className={`sidebar-settings-btn${view === 'settings' ? ' active' : ''}`}
+              onClick={() => onNavigate('settings')}
+              title="Ajustes"
+            >
+              <IconGear size={16} />
+            </button>
           </div>
         )}
         <div className="sidebar-bottom">
@@ -120,6 +126,9 @@ export default function Layout({ view, onNavigate, children, profile }) {
             </button>
             <button className="search-top-btn" onClick={() => setSearchOpen(true)} title="Buscar">
               <IconSearch size={18} />
+            </button>
+            <button className="search-top-btn" onClick={() => onNavigate('settings')} title="Ajustes">
+              <IconGear size={18} />
             </button>
           </div>
         </div>
