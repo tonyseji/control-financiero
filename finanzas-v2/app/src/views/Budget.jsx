@@ -283,7 +283,7 @@ function OverviewSection({ config, transactions, categories }) {
                           </span>
                         </div>
                         <div style={{ ...s.barTrack, height: 4 }}>
-                          <div style={{ ...s.barFill, width: `${catPct}%`, background: color }} />
+                          <div style={{ ...s.barFill, width: `${catPct}%`, background: 'rgba(255,255,255,0.6)' }} />
                         </div>
                       </div>
                     )

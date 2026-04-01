@@ -49,6 +49,8 @@ export default function AddTransaction({ onSuccess, editTx }) {
 
   useEffect(() => {
     if (isEdit) return
+    // Si la voz (o el usuario) ya fijó una categoría concreta, no resetear
+    if (userEdited.current.catId) return
     const first = filteredCats[0]
     setCatId(first ? first.cat_id : '')
   }, [type, subtype, categories]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -72,21 +74,34 @@ export default function AddTransaction({ onSuccess, editTx }) {
       setDate(parsedFields.date)
     }
 
-    // type + subtype + catId — solo si no es modo edición y el usuario no los cambió
+    // type + subtype + catId — solo si no es modo edición
     if (!isEdit) {
-      if (!userEdited.current.type) {
-        setType(parsedFields.txType)
-        // Inferir subtype desde la categoría encontrada, si aplica
-        if (parsedFields.categoryId) {
-          const matchedCat = categories.find(c => c.cat_id === parsedFields.categoryId)
-          if (matchedCat && ['fixed_expense', 'variable_expense', 'saving', 'investment'].includes(matchedCat.cat_type)) {
+      if (parsedFields.categoryId) {
+        const matchedCat = categories.find(c => c.cat_id === parsedFields.categoryId)
+        if (matchedCat) {
+          // Subtype siempre se infiere de la categoría: el usuario no tiene por qué especificarlo
+          if (['fixed_expense', 'variable_expense', 'saving', 'investment'].includes(matchedCat.cat_type)) {
             setSubtype(matchedCat.cat_type)
           }
+          // El tipo principal (income/expense) solo si el usuario no lo cambió manualmente
+          if (!userEdited.current.type) {
+            setType(matchedCat.cat_type === 'income' ? 'income' : 'expense')
+          }
         }
+        if (!userEdited.current.catId) {
+          setCatId(parsedFields.categoryId)
+          // Marcar como fijado para que el efecto [type,subtype] no lo sobreescriba
+          userEdited.current.catId = true
+        }
+      } else if (!userEdited.current.type) {
+        // Sin categoría detectada, al menos aplicar el tipo
+        setType(parsedFields.txType)
       }
-      if (!userEdited.current.catId && parsedFields.categoryId) {
-        setCatId(parsedFields.categoryId)
-      }
+    }
+
+    // accountId — solo si se detectó una cuenta explícita en la voz
+    if (parsedFields.accountId) {
+      setAccId(parsedFields.accountId)
     }
 
     // note — siempre rellenar con el transcript completo cuando llega
@@ -94,9 +109,37 @@ export default function AddTransaction({ onSuccess, editTx }) {
       setNotes(parsedFields.note)
     }
 
-    // Mostrar feedback breve de lo que se entendió
-    setVoiceFeedback(`Entendí: "${transcript}"`)
-    const timer = setTimeout(() => setVoiceFeedback(null), 4000)
+    // Mostrar feedback detallado de los campos rellenados
+    // (fecha y cuenta no se muestran cuando son los valores por defecto)
+    const parts = []
+    if (parsedFields.amount !== null && !userEdited.current.amount) {
+      parts.push(`importe: ${parsedFields.amount} €`)
+    }
+    if (parsedFields.date !== null && !userEdited.current.date) {
+      parts.push(`fecha: ${parsedFields.date}`)
+    }
+    if (!isEdit && parsedFields.categoryId) {
+      const matchedCat = categories.find(c => c.cat_id === parsedFields.categoryId)
+      if (matchedCat) {
+        const SUBTYPE_LABELS = {
+          fixed_expense: 'gasto fijo', variable_expense: 'gasto variable',
+          saving: 'ahorro', investment: 'inversión', income: 'ingreso',
+        }
+        const subtypeLabel = SUBTYPE_LABELS[matchedCat.cat_type] ?? 'gasto'
+        parts.push(`${subtypeLabel}: ${matchedCat.cat_name}`)
+      }
+    } else if (!isEdit && !userEdited.current.type) {
+      parts.push(`tipo: ${parsedFields.txType === 'income' ? 'ingreso' : 'gasto'}`)
+    }
+    if (parsedFields.accountId && parsedFields.accountId !== accounts[0]?.acc_id) {
+      const matchedAcc = accounts.find(a => a.acc_id === parsedFields.accountId)
+      if (matchedAcc) parts.push(`cuenta: ${matchedAcc.acc_name}`)
+    }
+    const feedbackMsg = parts.length > 0
+      ? `Rellenado → ${parts.join(' · ')}`
+      : `Escuché: "${transcript}" (sin datos reconocidos)`
+    setVoiceFeedback(feedbackMsg)
+    const timer = setTimeout(() => setVoiceFeedback(null), 5000)
     return () => clearTimeout(timer)
   }, [parsedFields, categories, transcript]) // eslint-disable-line react-hooks/exhaustive-deps
 

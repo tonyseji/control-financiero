@@ -413,6 +413,52 @@ function extractCategoryId(text, categories) {
   return null
 }
 
+// ── extractAccountId ─────────────────────────────────────────────────────────
+
+/**
+ * Busca en el texto el nombre de una cuenta del usuario.
+ * Patrones: "en [nombre]", "con [nombre]", "de [nombre]", "cuenta [nombre]"
+ * o simplemente si el nombre de cuenta aparece en el texto.
+ *
+ * @param {string} text
+ * @param {Array<{ acc_id: string, acc_name: string }>} accounts
+ * @returns {string|null} acc_id o null
+ */
+function extractAccountId(text, accounts) {
+  if (!accounts?.length) return null
+  const t = normalize(text)
+
+  // Patrones explícitos: "en la cuenta X", "con la tarjeta X", "en X"
+  const accountPrefixes = [
+    /\bcuenta\s+(\w[\w\s]*)/,
+    /\btarjeta\s+(\w[\w\s]*)/,
+    /\ben\s+(?:la\s+)?(?:cuenta\s+)?(\w[\w\s]*)/,
+    /\bcon\s+(?:la\s+)?(?:cuenta\s+|tarjeta\s+)?(\w[\w\s]*)/,
+    /\bde\s+(?:la\s+)?(?:cuenta\s+)?(\w[\w\s]*)/,
+  ]
+
+  for (const pattern of accountPrefixes) {
+    const match = t.match(pattern)
+    if (!match) continue
+    const candidate = normalize(match[1]).trim()
+    const found = accounts.find(a => {
+      const accNorm = normalize(a.acc_name)
+      return accNorm.includes(candidate) || candidate.includes(accNorm)
+    })
+    if (found) return found.acc_id
+  }
+
+  // Fallback: coincidencia directa del nombre de cuenta en el texto
+  // Ordenar por longitud descendente para que "banco sabadell" no pierda contra "sabadell"
+  const sorted = [...accounts].sort((a, b) => b.acc_name.length - a.acc_name.length)
+  for (const acc of sorted) {
+    if (acc.acc_name.length < 3) continue // evitar falsos positivos en nombres muy cortos
+    if (t.includes(normalize(acc.acc_name))) return acc.acc_id
+  }
+
+  return null
+}
+
 // ── API pública ───────────────────────────────────────────────────────────────
 
 /**
@@ -431,8 +477,8 @@ function extractCategoryId(text, categories) {
  * }}
  *
  * @example
- * parseVoiceText("gasté 45 euros ayer en supermercado", categories, accounts)
- * // → { amount: 45, date: "2026-03-26", accountId: "...", note: "gasté 45 euros ayer en supermercado", categoryId: "...", txType: "expense" }
+ * parseVoiceText("gasté 45 euros ayer en supermercado con la tarjeta BBVA", categories, accounts)
+ * // → { amount: 45, date: "2026-03-26", accountId: "...(BBVA id)", note: "...", categoryId: "...", txType: "expense" }
  */
 export function parseVoiceText(text, categories = [], accounts = []) {
   if (!text?.trim()) {
@@ -446,10 +492,12 @@ export function parseVoiceText(text, categories = [], accounts = []) {
     }
   }
 
+  const accountId = extractAccountId(text, accounts) ?? accounts[0]?.acc_id ?? null
+
   return {
     amount:     extractAmount(text),
     date:       extractDate(text),
-    accountId:  accounts[0]?.acc_id ?? null,
+    accountId,
     note:       text.trim(),
     categoryId: extractCategoryId(text, categories),
     txType:     extractTxType(text),
