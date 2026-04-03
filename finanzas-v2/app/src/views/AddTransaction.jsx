@@ -228,6 +228,42 @@ export default function AddTransaction({ onSuccess, editTx }) {
         {voiceError && (
           <p style={s.voiceError} aria-live="assertive">{voiceError}</p>
         )}
+
+        {/* ── Debug panel — solo en DEV ──────────────────────────────────── */}
+        {import.meta.env.DEV && transcript && parsedFields && (
+          <div style={{
+            marginTop: '0.75rem',
+            padding: '0.75rem 1rem',
+            background: 'var(--bg-layer2, var(--bg-card))',
+            border: '1px solid var(--border)',
+            borderRadius: 8,
+            fontSize: '0.75rem',
+            lineHeight: 1.6,
+          }}>
+            <p style={{ margin: '0 0 0.4rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              Debug voz (solo en dev)
+            </p>
+            <p style={{ margin: '0 0 0.5rem', color: 'var(--text)', fontStyle: 'italic', wordBreak: 'break-word' }}>
+              Transcript: &ldquo;{transcript}&rdquo;
+            </p>
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: '0.5rem', display: 'grid', gridTemplateColumns: 'max-content 1fr max-content', gap: '0.1rem 0.75rem', alignItems: 'baseline' }}>
+              {[
+                ['amount',     parsedFields.amount],
+                ['date',       parsedFields.date],
+                ['categoryId', parsedFields.categoryId],
+                ['accountId',  parsedFields.accountId],
+                ['txType',     parsedFields.txType],
+              ].map(([field, value]) => {
+                const hasValue = value !== null && value !== undefined
+                return [
+                  <span key={`${field}-k`} style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>{field}:</span>,
+                  <span key={`${field}-v`} style={{ color: 'var(--text)', fontFamily: 'monospace' }}>{String(value ?? 'null')}</span>,
+                  <span key={`${field}-s`} style={{ color: hasValue ? 'var(--income)' : 'var(--expense)', fontWeight: 700 }}>{hasValue ? '✓' : '✗'}</span>,
+                ]
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Type toggle ──────────────────────────────────────────────────── */}

@@ -283,7 +283,7 @@ function OverviewSection({ config, transactions, categories }) {
                           </span>
                         </div>
                         <div style={{ ...s.barTrack, height: 4 }}>
-                          <div style={{ ...s.barFill, width: `${catPct}%`, background: 'rgba(255,255,255,0.6)' }} />
+                          <div style={{ ...s.barFill, width: `${catPct}%`, background: color + 'aa' }} />
                         </div>
                       </div>
                     )
@@ -501,7 +501,7 @@ const s = {
   catBreakdownPct:   { fontWeight: 400, fontSize: '0.75rem' },
 
   barTrack: { height: 6, background: 'var(--bg-layer2)', borderRadius: 3, overflow: 'hidden' },
-  barFill:  { height: '100%', borderRadius: 3, transition: 'width 0.3s ease' },
+  barFill:  { height: '100%', borderRadius: 3, transition: 'width 0.3s ease', animation: 'bar-grow .5s cubic-bezier(.16,1,.3,1) both' },
   barPct:   { fontSize: '0.7rem', fontWeight: 600, marginTop: 3, display: 'block' },
 
   budgetForm: { display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', background: 'var(--bg-hover)', borderRadius: 8, padding: '0.75rem' },

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useTransactions } from '../hooks/useTransactions'
 import { useAccounts } from '../hooks/useAccounts'
+import { useBudgets } from '../hooks/useBudgets'
 import { formatCurrency, monthRange } from '../utils/formatters'
 import MonthlyChart from '../components/charts/MonthlyChart'
 import { isTransfer, isSaving, isInvestment, isRealExpense, isIncome as isIncomeClassifier } from '../utils/txClassifier'
@@ -256,6 +257,7 @@ export default function Dashboard({ onNavigate = null }) {
   const { transactions, loading: txLoading }             = useTransactions({ from, to })
   const { transactions: chartTx, loading: chartLoading } = useTransactions(chartRange)
   const { accounts, loading: accLoading }                = useAccounts()
+  const { config }                                        = useBudgets()
 
   const loading = txLoading || accLoading
 
@@ -444,8 +446,10 @@ export default function Dashboard({ onNavigate = null }) {
         <div className="bo-grid">
           {BUDGET_GROUPS.map(g => {
             const spent    = g.catTypes.reduce((s, ct) => s + (byType[ct] ?? 0), 0)
-            const pctInc   = income > 0 ? (spent / income) * 100 : 0
-            const barPct   = income > 0 ? Math.min((spent / (income * g.targetPct / 100)) * 100, 100) : 0
+            const base     = config?.fcfg_monthly_income_target ?? income
+            const pctInc   = base > 0 ? (spent / base) * 100 : 0
+            const target   = base > 0 ? base * g.targetPct / 100 : null
+            const barPct   = target !== null ? Math.min((spent / target) * 100, 100) : 0
             const isOver   = !g.saving && pctInc > g.targetPct
             const isWarn   = !g.saving && pctInc >= g.targetPct * 0.8 && !isOver
             const savOver  = g.saving && pctInc >= g.targetPct
@@ -460,10 +464,10 @@ export default function Dashboard({ onNavigate = null }) {
                     <span className="budget-item-icon"><BudgetIcon type={g.type} color={g.color} /></span>
                     <span>{g.label}</span>
                   </div>
-                  <span className={`budget-item-pct ${pctCls}`}>{Math.round(income > 0 ? (pctInc / g.targetPct) * 100 : 0)}%</span>
+                  <span className={`budget-item-pct ${pctCls}`}>{Math.round(base > 0 ? (pctInc / g.targetPct) * 100 : 0)}%</span>
                 </div>
                 <div className="budget-bar-track">
-                  <div className="budget-bar-fill" style={{ width: `${barPct}%`, background: barColor }} />
+                  <div className="budget-bar-fill" style={{ width: `${barPct}%`, minWidth: barPct > 0 ? 4 : 0, background: barColor }} />
                 </div>
                 <div className="budget-item-amounts">
                   <span className="spent">{formatCurrency(spent)}</span>

@@ -153,7 +153,8 @@ function parseUnits(t) {
 
 /**
  * Extrae el importe del texto.
- * Soporta: "45", "45,50", "45 euros", "cuarenta y cinco euros", "mil quinientos".
+ * Soporta: "45", "45,50", "45 euros", "cuarenta y cinco euros", "mil quinientos",
+ * "cuarenta y cinco con cincuenta", "doce coma noventa y nueve", "tres y medio".
  *
  * @param {string} text
  * @returns {number|null}
@@ -167,11 +168,37 @@ function extractAmount(text) {
     return parseFloat(literalMatch[1].replace(',', '.'))
   }
 
-  // Texto en palabras — eliminar stopwords de moneda antes de parsear
+  // Texto en palabras — separar parte entera y decimal si existe
+  // Patrones: "cuarenta y cinco con cincuenta", "... coma cincuenta", "... y medio"
   const cleaned = t
     .replace(/\beuros?\b/g, '')
     .replace(/\bcent[eé]simos?\b/g, '')
     .trim()
+
+  // Detectar separador decimal en palabras: "con", "coma", "punto"
+  const decimalSepMatch = cleaned.match(/^(.*?)\s+(?:con|coma|punto)\s+(.+)$/)
+  if (decimalSepMatch) {
+    const intPart = decimalSepMatch[1].trim()
+    const decPart = decimalSepMatch[2].trim()
+    const intVal  = textToNumber(intPart)
+    if (intVal !== null) {
+      // Parsear la parte decimal: "cincuenta" → 50 → 0.50, "cinco" → 5 → 0.05
+      const decVal = textToNumber(decPart)
+      if (decVal !== null) {
+        // Normalizar a centésimas: 50→.50, 5→.05, 1→.01
+        const decStr = String(decVal).padStart(2, '0').slice(0, 2)
+        return parseFloat(`${intVal}.${decStr}`)
+      }
+      return intVal
+    }
+  }
+
+  // "medio" / "media" como decimal → X,50
+  const medioMatch = cleaned.match(/^(.*?)\s+y\s+medi[oa]$/)
+  if (medioMatch) {
+    const intVal = textToNumber(medioMatch[1].trim())
+    if (intVal !== null) return intVal + 0.5
+  }
 
   return textToNumber(cleaned)
 }
