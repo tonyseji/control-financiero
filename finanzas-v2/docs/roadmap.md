@@ -94,8 +94,8 @@ Cada cambio de schema sigue este flujo:
 - [ ] **Importar extracto bancario** — subir PDF/CSV del banco → Edge Function parsea con Claude Vision → devuelve lista con categoría sugerida + confianza → usuario revisa y confirma antes de guardar; reutiliza la arquitectura de `receipt-ocr`
 - [ ] Onboarding de nuevos usuarios (categorías por defecto, primera cuenta)
 - [ ] Ajustes de perfil (moneda, idioma, objetivo de ingreso mensual)
-- [ ] Importar datos de V1 (migración de las 241 transacciones históricas de Sep 2025 – Mar 2026)
-- [ ] Exportar datos (CSV / PDF)
+- [x] Importar datos de V1 (migración de las 241 transacciones históricas de Sep 2025 – Mar 2026) ✅
+- [x] Exportar datos (CSV) ✅
 - [ ] Análisis mensual automático (resumen al inicio de mes)
 
 ## Fase 7 — Automatización externa (futuro)

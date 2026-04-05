@@ -1129,6 +1129,11 @@ button:hover:not(:disabled) {
 }
 .cat-budget-card-del:hover { color: var(--expense); }
 
+/* ── Spinner genérico ─────────────────────────────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ── Voice input button ───────────────────────────────────────────────────────── */
 @keyframes voice-pulse {
   0%, 100% { transform: scale(1);   opacity: 1;    }

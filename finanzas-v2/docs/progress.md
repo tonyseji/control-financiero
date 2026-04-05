@@ -6,6 +6,49 @@ Historial completo: `docs/progress-archive.md`
 
 ---
 
+## 2026-04-05 — Feature: receipt-ocr (foto de ticket)
+
+**Edge Function `receipt-ocr`:**
+- Modelo cambiado de `claude-opus-4-6` a `claude-haiku-4-5-20251001` (misma calidad para OCR, ~20x más barato)
+- `ANTHROPIC_API_KEY` configurada en Supabase Secrets (staging)
+- Función desplegada en Supabase
+
+**Frontend:**
+- `app/src/hooks/useReceiptOcr.js` — nuevo hook: abre cámara/galería, redimensiona imagen a máx 1200px, convierte a base64, llama a la EF con el JWT del usuario, devuelve `{ amount, merchant, date, notes }`
+- `app/src/views/AddTransaction.jsx` — botón cámara añadido en `headerRow` junto al mic; aplica campos extraídos al formulario (amount, date, merchant+notes); estados de loading/feedback/error consistentes con el patrón de voz
+- `app/src/styles/main.css` — animación `@keyframes spin` añadida para el spinner del botón cámara
+
+**Roadmap:**
+- `docs/roadmap.md` — marcados como completados: exportar CSV ✅ y migración datos V1 ✅
+- Categorización automática standalone descartada — se absorbe en el flujo de receipt-ocr (el merchant del ticket ya provee el contexto necesario)
+
+### Próximos pasos
+
+- [ ] **Asesor financiero IA** — Edge Function `financial-advisor` + Claude API + UI de chat
+- [ ] Importar extracto bancario (reutiliza arquitectura receipt-ocr cuando financial-advisor esté maduro)
+
+---
+
+## 2026-04-03 — Fix presupuesto dashboard + mejoras voz
+
+**Fix barras de presupuesto en Dashboard:**
+- `Dashboard.jsx`: las barras del presupuesto mensual usaban `income` real del mes como base, en vez del ingreso objetivo configurado. Si a mitad de mes el ingreso registrado era parcial, los porcentajes se disparaban.
+- Fix: importado `useBudgets` en Dashboard; base del cálculo ahora usa `config.fcfg_monthly_income_target` (igual que `Budget.jsx`), con fallback al ingreso real si no hay objetivo configurado.
+
+**Mejoras reconocimiento por voz:**
+- `voiceParser.js`: `extractAmount` ahora soporta decimales en texto hablado — "cuarenta y cinco con cincuenta" → 45.50, "quince coma noventa y nueve" → 15.99, "tres y medio" → 3.50.
+- `AddTransaction.jsx`: panel debug de voz (solo en `import.meta.env.DEV`) — muestra transcript y los 5 campos detectados con ✓/✗. Invisible en producción.
+- `app/src/utils/__tests__/voiceParser.test.js`: 52 tests unitarios con Vitest cubriendo textToNumber, parseVoiceText (amount, txType, date, categoryId, accountId) y casos de integración. Requiere `npm install -D vitest @vitest/ui` + scripts `test`/`test:ui` en package.json.
+
+### Próximos pasos
+
+- [ ] Instalar Vitest: `cd app && npm install -D vitest @vitest/ui` + añadir scripts en package.json
+- [ ] Foto de ticket — Edge Function `receipt-ocr` + Claude Vision + botón cámara en `AddTransaction.jsx`
+- [ ] Categorización automática — sugerir categoría al escribir descripción, basado en historial
+- [ ] Crear proyecto producción en Supabase cuando staging esté OK
+
+---
+
 ## 2026-03-25 — Limpieza y verificación tab Transferencia
 
 **Limpieza:**

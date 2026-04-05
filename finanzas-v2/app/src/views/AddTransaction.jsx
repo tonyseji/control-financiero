@@ -3,6 +3,7 @@ import { useTransactions } from '../hooks/useTransactions'
 import { useAccounts } from '../hooks/useAccounts'
 import { useCategories } from '../hooks/useCategories'
 import { useVoiceInput } from '../hooks/useVoiceInput'
+import { useReceiptOcr } from '../hooks/useReceiptOcr'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -20,6 +21,7 @@ export default function AddTransaction({ onSuccess, editTx }) {
   const { categories } = useCategories()
   const { isListening, transcript, parsedFields, supported, error: voiceError, startListening, stopListening } =
     useVoiceInput({ categories, accounts })
+  const { scan: scanReceipt, loading: ocrLoading, error: ocrError } = useReceiptOcr()
 
   const [type, setType]         = useState(editTx?.tx_type ?? 'expense')
   const [subtype, setSubtype]   = useState(editTx ? inferSubtype(editTx) : 'fixed_expense')
@@ -32,6 +34,7 @@ export default function AddTransaction({ onSuccess, editTx }) {
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState(null)
   const [voiceFeedback, setVoiceFeedback] = useState(null) // mensaje tras autorrelleno
+  const [ocrFeedback, setOcrFeedback]     = useState(null) // mensaje tras OCR
 
   // Track which fields the user has manually edited after the last voice fill.
   // Prevents voice from overwriting deliberate user changes.
@@ -143,6 +146,36 @@ export default function AddTransaction({ onSuccess, editTx }) {
     return () => clearTimeout(timer)
   }, [parsedFields, categories, transcript]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  async function handleScanReceipt() {
+    setOcrFeedback(null)
+    const result = await scanReceipt()
+    if (!result) return  // usuario canceló o error (el error ya lo muestra ocrError)
+
+    const parts = []
+
+    if (result.amount) {
+      setAmount(String(result.amount))
+      userEdited.current.amount = false
+      parts.push(`importe: ${result.amount} €`)
+    }
+    if (result.date) {
+      setDate(result.date)
+      userEdited.current.date = false
+      parts.push(`fecha: ${result.date}`)
+    }
+    if (result.merchant || result.notes) {
+      const noteText = [result.merchant, result.notes].filter(Boolean).join(' — ')
+      setNotes(noteText)
+      parts.push(`nota: ${noteText}`)
+    }
+
+    const feedbackMsg = parts.length > 0
+      ? `Ticket leído → ${parts.join(' · ')}`
+      : 'Ticket procesado (sin datos reconocidos)'
+    setOcrFeedback(feedbackMsg)
+    setTimeout(() => setOcrFeedback(null), 6000)
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     if (!amount) { setError('El importe es obligatorio'); return }
@@ -200,22 +233,41 @@ export default function AddTransaction({ onSuccess, editTx }) {
         <p style={s.headerSub}>{isEdit ? 'Editar' : 'Nuevo'}</p>
         <div style={s.headerRow}>
           <h1 style={s.headerTitle}>{isEdit ? 'Editar movimiento' : 'Añadir movimiento'}</h1>
-          {supported && !isEdit && (
-            <button
-              type="button"
-              className={`voice-btn${isListening ? ' listening' : ''}`}
-              onClick={isListening ? stopListening : () => {
-                // Reset manual-edit flags so the next voice result can fill all fields
-                userEdited.current = { amount: false, date: false, catId: false, type: false }
-                startListening()
-              }}
-              aria-label={isListening ? 'Detener reconocimiento de voz' : 'Iniciar reconocimiento de voz'}
-              title={isListening ? 'Detener' : 'Rellenar con voz'}
-            >
-              {isListening ? <IconMicActive /> : <IconMic />}
-            </button>
+          {!isEdit && (
+            <div style={s.headerBtns}>
+              {/* Botón cámara — foto de ticket */}
+              <button
+                type="button"
+                className="voice-btn"
+                onClick={handleScanReceipt}
+                disabled={ocrLoading || isListening}
+                aria-label="Escanear ticket con cámara"
+                title="Rellenar desde ticket"
+              >
+                {ocrLoading ? <IconSpinner /> : <IconCamera />}
+              </button>
+
+              {/* Botón micrófono — voz */}
+              {supported && (
+                <button
+                  type="button"
+                  className={`voice-btn${isListening ? ' listening' : ''}`}
+                  onClick={isListening ? stopListening : () => {
+                    userEdited.current = { amount: false, date: false, catId: false, type: false }
+                    startListening()
+                  }}
+                  disabled={ocrLoading}
+                  aria-label={isListening ? 'Detener reconocimiento de voz' : 'Iniciar reconocimiento de voz'}
+                  title={isListening ? 'Detener' : 'Rellenar con voz'}
+                >
+                  {isListening ? <IconMicActive /> : <IconMic />}
+                </button>
+              )}
+            </div>
           )}
         </div>
+
+        {/* Estados de voz */}
         {isListening && (
           <p style={s.voiceStatus} aria-live="polite">
             <span style={s.voiceDot} />
@@ -227,6 +279,20 @@ export default function AddTransaction({ onSuccess, editTx }) {
         )}
         {voiceError && (
           <p style={s.voiceError} aria-live="assertive">{voiceError}</p>
+        )}
+
+        {/* Estados de OCR */}
+        {ocrLoading && (
+          <p style={s.voiceStatus} aria-live="polite">
+            <span style={{ ...s.voiceDot, background: 'var(--accent)' }} />
+            Leyendo ticket…
+          </p>
+        )}
+        {ocrFeedback && !ocrLoading && (
+          <p style={s.voiceFeedback} aria-live="polite">{ocrFeedback}</p>
+        )}
+        {ocrError && !ocrLoading && (
+          <p style={s.voiceError} aria-live="assertive">{ocrError}</p>
         )}
 
         {/* ── Debug panel — solo en DEV ──────────────────────────────────── */}
@@ -385,6 +451,32 @@ export default function AddTransaction({ onSuccess, editTx }) {
   )
 }
 
+// ── Iconos SVG ────────────────────────────────────────────────────────────────
+
+function IconCamera() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+      <circle cx="12" cy="13" r="4"/>
+    </svg>
+  )
+}
+
+function IconSpinner() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      aria-hidden="true"
+      style={{ animation: 'spin 0.8s linear infinite' }}
+    >
+      <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+    </svg>
+  )
+}
+
 // ── Iconos SVG de micrófono ───────────────────────────────────────────────────
 
 function IconMic() {
@@ -487,6 +579,11 @@ const s = {
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: '0.5rem',
+  },
+  headerBtns: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.4rem',
   },
   headerTitle: {
     fontSize: '1.6rem',
