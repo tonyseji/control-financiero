@@ -33,9 +33,20 @@ export function useReceiptOcr() {
       const input = document.createElement('input')
       input.type    = 'file'
       input.accept  = 'image/jpeg,image/png,image/webp,image/heic'
-      // En móvil abre la cámara directamente; en desktop abre el explorador de archivos
-      input.capture = 'environment'
+      // Sin capture: en móvil muestra menú (cámara o galería); en desktop abre explorador
       inputRef.current = input
+    }
+
+    // Solicitar permiso de cámara explícitamente para que el sistema muestre el diálogo
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+      stream.getTracks().forEach(t => t.stop())  // solo necesitamos el permiso, no el video
+    } catch (e) {
+      const msg = e.name === 'NotAllowedError'
+        ? 'Permiso de cámara denegado. Actívalo en la configuración del navegador.'
+        : 'No se pudo acceder a la cámara. Comprueba que ninguna otra app la esté usando.'
+      setError(msg)
+      return null
     }
 
     const file = await pickFile(inputRef.current)
@@ -45,25 +56,13 @@ export function useReceiptOcr() {
     try {
       const { base64, mimeType } = await fileToBase64(file)
 
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) throw new Error('No hay sesión activa')
-
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-      const res = await fetch(`${supabaseUrl}/functions/v1/receipt-ocr`, {
-        method: 'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ imageBase64: base64, mimeType }),
+      const { data, error: fnError } = await supabase.functions.invoke('receipt-ocr', {
+        body: { imageBase64: base64, mimeType },
       })
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error ?? `Error ${res.status}`)
-      }
+      if (fnError) throw new Error(fnError.message ?? 'Error al llamar a la función')
 
-      const result = await res.json()
+      const result = data
 
       // Validación mínima: al menos el importe debe existir para que sea útil
       if (!result.amount && !result.merchant && !result.date) {
