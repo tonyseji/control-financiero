@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTransactions } from '../hooks/useTransactions'
 import { useAccounts } from '../hooks/useAccounts'
 import { useCategories } from '../hooks/useCategories'
@@ -22,7 +22,37 @@ export default function AddTransaction({ onSuccess, editTx }) {
   const { isListening, transcript, parsedFields, supported, error: voiceError, startListening, stopListening } =
     useVoiceInput({ categories, accounts })
   const { scanFile, loading: ocrLoading, error: ocrError } = useReceiptOcr()
-  const fileInputRef = useRef(null)
+  const cameraInputRef  = useRef(null)
+  const galleryInputRef = useRef(null)
+  const [showCameraMenu, setShowCameraMenu] = useState(false)
+  const [triggerCamera, setTriggerCamera]   = useState(false)
+
+  const closeCameraMenu = useCallback(() => setShowCameraMenu(false), [])
+
+  // Disparar el input de cámara después de que getUserMedia haya pedido permiso
+  useEffect(() => {
+    if (!triggerCamera) return
+    setTriggerCamera(false)
+    cameraInputRef.current?.click()
+  }, [triggerCamera])
+
+  const [cameraPermError, setCameraPermError] = useState(null)
+
+  async function handleCameraOption() {
+    closeCameraMenu()
+    setCameraPermError(null)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+      stream.getTracks().forEach(t => t.stop())
+      setTriggerCamera(true)  // dispara el useEffect en el próximo render
+    } catch (e) {
+      setCameraPermError(
+        e.name === 'NotAllowedError'
+          ? 'Permiso de cámara denegado. Actívalo en la configuración del navegador.'
+          : 'No se pudo acceder a la cámara.'
+      )
+    }
+  }
 
   const [type, setType]         = useState(editTx?.tx_type ?? 'expense')
   const [subtype, setSubtype]   = useState(editTx ? inferSubtype(editTx) : 'fixed_expense')
@@ -240,9 +270,20 @@ export default function AddTransaction({ onSuccess, editTx }) {
           <h1 style={s.headerTitle}>{isEdit ? 'Editar movimiento' : 'Añadir movimiento'}</h1>
           {!isEdit && (
             <div style={s.headerBtns}>
-              {/* Input de archivo oculto — el navegador gestiona permisos y el menú cámara/galería */}
+              {/* Input oculto — cámara (capture="environment" abre la cámara trasera) */}
               <input
-                ref={fileInputRef}
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                style={{ display: 'none' }}
+                aria-hidden="true"
+                tabIndex={-1}
+                onChange={handleFileSelected}
+              />
+              {/* Input oculto — galería (sin capture, abre el selector de archivos) */}
+              <input
+                ref={galleryInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/heic"
                 style={{ display: 'none' }}
@@ -251,17 +292,58 @@ export default function AddTransaction({ onSuccess, editTx }) {
                 onChange={handleFileSelected}
               />
 
-              {/* Botón cámara — foto de ticket */}
-              <button
-                type="button"
-                className="voice-btn"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={ocrLoading || isListening}
-                aria-label="Escanear ticket con cámara"
-                title="Rellenar desde ticket"
-              >
-                {ocrLoading ? <IconSpinner /> : <IconCamera />}
-              </button>
+              {/* Botón cámara + menú cámara/galería */}
+              <div style={s.cameraMenuWrap}>
+                <button
+                  type="button"
+                  className="voice-btn"
+                  onClick={() => setShowCameraMenu(v => !v)}
+                  disabled={ocrLoading || isListening}
+                  aria-label="Escanear ticket"
+                  aria-haspopup="true"
+                  aria-expanded={showCameraMenu}
+                  title="Rellenar desde ticket"
+                >
+                  {ocrLoading ? <IconSpinner /> : <IconCamera />}
+                </button>
+
+                {showCameraMenu && (
+                  <>
+                    {/* Backdrop transparente para cerrar al tocar fuera */}
+                    <div
+                      style={s.cameraMenuBackdrop}
+                      onClick={closeCameraMenu}
+                      aria-hidden="true"
+                    />
+                    <div style={s.cameraMenuCard} role="menu">
+                      <button
+                        type="button"
+                        className="camera-menu-option"
+                        style={s.cameraMenuOption}
+                        role="menuitem"
+                        onClick={handleCameraOption}
+                      >
+                        <IconCameraOption />
+                        Cámara
+                      </button>
+                      <div style={s.cameraMenuDivider} aria-hidden="true" />
+                      <button
+                        type="button"
+                        className="camera-menu-option"
+                        style={s.cameraMenuOption}
+                        role="menuitem"
+                        onClick={() => {
+                          closeCameraMenu()
+                          galleryInputRef.current?.click()
+                        }}
+                      >
+                        <IconGallery />
+                        Galería
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
 
               {/* Botón micrófono — voz */}
               {supported && (
@@ -309,6 +391,9 @@ export default function AddTransaction({ onSuccess, editTx }) {
         )}
         {ocrError && !ocrLoading && (
           <p style={s.voiceError} aria-live="assertive">{ocrError}</p>
+        )}
+        {cameraPermError && (
+          <p style={s.voiceError} aria-live="assertive">{cameraPermError}</p>
         )}
 
         {/* ── Debug panel — solo en DEV ──────────────────────────────────── */}
@@ -477,6 +562,31 @@ function IconCamera() {
     >
       <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
       <circle cx="12" cy="13" r="4"/>
+    </svg>
+  )
+}
+
+function IconCameraOption() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+      <circle cx="12" cy="13" r="4"/>
+    </svg>
+  )
+}
+
+function IconGallery() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+      <circle cx="8.5" cy="8.5" r="1.5"/>
+      <polyline points="21 15 16 10 5 21"/>
     </svg>
   )
 }
@@ -754,4 +864,49 @@ const s = {
     letterSpacing: '-0.01em',
   },
   btnSpinner: { opacity: 0.7 },
+
+  // Camera source menu (popover near the camera button)
+  cameraMenuWrap: {
+    position: 'relative',
+  },
+  cameraMenuBackdrop: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 99,
+  },
+  cameraMenuCard: {
+    position: 'absolute',
+    top: 'calc(100% + 6px)',
+    right: 0,
+    zIndex: 100,
+    background: 'var(--bg-card)',
+    border: '1px solid var(--border)',
+    borderRadius: 10,
+    boxShadow: 'var(--shadow-card)',
+    minWidth: 130,
+    overflow: 'hidden',
+    // Slight entrance animation
+    animation: 'menu-pop 0.12s cubic-bezier(0.4, 0, 0.2, 1)',
+  },
+  cameraMenuOption: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    width: '100%',
+    padding: '0.65rem 0.9rem',
+    border: 'none',
+    background: 'none',
+    color: 'var(--text)',
+    fontSize: '0.85rem',
+    fontWeight: 500,
+    fontFamily: 'inherit',
+    cursor: 'pointer',
+    textAlign: 'left',
+    transition: 'background var(--transition)',
+  },
+  cameraMenuDivider: {
+    height: 1,
+    background: 'var(--border)',
+    margin: '0',
+  },
 }

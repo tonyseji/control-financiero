@@ -1145,6 +1145,11 @@ button:hover:not(:disabled) {
   100% { transform: scale(1.85); opacity: 0;   }
 }
 
+@keyframes menu-pop {
+  from { opacity: 0; transform: scale(0.94) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+
 .voice-btn {
   display:         flex;
   align-items:     center;
@@ -1165,6 +1170,16 @@ button:hover:not(:disabled) {
   background:    var(--bg-layer2);
   color:         var(--text);
   border-color:  var(--text-faint);
+}
+
+/* Camera source menu option hover/active states */
+.camera-menu-option:hover,
+.camera-menu-option:focus-visible {
+  background: var(--bg-hover);
+  outline: none;
+}
+.camera-menu-option:active {
+  background: var(--bg-layer2);
 }
 
 /* Ring animation behind the button when listening */
