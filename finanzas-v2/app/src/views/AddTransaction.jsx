@@ -21,7 +21,8 @@ export default function AddTransaction({ onSuccess, editTx }) {
   const { categories } = useCategories()
   const { isListening, transcript, parsedFields, supported, error: voiceError, startListening, stopListening } =
     useVoiceInput({ categories, accounts })
-  const { scan: scanReceipt, loading: ocrLoading, error: ocrError } = useReceiptOcr()
+  const { scanFile, loading: ocrLoading, error: ocrError } = useReceiptOcr()
+  const fileInputRef = useRef(null)
 
   const [type, setType]         = useState(editTx?.tx_type ?? 'expense')
   const [subtype, setSubtype]   = useState(editTx ? inferSubtype(editTx) : 'fixed_expense')
@@ -146,10 +147,14 @@ export default function AddTransaction({ onSuccess, editTx }) {
     return () => clearTimeout(timer)
   }, [parsedFields, categories, transcript]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function handleScanReceipt() {
+  async function handleFileSelected(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''  // reset para poder seleccionar el mismo archivo de nuevo
+
     setOcrFeedback(null)
-    const result = await scanReceipt()
-    if (!result) return  // usuario canceló o error (el error ya lo muestra ocrError)
+    const result = await scanFile(file)
+    if (!result) return  // error (ya lo muestra ocrError)
 
     const parts = []
 
@@ -235,11 +240,22 @@ export default function AddTransaction({ onSuccess, editTx }) {
           <h1 style={s.headerTitle}>{isEdit ? 'Editar movimiento' : 'Añadir movimiento'}</h1>
           {!isEdit && (
             <div style={s.headerBtns}>
+              {/* Input de archivo oculto — el navegador gestiona permisos y el menú cámara/galería */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic"
+                style={{ display: 'none' }}
+                aria-hidden="true"
+                tabIndex={-1}
+                onChange={handleFileSelected}
+              />
+
               {/* Botón cámara — foto de ticket */}
               <button
                 type="button"
                 className="voice-btn"
-                onClick={handleScanReceipt}
+                onClick={() => fileInputRef.current?.click()}
                 disabled={ocrLoading || isListening}
                 aria-label="Escanear ticket con cámara"
                 title="Rellenar desde ticket"

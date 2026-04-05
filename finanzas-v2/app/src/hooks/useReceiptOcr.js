@@ -1,57 +1,34 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { supabase } from '../services/supabase'
 
 /**
  * useReceiptOcr
  *
- * Gestiona la captura de imagen (cámara o galería) y la llamada a la
- * Edge Function `receipt-ocr`, que usa Claude Vision para extraer los
- * datos del ticket.
+ * Recibe un File directamente (el input de archivo vive en la vista, no aquí),
+ * lo envía a la Edge Function `receipt-ocr` (Claude Vision) y devuelve los
+ * datos extraídos del ticket.
  *
  * Uso:
- *   const { scan, loading, error, supported } = useReceiptOcr()
- *   const result = await scan()
- *   // result: { amount, merchant, date, notes } | null si el usuario cancela
+ *   const { scanFile, loading, error, supported } = useReceiptOcr()
+ *   const result = await scanFile(file)
+ *   // result: { amount, merchant, date, notes } | null si hay error
  */
 export function useReceiptOcr() {
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState(null)
-  const inputRef              = useRef(null)
 
-  // Todos los navegadores móviles modernos soportan input[type=file] con capture
+  // Todos los navegadores móviles modernos soportan input[type=file]
   const supported = true
 
   /**
-   * Abre la cámara/galería, sube la imagen a la EF y devuelve los campos extraídos.
-   * Retorna null si el usuario cancela sin seleccionar imagen.
+   * Procesa un File a través de la Edge Function y devuelve los campos extraídos.
+   * @param {File} file — imagen del ticket (jpeg, png, webp, heic)
+   * @returns {{ amount, merchant, date, notes } | null}
    */
-  async function scan() {
+  async function scanFile(file) {
+    if (!file) return null
+
     setError(null)
-
-    // Crear un input file temporal si no existe
-    if (!inputRef.current) {
-      const input = document.createElement('input')
-      input.type    = 'file'
-      input.accept  = 'image/jpeg,image/png,image/webp,image/heic'
-      // Sin capture: en móvil muestra menú (cámara o galería); en desktop abre explorador
-      inputRef.current = input
-    }
-
-    // Solicitar permiso de cámara explícitamente para que el sistema muestre el diálogo
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-      stream.getTracks().forEach(t => t.stop())  // solo necesitamos el permiso, no el video
-    } catch (e) {
-      const msg = e.name === 'NotAllowedError'
-        ? 'Permiso de cámara denegado. Actívalo en la configuración del navegador.'
-        : 'No se pudo acceder a la cámara. Comprueba que ninguna otra app la esté usando.'
-      setError(msg)
-      return null
-    }
-
-    const file = await pickFile(inputRef.current)
-    if (!file) return null  // usuario canceló
-
     setLoading(true)
     try {
       const { base64, mimeType } = await fileToBase64(file)
@@ -79,39 +56,10 @@ export function useReceiptOcr() {
     }
   }
 
-  return { scan, loading, error, supported }
+  return { scanFile, loading, error, supported }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-/**
- * Abre el selector de archivo y espera a que el usuario elija uno.
- * Resuelve con el File seleccionado, o null si cancela.
- */
-function pickFile(input) {
-  return new Promise(resolve => {
-    // Limpiar valor para que el evento change dispare aunque se elija la misma imagen
-    input.value = ''
-
-    const onChange = (e) => {
-      input.removeEventListener('change', onChange)
-      resolve(e.target.files?.[0] ?? null)
-    }
-    // Si el usuario cierra el diálogo sin elegir, el focus vuelve a la ventana
-    const onFocus = () => {
-      window.removeEventListener('focus', onFocus)
-      // Pequeño delay para que el evento change (si ocurre) tenga prioridad
-      setTimeout(() => {
-        input.removeEventListener('change', onChange)
-        resolve(null)
-      }, 400)
-    }
-
-    input.addEventListener('change', onChange)
-    window.addEventListener('focus', onFocus, { once: true })
-    input.click()
-  })
-}
 
 /**
  * Convierte un File a { base64: string, mimeType: string }.
