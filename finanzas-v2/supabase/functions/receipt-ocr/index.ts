@@ -22,16 +22,21 @@ const ANTHROPIC_API_KEY   = Deno.env.get('ANTHROPIC_API_KEY')!
 const SUPABASE_URL        = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY    = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-const SYSTEM_PROMPT = `Eres un asistente especializado en leer tickets y facturas.
-Extrae la información del ticket y responde ÚNICAMENTE con un JSON válido, sin texto adicional.
-El JSON debe tener exactamente estos campos:
-{
-  "amount": número (importe total con IVA, sin símbolo de moneda, ej: 12.50),
-  "merchant": string (nombre del comercio o establecimiento, null si no se ve),
-  "date": string (fecha en formato YYYY-MM-DD, null si no se ve),
-  "notes": string (descripción breve del ticket: qué se compró, máx 100 chars, null si no aplica)
-}
-Si un campo no está visible o no se puede determinar con certeza, usa null.`
+const SYSTEM_PROMPT = `VALIDACIÓN PRIMERO: ¿Es esto un ticket/factura/recibo con datos de compra?
+- NO → Responde SOLO: {"error": "not_a_receipt"}
+- SI → Continúa
+
+Extrae JSON: {amount, merchant, date, notes, categoryId}
+
+amount: número sin símbolo (ej: 12.50)
+merchant: nombre comercio, null si no visible
+date: YYYY-MM-DD, null si no legible
+notes: qué se compró <100 chars, null
+categoryId: de categorías {CATS}, null si sin match seguro
+
+Categorías: {CATS}
+
+Solo JSON válido, nada más.`
 
 Deno.serve(async (req: Request) => {
   // CORS para peticiones desde el frontend
@@ -64,7 +69,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // Parsear el body
-  let body: { imageBase64?: string; mimeType?: string; imageUrl?: string }
+  let body: { imageBase64?: string; mimeType?: string; imageUrl?: string; categories?: Record<string, string> }
   try {
     body = await req.json()
   } catch {
@@ -113,7 +118,7 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 512,
-        system: SYSTEM_PROMPT,
+        system: SYSTEM_PROMPT.replace(/\{CATS\}/g, JSON.stringify(body.categories || {})),
         messages: [
           {
             role: 'user',
@@ -141,6 +146,8 @@ Deno.serve(async (req: Request) => {
       merchant: string | null
       date: string | null
       notes: string | null
+      categoryId?: string | null
+      error?: string | null
     }
 
     try {
@@ -154,18 +161,22 @@ Deno.serve(async (req: Request) => {
 
     // Sanitizar y validar los valores
     const result = {
-      amount:   typeof extracted.amount === 'number' && extracted.amount > 0
-                  ? Math.round(extracted.amount * 100) / 100
-                  : null,
-      merchant: typeof extracted.merchant === 'string' && extracted.merchant.trim()
-                  ? extracted.merchant.trim().slice(0, 100)
-                  : null,
-      date:     typeof extracted.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(extracted.date)
-                  ? extracted.date
-                  : null,
-      notes:    typeof extracted.notes === 'string' && extracted.notes.trim()
-                  ? extracted.notes.trim().slice(0, 100)
-                  : null,
+      amount:     typeof extracted.amount === 'number' && extracted.amount > 0
+                    ? Math.round(extracted.amount * 100) / 100
+                    : null,
+      merchant:   typeof extracted.merchant === 'string' && extracted.merchant.trim()
+                    ? extracted.merchant.trim().slice(0, 100)
+                    : null,
+      date:       typeof extracted.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(extracted.date)
+                    ? extracted.date
+                    : null,
+      notes:      typeof extracted.notes === 'string' && extracted.notes.trim()
+                    ? extracted.notes.trim().slice(0, 100)
+                    : null,
+      categoryId: typeof extracted.categoryId === 'string' && extracted.categoryId.trim()
+                    ? extracted.categoryId.trim()
+                    : null,
+      error:      extracted.error || null,
     }
 
     return new Response(JSON.stringify(result), {

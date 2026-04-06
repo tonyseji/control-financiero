@@ -22,13 +22,54 @@ const SpeechRecognitionAPI =
  *   stopListening:  () => void,
  * }}
  */
+function validateVoiceInput(transcript, audioLengthSeconds, parsedResult) {
+  const AUDIO_MAX = 30
+  const AUDIO_MIN = 2
+  const MAX_WORDS = 150
+  const MIN_WORDS = 2
+
+  // 1. Duración
+  if (audioLengthSeconds < AUDIO_MIN) {
+    return { valid: false, error: 'Muy corto. Intenta de nuevo.' }
+  }
+  if (audioLengthSeconds > AUDIO_MAX) {
+    return { valid: false, error: `Demasiado largo. Máximo ${AUDIO_MAX}s.` }
+  }
+
+  // 2. Número de palabras
+  const words = transcript.split(/\s+/).filter(w => w.length > 0)
+  if (words.length < MIN_WORDS) {
+    return { valid: false, error: 'Muy corto. Más palabras, por favor.' }
+  }
+  if (words.length > MAX_WORDS) {
+    return { valid: false, error: `Muy largo. Máximo ${MAX_WORDS} palabras.` }
+  }
+
+  // 3. Validar que se extrajo algo del parsing
+  const hasAmount     = parsedResult?.amount !== null && parsedResult?.amount !== undefined
+  const hasTxType     = parsedResult?.txType !== null && parsedResult?.txType !== undefined
+  const hasCategoryId = parsedResult?.categoryId !== null && parsedResult?.categoryId !== undefined
+
+  if (!hasAmount && !hasTxType && !hasCategoryId) {
+    return {
+      valid: false,
+      error: 'No entendí. Intenta: "50 euros en café" o "ingreso 2500"',
+    }
+  }
+
+  return { valid: true }
+}
+
 export function useVoiceInput({ categories = [], accounts = [] } = {}) {
   const [isListening, setIsListening]   = useState(false)
   const [transcript, setTranscript]     = useState('')
   const [parsedFields, setParsedFields] = useState(null)
   const [error, setError]               = useState(null)
 
-  const recognitionRef  = useRef(null)
+  const recognitionRef      = useRef(null)
+  const recordingStartRef   = useRef(null)   // timestamp al iniciar grabación
+  const transcriptRef       = useRef('')      // transcript capturado en onresult
+  const parsedResultRef     = useRef(null)    // resultado parseado en onresult
   // Refs so the onresult closure always reads the latest values without needing
   // categories/accounts in the useCallback dependency array (avoids stale closures
   // when recognition is in progress and parent re-renders with new array references)
@@ -63,13 +104,17 @@ export function useVoiceInput({ categories = [], accounts = [] } = {}) {
     recognition.interimResults  = false
     recognition.maxAlternatives = 1
 
-    recognition.onstart = () => setIsListening(true)
+    recognition.onstart = () => {
+      recordingStartRef.current = Date.now()
+      setIsListening(true)
+    }
 
     recognition.onresult = (event) => {
       const text = event.results[0][0].transcript
       setTranscript(text)
-      const fields = parseVoiceText(text, categoriesRef.current, accountsRef.current)
-      setParsedFields(fields)
+      transcriptRef.current = text
+      // Parsear pero no aplicar todavía — onend valida primero
+      parsedResultRef.current = parseVoiceText(text, categoriesRef.current, accountsRef.current)
     }
 
     recognition.onerror = (event) => {
@@ -93,6 +138,25 @@ export function useVoiceInput({ categories = [], accounts = [] } = {}) {
     recognition.onend = () => {
       setIsListening(false)
       recognitionRef.current = null
+
+      const transcript   = transcriptRef.current
+      const parsedResult = parsedResultRef.current
+      const audioLengthSeconds = recordingStartRef.current
+        ? (Date.now() - recordingStartRef.current) / 1000
+        : 0
+
+      // Solo validar si hay algo que validar (onresult puede no haberse disparado)
+      if (!transcript && !parsedResult) return
+
+      const validation = validateVoiceInput(transcript, audioLengthSeconds, parsedResult)
+      if (!validation.valid) {
+        setError(validation.error)
+        setParsedFields(null)
+        return
+      }
+
+      setParsedFields(parsedResult)
+      setError(null)
     }
 
     recognitionRef.current = recognition
