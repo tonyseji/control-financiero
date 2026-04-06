@@ -22,12 +22,24 @@ const ANTHROPIC_API_KEY   = Deno.env.get('ANTHROPIC_API_KEY')!
 const SUPABASE_URL        = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY    = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-const SYSTEM_PROMPT = `¿Es un ticket/factura/recibo?
-NO→{"error":"not_a_receipt"}
-SI→extrae solo JSON:
-{"amount":N,"merchant":"","date":"YYYY-MM-DD","notes":"<100ch","categoryId":"","categoryType":""}
-Nulos si no hay dato. categoryId+categoryType del mapa:{CATS}
-Solo JSON.`
+const SYSTEM_PROMPT = `VALIDACIÓN PRIMERO: ¿Es esto un ticket/factura/recibo con datos de compra?
+- NO → Responde SOLO: {"error": "not_a_receipt"}
+- SI → Continúa
+
+Extrae JSON con estos campos (null si no hay dato):
+{
+  "amount": número sin símbolo (ej: 12.50),
+  "merchant": nombre del comercio,
+  "date": "YYYY-MM-DD",
+  "notes": qué se compró en menos de 100 caracteres,
+  "categoryId": ID del mapa de abajo que mejor encaje, null si no hay match seguro,
+  "categoryType": campo "type" de la categoría elegida, null si categoryId es null
+}
+
+Mapa de categorías (id → {name, type}):
+{CATS}
+
+Responde SOLO el JSON, sin texto adicional.`
 
 Deno.serve(async (req: Request) => {
   // CORS para peticiones desde el frontend
@@ -108,14 +120,14 @@ Deno.serve(async (req: Request) => {
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 512,
+        max_tokens: 256,
         system: SYSTEM_PROMPT.replace(/\{CATS\}/g, JSON.stringify(body.categories || {})),
         messages: [
           {
             role: 'user',
             content: [
               imageBlock,
-              { type: 'text', text: '.' },
+              { type: 'text', text: 'Analiza este ticket.' },
             ],
           },
         ],
