@@ -147,26 +147,19 @@ export function useReceiptOcr() {
         throw new Error('No se encontraron datos en el ticket. Intenta con una foto más clara.')
       }
 
+      setLoading(false)
       return result // { amount, merchant, date, notes, categoryId }
 
-    } catch (e) {
-      // Manejo de errores específicos
-      if (e.type === 'not_a_receipt' || e.message === 'not_a_receipt') {
-        const errorMsg = 'Foto no válida. Asegúrate de capturar un ticket o factura.'
-        setError(errorMsg)
-        const notReceiptError = new Error(errorMsg)
-        notReceiptError.type = 'not_a_receipt'
-        throw notReceiptError
-      }
+    } catch (err) {
+      const errorMsg = err.type === 'not_a_receipt'
+        ? 'No parece un ticket válido'
+        : err.message || 'Error al procesar la imagen'
 
-      const errorMsg = e.message || 'Error procesando la imagen'
       setError(errorMsg)
-      throw e
-
-    } finally {
       setLoading(false)
+      throw err
     }
   }
 
-  return { scanFile, loading, error, supported: true }
+  return { scanFile, loading, error }
 }
