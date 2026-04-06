@@ -6,6 +6,23 @@ Historial completo: `docs/progress-archive.md`
 
 ---
 
+## 2026-04-06 — Fix: receipt-ocr funcionando en producción
+
+**Bug root cause:** La Edge Function `receipt-ocr` tenía activada la opción "Verify JWT with legacy secret" en Supabase Dashboard → Edge Functions → Settings. Ese check lo hace el **gateway** antes de que el código corra — rechazaba el JWT de usuario (access token) con HTTP 401, `execution_id: null`. La función nunca llegaba a ejecutarse.
+
+**Fix:** Desactivar el toggle "Verify JWT with legacy secret" → OFF en el dashboard. La función ya tiene su propio `supabase.auth.getUser(jwt)` que valida correctamente, lo que el propio Supabase recomienda para funciones con lógica auth propia.
+
+**Resultado:** receipt-ocr funciona end-to-end: cámara → base64 → Edge Function → Claude Haiku Vision → campos extraídos en el formulario.
+
+**Regla para nuevas Edge Functions:** Cualquier EF que implemente su propio auth check debe tener este toggle en OFF o el gateway bloqueará los tokens de usuario.
+
+### Próximos pasos
+
+- [ ] **Asesor financiero IA** — Edge Function `financial-advisor` + Claude API + UI de chat
+- [ ] Importar extracto bancario (reutiliza arquitectura receipt-ocr cuando financial-advisor esté maduro)
+
+---
+
 ## 2026-04-05 — Feature: receipt-ocr (foto de ticket)
 
 **Edge Function `receipt-ocr`:**

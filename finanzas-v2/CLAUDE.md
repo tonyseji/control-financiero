@@ -97,6 +97,7 @@ Staging = solo admin. Cada capa es independiente.
 - Cualquier URL a Storage debe pasar por `isValidStorageUrl()` antes de persistir
 - Nuevas tablas: RLS + policy `_own` + policy `_admin` obligatorio
 - Toda función `SECURITY DEFINER` necesita `SET search_path = public`
+- **Edge Functions con auth propio:** desactivar "Verify JWT with legacy secret" en Settings de la EF. Si está ON, el gateway rechaza los access tokens de usuario con 401 antes de que el código corra (`execution_id: null` en logs).
 
 ---
 
@@ -226,6 +227,7 @@ Para planificación, diseño, decisiones arquitectónicas, configurar Supabase v
 Ver `docs/progress.md` para el log detallado.
 
 **Pendiente (Fase 5 — IA):**
-- [ ] Input por voz — `useVoiceInput.js` (Web Speech API) + botón micrófono en `AddTransaction.jsx`
-- [ ] Foto de ticket — Edge Function `receipt-ocr` (Claude Vision) + botón cámara en `AddTransaction.jsx`
-- [ ] Categorización automática por historial
+- [x] Input por voz — `useVoiceInput.js` (Web Speech API) + botón micrófono en `AddTransaction.jsx`
+- [x] Foto de ticket — Edge Function `receipt-ocr` (Claude Vision) + botón cámara en `AddTransaction.jsx`
+- [ ] Asesor financiero IA — Edge Function `financial-advisor` + UI de chat
+- [ ] Importar extracto bancario
