@@ -27,6 +27,11 @@ export default function AddTransaction({ onSuccess, editTx }) {
   const [showCameraMenu, setShowCameraMenu] = useState(false)
   const [triggerCamera, setTriggerCamera]   = useState(false)
 
+  // FIX: ref para rastrear si el OCR aplicó campos con éxito
+  const ocrAppliedRef = useRef(false)
+  // FIX: ref para cancelar el timeout del feedback OCR
+  const ocrFeedbackTimerRef = useRef(null)
+
   const closeCameraMenu = useCallback(() => setShowCameraMenu(false), [])
 
   // Disparar el input de cámara después de que getUserMedia haya pedido permiso
@@ -177,15 +182,29 @@ export default function AddTransaction({ onSuccess, editTx }) {
     return () => clearTimeout(timer)
   }, [parsedFields, categories, transcript]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // FIX: cleanup del timer OCR al desmontar
+  useEffect(() => {
+    return () => {
+      if (ocrFeedbackTimerRef.current) clearTimeout(ocrFeedbackTimerRef.current)
+    }
+  }, [])
+
   async function handleFileSelected(e) {
     const file = e.target.files?.[0]
     if (!file) return
     e.target.value = ''  // reset para poder seleccionar el mismo archivo de nuevo
 
     setOcrFeedback(null)
+    // FIX: limpiar timer anterior si existe
+    if (ocrFeedbackTimerRef.current) {
+      clearTimeout(ocrFeedbackTimerRef.current)
+      ocrFeedbackTimerRef.current = null
+    }
+
     let result
     try {
-      result = await scanFile(file)
+      // FIX: pasar categories al scanFile (V2 — datos de Supabase, no localStorage)
+      result = await scanFile(file, categories)
     } catch (err) {
       // not_a_receipt ya lo muestra ocrError vía el hook
       return
@@ -222,11 +241,47 @@ export default function AddTransaction({ onSuccess, editTx }) {
       }
     }
 
+    // Rellenar accountId con la primera cuenta si no hay ninguna seleccionada
+    if (!accId && accounts.length > 0) {
+      setAccId(accounts[0].acc_id)
+      parts.push(`cuenta: ${accounts[0].acc_name}`)
+    }
+
+    // FIX: marcar que el OCR aplicó campos con éxito
+    if (parts.length > 0) {
+      ocrAppliedRef.current = true
+    }
+
     const feedbackMsg = parts.length > 0
       ? `Ticket leído → ${parts.join(' · ')}`
       : 'Ticket procesado (sin datos reconocidos)'
     setOcrFeedback(feedbackMsg)
-    setTimeout(() => setOcrFeedback(null), 6000)
+    // FIX: guardar timer en ref para poder cancelarlo
+    ocrFeedbackTimerRef.current = setTimeout(() => {
+      setOcrFeedback(null)
+      ocrFeedbackTimerRef.current = null
+    }, 6000)
+  }
+
+  function resetForm() {
+    setType('expense')
+    setSubtype('fixed_expense')
+    setAmount('')
+    setDate(today())
+    setCatId('')
+    setAccId(accounts.length === 1 ? accounts[0].acc_id : '')
+    setToAccId('')
+    setNotes('')
+    setError(null)
+    setVoiceFeedback(null)
+    setOcrFeedback(null)
+    userEdited.current = { amount: false, date: false, catId: false, type: false }
+    // FIX: resetear OCR ref y cancelar timer pendiente
+    ocrAppliedRef.current = false
+    if (ocrFeedbackTimerRef.current) {
+      clearTimeout(ocrFeedbackTimerRef.current)
+      ocrFeedbackTimerRef.current = null
+    }
   }
 
   async function handleSubmit(e) {
@@ -264,7 +319,8 @@ export default function AddTransaction({ onSuccess, editTx }) {
           tx_cat_id: catId,
           tx_acc_id: accId,
           tx_notes:  notes || null,
-          tx_source: parsedFields ? 'voice' : 'manual',
+          // FIX: distinguir correctamente entre voz, OCR y manual
+          tx_source: parsedFields ? 'voice' : ocrAppliedRef.current ? 'ocr' : 'manual',
         })
       }
       onSuccess?.()
@@ -534,13 +590,13 @@ export default function AddTransaction({ onSuccess, editTx }) {
 
         {/* Nota */}
         <FormField label="Nota (opcional)">
-          <input
+          <textarea
             style={s.input}
-            type="text"
-            placeholder="Descripción del movimiento..."
+            placeholder="Descripción del movimiento... (máx 500 caracteres)"
             value={notes}
             onChange={e => setNotes(e.target.value)}
-            maxLength={200}
+            maxLength={500}
+            rows={3}
           />
         </FormField>
 
