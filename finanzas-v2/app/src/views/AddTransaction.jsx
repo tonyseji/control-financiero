@@ -230,14 +230,17 @@ export default function AddTransaction({ onSuccess, editTx }) {
     }
     if (result.categoryId) {
       const matchedCat = categories.find(c => c.cat_id === result.categoryId)
-      if (matchedCat) {
-        if (['fixed_expense', 'variable_expense', 'saving', 'investment'].includes(matchedCat.cat_type)) {
-          setSubtype(matchedCat.cat_type)
+      // Usar cat_type del objeto local; si no encontró, usar categoryType que devolvió Claude
+      const resolvedType = matchedCat?.cat_type ?? result.categoryType
+      if (resolvedType) {
+        if (['fixed_expense', 'variable_expense', 'saving', 'investment'].includes(resolvedType)) {
+          setSubtype(resolvedType)
         }
-        setType(matchedCat.cat_type === 'income' ? 'income' : 'expense')
+        setType(resolvedType === 'income' ? 'income' : 'expense')
         setCatId(result.categoryId)
         userEdited.current.catId = true
-        parts.push(`categoría: ${matchedCat.cat_name}`)
+        const catLabel = matchedCat?.cat_name ?? result.categoryId
+        parts.push(`categoría: ${catLabel}`)
       }
     }
 

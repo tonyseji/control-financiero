@@ -22,21 +22,12 @@ const ANTHROPIC_API_KEY   = Deno.env.get('ANTHROPIC_API_KEY')!
 const SUPABASE_URL        = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY    = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-const SYSTEM_PROMPT = `VALIDACIÓN PRIMERO: ¿Es esto un ticket/factura/recibo con datos de compra?
-- NO → Responde SOLO: {"error": "not_a_receipt"}
-- SI → Continúa
-
-Extrae JSON: {amount, merchant, date, notes, categoryId}
-
-amount: número sin símbolo (ej: 12.50)
-merchant: nombre comercio, null si no visible
-date: YYYY-MM-DD, null si no legible
-notes: qué se compró <100 chars, null
-categoryId: de categorías {CATS}, null si sin match seguro
-
-Categorías: {CATS}
-
-Solo JSON válido, nada más.`
+const SYSTEM_PROMPT = `¿Es un ticket/factura/recibo?
+NO→{"error":"not_a_receipt"}
+SI→extrae solo JSON:
+{"amount":N,"merchant":"","date":"YYYY-MM-DD","notes":"<100ch","categoryId":"","categoryType":""}
+Nulos si no hay dato. categoryId+categoryType del mapa:{CATS}
+Solo JSON.`
 
 Deno.serve(async (req: Request) => {
   // CORS para peticiones desde el frontend
@@ -124,7 +115,7 @@ Deno.serve(async (req: Request) => {
             role: 'user',
             content: [
               imageBlock,
-              { type: 'text', text: 'Extrae los datos de este ticket.' },
+              { type: 'text', text: '.' },
             ],
           },
         ],
@@ -147,6 +138,7 @@ Deno.serve(async (req: Request) => {
       date: string | null
       notes: string | null
       categoryId?: string | null
+      categoryType?: string | null
       error?: string | null
     }
 
@@ -156,7 +148,7 @@ Deno.serve(async (req: Request) => {
       extracted = JSON.parse(clean)
     } catch {
       console.error('Error parsing Claude response:', rawText)
-      return errorResponse('No se pudo interpretar la respuesta de la IA', 502)
+      return errorResponse('No se detectó ningun ticket. Intentalo de nuevo', 502)
     }
 
     // Sanitizar y validar los valores
@@ -173,10 +165,13 @@ Deno.serve(async (req: Request) => {
       notes:      typeof extracted.notes === 'string' && extracted.notes.trim()
                     ? extracted.notes.trim().slice(0, 100)
                     : null,
-      categoryId: typeof extracted.categoryId === 'string' && extracted.categoryId.trim()
-                    ? extracted.categoryId.trim()
-                    : null,
-      error:      extracted.error || null,
+      categoryId:   typeof extracted.categoryId === 'string' && extracted.categoryId.trim()
+                      ? extracted.categoryId.trim()
+                      : null,
+      categoryType: typeof extracted.categoryType === 'string' && extracted.categoryType.trim()
+                      ? extracted.categoryType.trim()
+                      : null,
+      error:        extracted.error || null,
     }
 
     return new Response(JSON.stringify(result), {

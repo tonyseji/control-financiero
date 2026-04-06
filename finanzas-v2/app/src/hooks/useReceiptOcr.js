@@ -106,9 +106,10 @@ export function useReceiptOcr() {
       if (!jwt) throw new Error('No autenticado')
 
       // 3. Construir mapa de categorías desde el parámetro (V2 — Supabase)
+      // Incluimos cat_type para que Claude pueda inferir el subtipo (gasto fijo/variable/ahorro...)
       const categoryMap = {}
       categories.forEach(cat => {
-        categoryMap[cat.cat_id] = cat.cat_name
+        categoryMap[cat.cat_id] = { name: cat.cat_name, type: cat.cat_type }
       })
 
       // 4. Enviar a Edge Function
