@@ -548,6 +548,26 @@ export default function AddTransaction({ onSuccess, editTx }) {
             />
             <span style={s.amountCurrencySuffix}>€</span>
           </div>
+          {amount && parseFloat(amount) > 0 && (
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+              {[2, 3, 4].map(n => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => {
+                    const val = parseFloat(amount)
+                    if (!isNaN(val)) {
+                      userEdited.current.amount = true
+                      setAmount(String(Math.round((val / n) * 100) / 100))
+                    }
+                  }}
+                  style={s.splitBtn}
+                >
+                  ÷{n}
+                </button>
+              ))}
+            </div>
+          )}
         </FormField>
 
         {/* Fecha */}
@@ -888,6 +908,18 @@ const s = {
     color: 'var(--text-faint)',
     userSelect: 'none',
     pointerEvents: 'none',
+  },
+
+  splitBtn: {
+    padding: '0.25rem 0.7rem',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    borderRadius: '999px',
+    border: '1px solid var(--border)',
+    background: 'var(--surface-2)',
+    color: 'var(--text-faint)',
+    cursor: 'pointer',
+    lineHeight: 1.4,
   },
 
   // Regular fields
