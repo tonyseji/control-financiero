@@ -323,7 +323,7 @@ export default function AddTransaction({ onSuccess, editTx }) {
           tx_acc_id: accId,
           tx_notes:  notes || null,
           // FIX: distinguir correctamente entre voz, OCR y manual
-          tx_source: parsedFields ? 'voice' : ocrAppliedRef.current ? 'ocr' : 'manual',
+          tx_source: parsedFields ? 'voice' : ocrAppliedRef.current ? 'receipt' : 'manual',
         })
       }
       onSuccess?.()

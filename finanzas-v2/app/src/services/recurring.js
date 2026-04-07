@@ -68,7 +68,7 @@ export async function generateDueRecurring() {
         tx_notes:      rec.rec_notes ?? null,
         tx_rec_id:     rec.rec_id,
         tx_is_pending: rec.rec_is_variable ?? false,
-        tx_source:     'recurring',
+        tx_source:     'automatic',
       })
       generated.push(tx)
 
