@@ -14,6 +14,7 @@ import Settings from './views/Settings'
 import Recurring from './views/Recurring'
 import Goals from './views/Goals'
 import Analysis from './views/Analysis'
+import FloatingChat from './components/FloatingChat'
 
 const IS_STAGING = import.meta.env.VITE_APP_ENV === 'staging'
 
@@ -89,9 +90,12 @@ export default function App() {
   }
 
   return (
-    <Layout view={view} onNavigate={navigate} profile={profile}>
-      {renderView()}
-    </Layout>
+    <>
+      <Layout view={view} onNavigate={navigate} profile={profile}>
+        {renderView()}
+      </Layout>
+      <FloatingChat />
+    </>
   )
 }
 

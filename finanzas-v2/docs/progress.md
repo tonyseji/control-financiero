@@ -6,6 +6,115 @@ Historial completo: `docs/progress-archive.md`
 
 ---
 
+## 2026-04-10 — Asesor IA: chat completo + admin bypass + fix seguridad
+
+**Nuevos archivos (asesor financiero IA):**
+- `app/src/components/ChatMessages.jsx` — renderiza el historial de mensajes del chat
+- `app/src/components/ChatPanel.jsx` — panel principal del chat (input, voz, contador de llamadas, UI)
+- `app/src/components/FloatingChat.jsx` — botón flotante que abre/cierra el ChatPanel
+- `app/src/hooks/useFinancialAdvisor.js` — estado del chat: mensajes, loading, error, remainingCalls, sendQuestion
+- `app/src/hooks/useFinancialData.js` — carga datos financieros del usuario (monthly_summaries) para contexto del asesor
+- `app/src/services/advisor.js` — llama a la Edge Function `financial-advisor` con JWT + historial + contexto
+- `app/src/utils/questionClassifier.js` — clasifica si una pregunta es personal (necesita datos) o general
+- `supabase/functions/financial-advisor/` — Edge Function: valida JWT, rate-limit, construye prompt con contexto histórico, llama a Claude Haiku
+- `supabase/migrations/004_advisor_calls.sql` — tabla `advisor_calls` + RPC `increment_advisor_call()` (rate-limit atómico)
+- `supabase/migrations/005_monthly_summaries.sql` — tabla `monthly_summaries` + trigger que recalcula resumen al tocar transacciones
+- `supabase/migrations/006_fix_monthly_summaries_savings.sql` — fix cálculo de savings en monthly_summaries
+
+**Feature: Admin sin límite de consultas**
+- `supabase/functions/financial-advisor/index.ts` — consulta `profiles.prof_id` con service role. Si `prof_role = 'admin'`, salta rate-limit. Devuelve `remainingCalls: -1` (sentinel = ilimitado).
+- `app/src/hooks/useFinancialAdvisor.js` — al init consulta `prof_role`; si admin, `setRemainingCalls(-1)`. Maneja `-1` sin truncarlo a 0.
+- `app/src/components/ChatPanel.jsx` — si `remainingCalls === -1`: muestra "∞ consultas", no deshabilita input.
+
+**Fix seguridad: protección contra auto-escalada de rol**
+- `supabase/migrations/007_protect_prof_role.sql` — trigger `BEFORE UPDATE` en `profiles` que bloquea cambios a `prof_role` si el ejecutor no es admin. El service role queda exento (`auth.uid() = NULL`).
+- Problema cerrado: la policy `prof_own` con `WITH CHECK` genérico permitía `UPDATE profiles SET prof_role = 'admin'` desde el cliente.
+
+**Bugs corregidos en esta sesión:**
+- `profiles` tiene PK `prof_id`, no `user_id` — las queries con `.eq('user_id', ...)` devolvían null silenciosamente (admin nunca se detectaba)
+- `useCallback(sendQuestion, [])` — dependencia vacía hacía que `messages` siempre fuera `[]` en el closure; la conversación no continuaba. Fix: `[messages]` como dependencia.
+
+**Pendiente en Supabase (requiere acción manual):**
+- Aplicar migración `007_protect_prof_role.sql` en SQL Editor de staging
+- Redesplegar Edge Function `financial-advisor` (para que el admin bypass entre en efecto)
+- Verificar toggle "Verify JWT with legacy secret" = OFF en `financial-advisor`
+
+---
+
+## 2026-04-09 — Fix: Asesor financiero solo veía mes actual, ignoraba histórico
+
+**Problema reportado:** El asesor IA solo respondía sobre el mes actual. Preguntas sobre meses anteriores retornaban "no tengo información".
+
+**Root cause:** La Edge Function `financial-advisor` estaba extrayendo el contexto histórico (`context.historicalSummary` con todos los meses anteriores) pero **NUNCA LO INCLUÍA en el system prompt de Claude**. El hook `useFinancialData.js` sí lo estaba retornando correctamente.
+
+**Fix aplicado:**
+- `supabase/functions/financial-advisor/index.ts:192-227` — Agregar sanitización y construcción de `historicalSummary` desde el contexto
+- Ahora el system prompt de Claude incluye: mes actual (datos + categorías top) + histórico (últimos 12 meses con ingresos/gastos/ahorro)
+- Código: extrae datos históricos, filtra a 12 meses máximo, sanitiza strings/números, agrega al prompt con formato claro
+
+**Próximo paso:** Desplegar a Supabase (push a repo + trigger de Edge Function) para que el asesor tenga acceso al contexto histórico completo.
+
+---
+
+## 2026-04-07 — Fix tx_source + botón split importe (÷2 ÷3 ÷4)
+
+**Fix `tx_source` values:**
+- `AddTransaction.jsx:326` — valor `'ocr'` → `'receipt'` (consistencia con esquema BD)
+- `recurring.js:71` — valor `'recurring'` → `'automatic'` (consistencia con esquema BD)
+
+**Feature: botones de división de importe:**
+- `AddTransaction.jsx` — aparecen botones ÷2 ÷3 ÷4 debajo del campo importe cuando hay un valor > 0
+- Permite dividir el total de una cuenta/cena entre varias personas con un tap
+- Redondeo a 2 decimales; aplica `userEdited.current.amount = true` para no conflictuar con voz
+
+### Próximos pasos
+
+- [ ] **Asesor financiero IA** — Edge Function `financial-advisor` + Claude API + UI de chat
+- [ ] Importar extracto bancario (reutiliza arquitectura receipt-ocr cuando financial-advisor esté maduro)
+- [ ] Revisar si existe algún script/CI que resetee el toggle de EF automáticamente
+
+---
+
+## 2026-04-07 — Fix crítico: hook `useReceiptOcr.js` truncado + re-aplicación toggle EF
+
+**Problema reportado:** Usuario recibía error genérico "error al procesar la imagen" sin detalles específicos al subir foto de ticket en finanzas-v2.
+
+**Root causes encontrados:**
+
+1. **Hook truncado (BLOQUEANTE):** `app/src/hooks/useReceiptOcr.js` terminaba abruptamente sin:
+   - Bloque `catch` para manejo de errores
+   - Retorno final `return { scanFile, loading, error }`
+   - Esto hacía que `useReceiptOcr()` retornara `undefined`, causando que `const { scanFile, ... } = useReceiptOcr()` fallara silenciosamente
+
+2. **Toggle "Verify JWT with legacy secret" vuelto a activar:** En Supabase Dashboard, la EF `receipt-ocr` tenía el toggle nuevamente ON (estado desconocido cómo volvió a activarse). El gateway rechazaba JWT de usuario antes de ejecutar el código.
+
+**Fixes aplicados:**
+
+1. **Restaurar hook completo:** Completado `useReceiptOcr.js` con:
+   - Bloque `catch(err)` que captura errores y actualiza estado `error` y `loading`
+   - Manejo especial de `not_a_receipt` para mensaje específico al usuario
+   - Retorno correcto: `return { scanFile, loading, error }`
+
+2. **Desactivar toggle en Supabase:** Navegué a Dashboard → receipt-ocr → Settings → desactivé "Verify JWT with legacy secret" → guardé cambios. Confirmado con mensaje "Successfully updated edge function".
+
+**Resultado:** Receipt-ocr ahora:
+- Captura errores específicos en el hook (no silenciosos)
+- La EF puede ejecutar correctamente (gateway no bloquea JWT)
+- Usuario ve mensajes claros: "No parece un ticket válido", "No se detectó ningún ticket", etc.
+
+**Lecciones aprendidas:**
+- Los archivos hooks pueden corromperse/truncarse si se editan sin completar correctamente
+- El toggle de Supabase puede revertirse (revisar si hay algún CI/CD que lo resetee)
+- Siempre verificar la consola del navegador + logs de Supabase si un error es demasiado genérico
+
+### Próximos pasos
+
+- [ ] **Asesor financiero IA** — Edge Function `financial-advisor` + Claude API + UI de chat
+- [ ] Importar extracto bancario (reutiliza arquitectura receipt-ocr cuando financial-advisor esté maduro)
+- [ ] Revisar si existe algún script/CI que resetee el toggle de EF automáticamente
+
+---
+
 ## 2026-04-06 — Fix: receipt-ocr funcionando en producción
 
 **Bug root cause:** La Edge Function `receipt-ocr` tenía activada la opción "Verify JWT with legacy secret" en Supabase Dashboard → Edge Functions → Settings. Ese check lo hace el **gateway** antes de que el código corra — rechazaba el JWT de usuario (access token) con HTTP 401, `execution_id: null`. La función nunca llegaba a ejecutarse.
@@ -157,17 +266,4 @@ Historial completo: `docs/progress-archive.md`
 **Budget.jsx:**
 - Desglose desplegable por categorías en el resumen mensual (solo categorías con gasto, orden mayor→menor)
 - Colores de importe/porcentaje en desglose usan texto por defecto (sin color heredado del tipo)
-- Gasto variable: color cambiado de verde `#22c55e` a naranja oscuro `#ea580c`
-
-**Layout.jsx + main.css:**
-- Nuevo orden del menú: Inicio → Movimientos → Análisis → Añadir → Presupuesto → Objetivos → Cuentas
-- Ajustes eliminado del menú principal; icono de rueda dentada junto al nombre del usuario (sidebar desktop) y en el header móvil
-
-### Próximos pasos — Fase 5 IA
-
-- [ ] **Input por voz** — `useVoiceInput.js` (Web Speech API) + botón micrófono en `AddTransaction.jsx`
-- [ ] **Foto de ticket** — Edge Function `receipt-ocr` + Claude Vision + botón cámara en `AddTransaction.jsx`
-- [ ] **Categorización automática** — sugerir categoría al escribir descripción, basado en historial
-- [ ] **Asesor financiero IA** — Edge Function `financial-advisor` + Claude API + UI chat
-- [ ] Validar app en navegador (staging) antes de cada feature de Fase 5
-- [ ] Crear proyecto producción en Supabase cuando staging esté OK
+- Gasto variable: color 

@@ -39,13 +39,17 @@ finanzas-v2/
 │   ├── main.jsx        ← entry point + init tema dark/light
 │   ├── services/       ← CRUD puro contra Supabase (sin estado React)
 │   ├── hooks/          ← estado React que consume services/
+│   │                   ← useReceiptOcr.js · useFinancialAdvisor.js · useFinancialData.js
 │   ├── views/          ← Dashboard · Transactions · AddTransaction · Budget
 │   │                      Accounts · Categories · Recurring · Goals · Analysis · Settings · Auth
-│   ├── components/     ← Layout · MonthlyChart · SearchModal
-│   └── utils/          ← constants.js · formatters.js · validators.js
+│   ├── components/     ← Layout · MonthlyChart · SearchModal · FloatingChat · ChatPanel · ChatMessages
+│   ├── services/       ← CRUD puro contra Supabase + advisor.js (llama a EF financial-advisor)
+│   └── utils/          ← constants.js · formatters.js · validators.js · txClassifier.js · voiceParser.js · questionClassifier.js
 └── supabase/
     ├── migrations/001_initial_schema.sql
-    └── functions/auth-hook/
+    └── functions/
+        ├── auth-hook/  ← bloquea JWT no-admin (staging)
+        └── receipt-ocr/ ← extrae datos de tickets: amount, merchant, date, notes, categoryId
 ```
 
 ---
@@ -97,7 +101,13 @@ Staging = solo admin. Cada capa es independiente.
 - Cualquier URL a Storage debe pasar por `isValidStorageUrl()` antes de persistir
 - Nuevas tablas: RLS + policy `_own` + policy `_admin` obligatorio
 - Toda función `SECURITY DEFINER` necesita `SET search_path = public`
-- **Edge Functions con auth propio:** desactivar "Verify JWT with legacy secret" en Settings de la EF. Si está ON, el gateway rechaza los access tokens de usuario con 401 antes de que el código corra (`execution_id: null` en logs).
+- **⚠️ CRÍTICO — Edge Functions con auth propio:** Desactivar **"Verify JWT with legacy secret"** en Settings de la EF. Si está ON:
+  - El gateway rechaza access tokens de usuario con HTTP 401 **antes de que el código corra**
+  - Errores silenciosos: `execution_id: null` en logs
+  - El usuario ve error genérico ("error al procesar"), no el real
+  - Afecta todas las EF que llaman a `supabase.auth.getUser(jwt)` manualmente
+  - Solución: OFF + confiar en el `getUser()` del código (recomendación oficial de Supabase)
+  - **⚠️ El toggle puede revertirse solo** (comportamiento observado en `receipt-ocr` el 2026-04-07). Verificar antes de debuggear errores 401 en EF.
 
 ---
 
@@ -111,9 +121,9 @@ Staging = solo admin. Cada capa es independiente.
 
 En V2 el tipo es solo la dirección del dinero. La granularidad (gasto fijo vs variable, ahorro, inversión) va en `cat_type`.
 
-### Clasificación semántica (txClassifier.js)
+### Utilidades clave
 
-`app/src/utils/txClassifier.js` es la **fuente de verdad** para clasificar transacciones. Usar siempre estas funciones en las vistas, nunca duplicar la lógica:
+**`txClassifier.js`** — fuente de verdad para clasificar transacciones. Usar siempre estas funciones en las vistas, nunca duplicar la lógica:
 
 | Función | Condición | Uso en UI |
 |---------|-----------|-----------|
@@ -122,6 +132,8 @@ En V2 el tipo es solo la dirección del dinero. La granularidad (gasto fijo vs v
 | `isInvestment(tx, cat)` | `cat_type === 'investment'` y no transfer | Contabilizar en "Ahorro/Inv.", badge teal |
 | `isRealExpense(tx, cat)` | `cat_type IN (fixed_expense, variable_expense)` y no transfer | Gasto real; rojo |
 | `isIncome(tx)` | `tx_type === 'income'` y no transfer | Ingreso real; verde |
+
+**`voiceParser.js`** — fuente de verdad para convertir texto hablado a campos de transacción. Soporta decimales ("cuarenta y cinco con cincuenta" → 45.50), tipos ("gasté", "cobré"), fechas relativas y categorías. Tests en `utils/__tests__/voiceParser.test.js` (52 casos, Vitest).
 
 ---
 
@@ -222,12 +234,26 @@ Para planificación, diseño, decisiones arquitectónicas, configurar Supabase v
 
 ---
 
-## Estado actual
+## Estado
 
-Ver `docs/progress.md` para el log detallado.
+### V12 — Asesor Financiero IA (COMPLETADO — pendiente redespliegue EF)
 
-**Pendiente (Fase 5 — IA):**
-- [x] Input por voz — `useVoiceInput.js` (Web Speech API) + botón micrófono en `AddTransaction.jsx`
-- [x] Foto de ticket — Edge Function `receipt-ocr` (Claude Vision) + botón cámara en `AddTransaction.jsx`
-- [ ] Asesor financiero IA — Edge Function `financial-advisor` + UI de chat
-- [ ] Importar extracto bancario
+**Completado 2026-04-10:**
+- ✅ Chat flotante completo: `FloatingChat` → `ChatPanel` → `ChatMessages`
+- ✅ Edge Function `financial-advisor`: JWT + rate-limit + contexto histórico + Claude Haiku
+- ✅ `monthly_summaries`: datos pre-calculados, trigger automático por transacción (O(1))
+- ✅ `useFinancialData.js`: carga histórico y mes actual desde `monthly_summaries`
+- ✅ `useFinancialAdvisor.js`: mensajes, loading, error, remainingCalls con init desde BD
+- ✅ `questionClassifier.js`: detecta si la pregunta necesita datos del usuario o es general
+- ✅ Admin bypass: `prof_role = 'admin'` → ilimitado (`remainingCalls = -1`), UI muestra "∞"
+- ✅ Seguridad: trigger `protect_prof_role` — usuarios no pueden auto-escalarse a admin
+- ✅ Conversación continua: `useCallback` con dependencia `[messages]` correcta
+
+**Pendiente en Supabase (manual):**
+- Aplicar `007_protect_prof_role.sql` en SQL Editor de staging
+- Redesplegar Edge Function `financial-advisor`
+- Verificar toggle "Verify JWT with legacy secret" = OFF en la EF
+
+**Próximos pasos:**
+- Optimizar respuestas del asesor con feedback real
+- Posibles mejoras: análisis de tendencias, predicciones, alertas por categoría

@@ -76,18 +76,17 @@ Cada cambio de schema sigue este flujo:
 - [x] UI v12 — paleta azul v1 restaurada, Inter font, sistema de clases CSS reutilizables
 
 ## Fase 5 — IA y captura avanzada
-- [ ] **Input por voz** — `useVoiceInput.js` (Web Speech API) → prellenar formulario + botón micrófono en AddTransaction
-- [ ] **Foto de ticket** — botón cámara en AddTransaction → Edge Function `receipt-ocr` → Claude Vision → extraer importe + comercio + fecha
-- [ ] **Categorización automática** — al escribir descripción, sugerir categoría basada en historial
-- [ ] **Asesor financiero IA** — chat conversacional híbrido (datos propios + conocimiento financiero general):
-  - Edge Function `financial-advisor` → Claude API (API key en Supabase Secrets, nunca en frontend)
-  - Dos modos de respuesta según la pregunta:
-    - **Personalizada** ("¿cuál es mi peor gasto?") → la EF resume datos del usuario (totales por categoría, saldo, tasa ahorro) antes de llamar a Claude — contexto compacto, no el array completo
-    - **General** ("¿cuánto necesito ahorrar para una casa?", "¿pago hipoteca o invierto?") → Claude responde con su conocimiento financiero base, sin necesidad de datos del usuario
-  - Claude combina ambos naturalmente: "con tu tasa de ahorro actual del 35%, tardarías X años en ahorrar para una entrada de piso en Madrid"
-  - UI: panel de chat flotante o vista dedicada, input de texto + botón de voz opcional
-  - Rate limiting: contador de llamadas diarias en Supabase (ej: 5/día free) — implementar junto con la feature, no después
-  - Modelo de pago futuro: más interacciones para usuarios premium (Stripe, cuando haya usuarios reales)
+- [x] **Input por voz** — `useVoiceInput.js` (Web Speech API) → prellenar formulario + botón micrófono en AddTransaction ✅ (2026-04-03)
+- [x] **Foto de ticket** — botón cámara en AddTransaction → Edge Function `receipt-ocr` → Claude Vision → extraer importe + comercio + fecha ✅ (2026-04-05, fixes 2026-04-07)
+- [~] **Categorización automática** — descartada como feature standalone; absorbida en `receipt-ocr` (el merchant del ticket provee el contexto) y cubierta por el asesor financiero IA
+- [x] **Asesor financiero IA** — chat conversacional con contexto histórico completo ✅ (2026-04-10)
+  - Edge Function `financial-advisor` → Claude Haiku (API key en Supabase Secrets, nunca en frontend)
+  - Dos modos: **personalizado** (datos del usuario via `monthly_summaries`) y **general** (conocimiento financiero base)
+  - `monthly_summaries`: tabla pre-calculada con trigger automático — O(1) por mes, sin escanear transacciones
+  - Rate limiting: 5 llamadas/día via `advisor_calls` + RPC atómica `increment_advisor_call()`
+  - Admin bypass: `prof_role = 'admin'` → sin límite (`remainingCalls = -1`), UI muestra "∞ consultas"
+  - Seguridad: trigger en `profiles` impide auto-escalada de rol desde el cliente
+  - UI: botón flotante → ChatPanel con historial, voz, contador de llamadas
 
 ## Fase 6 — Onboarding y crecimiento
 - [ ] **Demo data en onboarding** — al registrarse, el usuario recibe 2 meses de datos de prueba realistas con flag `tx_is_demo: true`; banner visible "Estás viendo datos de ejemplo"; botón "Empezar con mis datos" los borra; auto-delete a las 12h si no lo hace el usuario (Edge Function con cron o check en login)
