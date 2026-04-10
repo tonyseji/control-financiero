@@ -6,6 +6,16 @@ Historial completo: `docs/progress-archive.md`
 
 ---
 
+## 2026-04-10 — Security fix: SET search_path en funciones SECURITY DEFINER
+
+**Migración `008_fix_search_path.sql`:**
+- Corrige 6 funciones `SECURITY DEFINER` que carecían de `SET search_path = public`
+- Afecta: `update_account_balance`, `seed_default_categories`, `handle_new_user`, `is_admin`, `is_staging`, `is_valid_user`
+- Sin el fix, un schema shadow podría redirigir queries de RLS (especialmente `is_valid_user()` que se usa en todas las policies)
+- **Pendiente:** aplicar en SQL Editor de staging
+
+---
+
 ## 2026-04-10 — Asesor IA: chat completo + admin bypass + fix seguridad
 
 **Nuevos archivos (asesor financiero IA):**
@@ -34,10 +44,12 @@ Historial completo: `docs/progress-archive.md`
 - `profiles` tiene PK `prof_id`, no `user_id` — las queries con `.eq('user_id', ...)` devolvían null silenciosamente (admin nunca se detectaba)
 - `useCallback(sendQuestion, [])` — dependencia vacía hacía que `messages` siempre fuera `[]` en el closure; la conversación no continuaba. Fix: `[messages]` como dependencia.
 
-**Pendiente en Supabase (requiere acción manual):**
-- Aplicar migración `007_protect_prof_role.sql` en SQL Editor de staging
-- Redesplegar Edge Function `financial-advisor` (para que el admin bypass entre en efecto)
-- Verificar toggle "Verify JWT with legacy secret" = OFF en `financial-advisor`
+**Deployment a Supabase (COMPLETADO 2026-04-10):**
+- ✅ Migración `007_protect_prof_role.sql` aplicada
+- ✅ Toggle "Verify JWT with legacy secret" = OFF en `financial-advisor` verificado
+- ✅ Edge Function `financial-advisor` redespliegada
+
+**Estado: V12 COMPLETO EN PRODUCCIÓN** — Asesor IA funcional end-to-end con rate-limit, admin bypass, y protección de seguridad.
 
 ---
 
@@ -237,33 +249,4 @@ Historial completo: `docs/progress-archive.md`
 **Cambios:**
 - Nueva utilidad `app/src/utils/txClassifier.js` — 5 funciones puras: `isTransfer`, `isSaving`, `isInvestment`, `isRealExpense`, `isIncome`. Fuente de verdad para toda la app.
 - `Transactions.jsx`: métricas separadas (ingresos / gastos reales / ahorro+inv), pill "Ahorro/Inv." en el resumen, badge "Transferencia ↔", estilos teal para ahorro/inversión y neutral para transferencias, filtros de tipo ampliados (saving/investment/transfer), dayNet excluye transfers
-- `Analysis.jsx`: todos los cálculos (monthlyData, categoryData, weeklyData, kpis) usan txClassifier; gráfica mensual añade línea Ahorro/Inv. (teal dashed); KPI "Tasa ahorro" calculado correctamente como savingInv/income
-- `Dashboard.jsx`: métricas del mes usan txClassifier (expense = solo gastos reales, saving = saving+investment); chartData y annualSummary excluyen transfers; resumen anual añade tarjeta "Ahorro/Inv."; TxRow y DateGroup con estilos semánticos correctos
-
-## 2026-03-25 — Fix 4 bugs de display/cálculo (validación Febrero 2026)
-
-- **Bug 1** `Transactions.jsx` + `main.css`: importe de filas saving/investment mostraba rojo. Fix: añadida clase CSS `.tx-amount.saving { color: var(--cyan) }` y `amountCls` usa `'saving num'` en vez de `'num'` para esos tipos.
-- **Bug 2** `Transactions.jsx`: pill "AHORRO/INV." mostraba signo negativo. Fix: quitado el `−` del valor — el ahorro es positivo.
-- **Bug 3** `Transactions.jsx` + `Dashboard.jsx`: balance calculado como `income − expenses − savingInv`, resultando en 0 cuando ahorro = balance real. Fix: `balance = income − expenses` (el ahorro no reduce patrimonio neto, solo reclasifica).
-- **Bug 4** `Dashboard.jsx` + `Analysis.jsx`: donut "Gastos por categoría" incluía categorías saving/investment. Fix: `byCategory` en Dashboard solo acumula `isRealExpense`; `categoryData` en Analysis excluye también `isSaving || isInvestment`.
-
-## 2026-03-25 — Fix 2 bugs de display (segunda ronda)
-
-- **Fix 1** `Transactions.jsx`: importe de filas saving/investment mostraba signo `−` en teal. Fix: `amountStr` no añade signo cuando `saving || investment` — el color teal ya comunica la semántica.
-- **Fix 2** `Analysis.jsx`: chart "Gasto por día" con datos incoherentes según período. Fix: simplificado a "Gasto por día de la semana" — agrega solo `isRealExpense` del período por día (Lun–Dom), coherente en cualquier período. Semana reordenada Lun→Dom.
-
-## 2026-03-25 — Feature: toggle de granularidad en chart "Gasto por día"
-
-- `Analysis.jsx`: añadido mini toggle `Día sem. | Semanal | Mensual` en esquina superior derecha del chart de distribución de gastos.
-- Estado local `granularity` independiente del período global.
-- `buildGranData(transactions, granularity)`: función pura que produce los datos según la selección — siempre solo `isRealExpense`. Semana ISO (Lun=inicio), etiqueta `Sem N` o `SN 'YY` si año distinto al actual.
-- Título de la tarjeta cambia dinámicamente: "Gasto por día de la semana" / "Gasto semanal" / "Gasto mensual".
-- `ChartCard` acepta prop `headerRight` para alojar el toggle sin afectar a los demás charts.
-- Estilos `miniToggle / miniBtn / miniBtnActive` añadidos al objeto `s`, visualmente consistentes con el toggle global pero más pequeños.
-
-## 2026-03-26 — UI polish presupuesto + reorden navegación
-
-**Budget.jsx:**
-- Desglose desplegable por categorías en el resumen mensual (solo categorías con gasto, orden mayor→menor)
-- Colores de importe/porcentaje en desglose usan texto por defecto (sin color heredado del tipo)
-- Gasto variable: color 
+- `Analysis.jsx`: todos los cálculos (monthlyData, categoryData, weeklyData, kpis) usan txClassifier; gráfica mensual añade línea Ahorro/Inv. (teal 
