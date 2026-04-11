@@ -93,7 +93,9 @@ BEGIN
       '[]'::JSONB
     )
   INTO v_income, v_real_expense, v_savings, v_savings_rate, v_categories
-  FROM totals tt, category_breakdown cb;
+  FROM totals tt
+  LEFT JOIN category_breakdown cb ON true
+  GROUP BY tt.total_income, tt.total_real_expense, tt.total_savings;
 
   INSERT INTO monthly_summaries (user_id, year_month, summary, calculated_at)
   VALUES (
