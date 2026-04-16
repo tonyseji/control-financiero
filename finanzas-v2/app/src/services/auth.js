@@ -58,9 +58,11 @@ export async function signOut() {
 // ── Perfil del usuario (rol incluido) ────────────────────────────────────────
 
 export async function getProfile() {
+  const { data: { user } } = await supabase.auth.getUser()
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
+    .eq('prof_id', user.id)
     .single()
   if (error) throw error
   return data

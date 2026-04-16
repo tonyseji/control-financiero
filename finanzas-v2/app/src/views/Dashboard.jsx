@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useTransactions } from '../hooks/useTransactions'
 import { useAccounts } from '../hooks/useAccounts'
 import { useBudgets } from '../hooks/useBudgets'
+import { useDemoData, formatDemoExpiry } from '../hooks/useDemoData'
 import { formatCurrency, monthRange } from '../utils/formatters'
 import MonthlyChart from '../components/charts/MonthlyChart'
 import { isTransfer, isSaving, isInvestment, isRealExpense, isIncome as isIncomeClassifier } from '../utils/txClassifier'
@@ -154,7 +155,14 @@ function TxRow({ tx, onEdit, onDelete }) {
     <div className="tx-item">
       <div className="tx-dot" style={{ background: isTransTx ? 'var(--text-faint)' : catColor }} />
       <div className="tx-info">
-        <div className="tx-cat">{catName}</div>
+        <div className="tx-cat">
+          {catName}
+          {tx.tx_is_demo && (
+            <span style={{ marginLeft: '0.35rem', fontSize: '0.62rem', fontWeight: 700, color: 'var(--accent)', background: 'var(--accent-soft)', borderRadius: 4, padding: '1px 5px', verticalAlign: 'middle', letterSpacing: '0.04em' }}>
+              Demo
+            </span>
+          )}
+        </div>
         {tx.tx_notes && <div className="tx-note">{tx.tx_notes}</div>}
         {accName && <span className="tx-account">{accName}</span>}
       </div>
@@ -205,7 +213,12 @@ function DateGroup({ date, txs, onEdit, onDelete }) {
         <div className="date-header-line" />
       </div>
       {txs.map(tx => (
-        <TxRow key={tx.tx_id} tx={tx} onEdit={onEdit} onDelete={onDelete} />
+        <TxRow
+          key={tx.tx_id}
+          tx={tx}
+          onEdit={tx.tx_is_demo ? undefined : onEdit}
+          onDelete={tx.tx_is_demo ? undefined : onDelete}
+        />
       ))}
     </>
   )
@@ -254,12 +267,26 @@ export default function Dashboard({ onNavigate = null }) {
     return last6MonthsRange(now.getFullYear(), now.getMonth() + 1)
   }, [chartMode, chartY])
 
-  const { transactions, loading: txLoading }             = useTransactions({ from, to })
-  const { transactions: chartTx, loading: chartLoading } = useTransactions(chartRange)
-  const { accounts, loading: accLoading }                = useAccounts()
-  const { config }                                        = useBudgets()
+  const { transactions: realTxs, loading: txLoading }       = useTransactions({ from, to })
+  const { transactions: realChartTx, loading: chartLoading } = useTransactions(chartRange)
+  const { accounts, loading: accLoading }                    = useAccounts()
+  const { config }                                            = useBudgets()
+  const { demoTxs, demoActive, expiresAt, clear: clearDemo, loading: demoLoading } = useDemoData()
 
-  const loading = txLoading || accLoading
+  const loading = txLoading || accLoading || demoLoading
+
+  // Combinar reales + demo filtrando demo por rango de fechas del mes visible
+  const transactions = useMemo(() => {
+    if (!demoActive) return realTxs
+    const demoFiltered = demoTxs.filter(tx => tx.tx_date >= from && tx.tx_date <= to)
+    return [...realTxs, ...demoFiltered]
+  }, [realTxs, demoTxs, demoActive, from, to])
+
+  const chartTx = useMemo(() => {
+    if (!demoActive) return realChartTx
+    const demoFiltered = demoTxs.filter(tx => tx.tx_date >= chartRange.from && tx.tx_date <= chartRange.to)
+    return [...realChartTx, ...demoFiltered]
+  }, [realChartTx, demoTxs, demoActive, chartRange])
 
   // ── Métricas del mes ──────────────────────────────────────────────────────
   const { income, expense, saving, balance, byCategory, byType } = useMemo(() => {
@@ -371,6 +398,32 @@ export default function Dashboard({ onNavigate = null }) {
           <button onClick={nextMonth}>›</button>
         </div>
       </div>
+
+      {/* ── Banner datos demo ────────────────────────────────────────────── */}
+      {demoActive && (
+        <div style={demoBannerStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: 0 }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
+            </svg>
+            <span style={{ fontSize: '0.82rem', color: 'var(--text)', fontWeight: 500 }}>
+              Datos de ejemplo activos
+              {expiresAt && (
+                <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>
+                  {' '}· Expiran en {formatDemoExpiry(expiresAt)}
+                </span>
+              )}
+            </span>
+          </div>
+          <button
+            style={demoClearBtnStyle}
+            onClick={clearDemo}
+            title="Limpiar datos de ejemplo"
+          >
+            Limpiar
+          </button>
+        </div>
+      )}
 
       {/* ── Stats grid ───────────────────────────────────────────────────── */}
       <div className="stats-grid stagger-children">
@@ -552,4 +605,34 @@ export default function Dashboard({ onNavigate = null }) {
 
     </div>
   )
+}
+
+// ── Estilos banner demo ───────────────────────────────────────────────────────
+
+const demoBannerStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '0.75rem',
+  padding: '0.65rem 1rem',
+  marginBottom: '1.25rem',
+  background: 'var(--accent-soft)',
+  border: '1px solid var(--accent)',
+  borderRadius: 'var(--radius-btn)',
+  flexWrap: 'wrap',
+}
+
+const demoClearBtnStyle = {
+  background: 'none',
+  border: '1px solid var(--accent)',
+  borderRadius: 6,
+  color: 'var(--accent)',
+  fontSize: '0.75rem',
+  fontWeight: 700,
+  cursor: 'pointer',
+  padding: '0.3rem 0.7rem',
+  whiteSpace: 'nowrap',
+  fontFamily: 'inherit',
+  transition: 'background var(--transition)',
+  flexShrink: 0,
 }

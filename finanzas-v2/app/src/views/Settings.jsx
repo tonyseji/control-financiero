@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { signOut, requestPasswordReset } from '../services/auth'
 import { supabase } from '../services/supabase'
+import { useDemoData } from '../hooks/useDemoData'
 
 const CURRENCIES = ['EUR', 'USD', 'GBP']
 const THEME_KEY  = 'cf_v2_theme'
@@ -23,6 +24,9 @@ export default function Settings({ profile, onProfileUpdate, onNavigate }) {
   const [nameVal,     setNameVal]     = useState(profile?.prof_full_name ?? '')
   const [nameSaving,  setNameSaving]  = useState(false)
   const [nameError,   setNameError]   = useState('')
+  const [demoClearing, setDemoClearing] = useState(false)
+
+  const { demoActive, demoTxs, clear: clearDemo } = useDemoData()
 
   // Cargar email desde la sesión de Supabase
   useEffect(() => {
@@ -67,6 +71,15 @@ export default function Settings({ profile, onProfileUpdate, onNavigate }) {
     } catch (err) {
       setPwdError(err?.message ?? 'Error al enviar el email')
       setPwdStatus('error')
+    }
+  }
+
+  async function handleClearDemo() {
+    setDemoClearing(true)
+    try {
+      await clearDemo()
+    } finally {
+      setDemoClearing(false)
     }
   }
 
@@ -187,6 +200,22 @@ export default function Settings({ profile, onProfileUpdate, onNavigate }) {
         <span>Recurrentes</span>
         <span style={s.chevron}>›</span>
       </button>
+
+      {demoActive && (
+        <div style={s.demoSection}>
+          <div>
+            <p style={s.demoLabel}>Datos de ejemplo</p>
+            <p style={s.demoHint}>{demoTxs.length} transacciones de ejemplo activas</p>
+          </div>
+          <button
+            style={{ ...s.demoClearBtn, ...(demoClearing ? s.demoClearBtnDisabled : {}) }}
+            onClick={handleClearDemo}
+            disabled={demoClearing}
+          >
+            {demoClearing ? 'Limpiando…' : 'Limpiar →'}
+          </button>
+        </div>
+      )}
 
       {/* ── Cerrar sesión ─────────────────────────────────────────────── */}
       <button style={s.signOutBtn} onClick={() => signOut()}>
@@ -395,6 +424,48 @@ const s = {
   editNameBtn: {
     background: 'none', border: '1px solid var(--border)', color: 'var(--text-faint)',
     borderRadius: 6, padding: '0.2rem 0.55rem', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+  },
+
+  // Demo data
+  demoSection: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '1rem',
+    background: 'var(--bg-card)',
+    border: '1px solid var(--accent)',
+    borderRadius: 'var(--radius)',
+    padding: '0.875rem 1.25rem',
+    marginBottom: 8,
+    flexWrap: 'wrap',
+  },
+  demoLabel: {
+    fontSize: '0.95rem',
+    color: 'var(--text)',
+    fontWeight: 500,
+    marginBottom: '0.15rem',
+  },
+  demoHint: {
+    fontSize: '0.78rem',
+    color: 'var(--text-faint)',
+  },
+  demoClearBtn: {
+    background: 'var(--accent)',
+    border: 'none',
+    borderRadius: 8,
+    color: '#fff',
+    fontSize: '0.82rem',
+    fontWeight: 700,
+    cursor: 'pointer',
+    padding: '0.45rem 0.875rem',
+    whiteSpace: 'nowrap',
+    fontFamily: 'inherit',
+    transition: 'opacity var(--transition)',
+    flexShrink: 0,
+  },
+  demoClearBtnDisabled: {
+    opacity: 0.55,
+    cursor: 'not-allowed',
   },
 
   // Sign out

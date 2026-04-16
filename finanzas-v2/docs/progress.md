@@ -6,6 +6,101 @@ Historial completo: `docs/progress-archive.md`
 
 ---
 
+## 2026-04-17 — Fix signup + permisos + getProfile (COMPLETADO)
+
+**Problema principal:** El signup fallaba con "Database error updating user" y la app mostraba pantalla en blanco.
+
+**Root causes encontrados y resueltos:**
+
+1. **`SET search_path = public` en el cuerpo de `handle_new_user()`** — contaminaba el search_path de la sesión completa. Supabase Auth ejecuta `UPDATE "users"` internamente después del trigger, y con search_path = public no encontraba `auth.users`. Fix: quitar el SET del cuerpo (dejarlo solo en la firma de la función, que sí es local).
+
+2. **`getProfile()` sin filtro explícito** — usaba `.single()` sin `.eq('prof_id', user.id)`. Con 2 admins en profiles, la policy `prof_admin` devolvía 2 filas y `.single()` fallaba con PGRST116. Fix: añadir `.eq('prof_id', user.id)` en `auth.js`.
+
+3. **`protect_prof_role()` bloqueaba al admin de BD** — cuando `auth.uid() IS NULL` (SQL Editor / service role), `is_admin()` devuelve false y el trigger bloqueaba el UPDATE. Fix: permitir siempre cuando `auth.uid() IS NULL`.
+
+**Migraciones aplicadas en staging:**
+- ✅ `017_fix_signup_definitive.sql` — elimina staging cap del trigger (lo deja solo en auth-hook)
+- ✅ `018_cleanup_session_fixes.sql` — consolida fixes manuales: protect_prof_role, handle_new_user, elimina policies de emergencia
+
+**Estado BD staging:**
+- Policies activas en profiles: `prof_own` + `prof_admin` (las dos originales, limpias)
+- `handle_new_user()` sin SET search_path en el cuerpo
+- `protect_prof_role()` permite cambios desde SQL Editor (auth.uid() IS NULL)
+- Signup funcional: crea profile + account + categorías + demo links
+
+**Archivos modificados:**
+- `app/src/services/auth.js` — `getProfile()` ahora filtra por `prof_id = user.id`
+- `supabase/migrations/017_fix_signup_definitive.sql` — nuevo
+- `supabase/migrations/018_cleanup_session_fixes.sql` — nuevo
+
+**Próximos pasos:**
+- [ ] Test completo signup → ver demos en Dashboard y Transactions
+- [ ] Test: clic "Limpiar" en Settings → demos desaparecen
+- [ ] Verificar que migration 016 (RLS policy para limpiar demos) está aplicada en staging
+
+---
+
+## 2026-04-16 — Fase 6B: Frontend para datos demo (completado)
+
+**Implementado:**
+- ✅ `app/src/services/demo.js` — `getDemoTransactions()`, `clearDemoData()`, `getDemoCount()`, `getDemoExpiry()`
+- ✅ `app/src/hooks/useDemoData.js` — `useDemoData()` + `formatDemoExpiry()`
+- ✅ `Dashboard.jsx` — combina realTxs + demoTxs filtrados por mes/chart, banner con tiempo de expiración
+- ✅ `Transactions.jsx` — ídem + bloqueo editar/borrar en txs demo + badge "Demo" en filas
+- ✅ `Settings.jsx` — sección condicional "Datos de ejemplo" con contador y botón Limpiar
+
+**Migraciones aplicadas en staging:**
+- ✅ `009` al `018` aplicadas (ver entrada 2026-04-17 para detalles del fix)
+
+---
+
+## 2026-04-16 — Fase 6A: Demo Data Architecture — Opción 2 (Tablas separadas) — FIX
+
+**Problema identificado (después de aplicar 012-014):**
+- Error: "relation 'users' does not exist"
+- Causa: Superposición de tres arquitecturas de demo data en migraciones 009, 010, 012-014
+- Migración 009 insertaba directamente en `transactions` con flags de demo
+- Migración 010 intentaba usar templates en `user_demo_access`
+- Migraciones 012-014 intentaban hacer lo mismo pero con funciones separadas
+
+**Solución (Migración 015):**
+- ✅ DROP y recreación LIMPIA de `generate_demo_data()`
+- ✅ DROP y recreación LIMPIA de `handle_new_user()`
+- ✅ DROP y recreación LIMPIA de `hook_before_user_created()`
+- ✅ Todas las funciones ahora usan la misma arquitectura: templates + user_demo_access
+- ✅ SECURITY DEFINER + SET search_path = public en todas
+
+**Arquitectura (definitiva, documentada en CLAUDE.md):**
+
+| Componente | Responsabilidad |
+|---|---|
+| `demo_data_templates` | 42 transacciones plantilla (reutilizables, creadas en 010) |
+| `user_demo_access` | Registro de templates activos + expiración por usuario |
+| `transactions` | **SOLO datos reales** (sin contaminación, sin flags demo) |
+
+**Pasos para aplicar:**
+1. **En Supabase SQL Editor:**
+   - Copiar y pegar el contenido de `supabase/migrations/015_fix_demo_data_architecture.sql`
+   - Ejecutar
+2. **Verificar en Supabase (Settings → Database):**
+   - Mirar Functions: `generate_demo_data`, `handle_new_user`, `hook_before_user_created`
+   - Verificar que exista el trigger `on_auth_user_created` en tabla `auth.users`
+3. **En Settings → Authentication → Hooks:**
+   - Verificar que `hook_before_user_created` existe
+   - Verificar que `hook_before_user_created` (Edge Function si existe) tiene "Verify JWT with legacy secret" = OFF
+4. **Test:**
+   - Intentar registrar un nuevo usuario en la app
+   - Si funciona: en SQL Editor, ejecutar: `SELECT COUNT(*) FROM user_demo_access WHERE uda_user_id = (SELECT prof_id FROM profiles ORDER BY prof_created_at DESC LIMIT 1);`
+   - Debería retornar `42` (una fila por cada demo template)
+
+**Próximos pasos después del fix:**
+- [ ] Aplicar migration 015 en SQL Editor
+- [ ] Test signup flow
+- [ ] Si funciona: Fase 6B (frontend para mostrar y limpiar datos demo)
+- [ ] Si sigue fallando: revisar logs en Supabase → SQL Editor y reportar último error SQL
+
+---
+
 ## 2026-04-10 — Security fix: SET search_path en funciones SECURITY DEFINER
 
 **Migración `008_fix_search_path.sql`:**
@@ -247,6 +342,4 @@ Historial completo: `docs/progress-archive.md`
 **Problema:** saving/investment contabilizaban como gastos normales; transfers incluidos en todos los totales.
 
 **Cambios:**
-- Nueva utilidad `app/src/utils/txClassifier.js` — 5 funciones puras: `isTransfer`, `isSaving`, `isInvestment`, `isRealExpense`, `isIncome`. Fuente de verdad para toda la app.
-- `Transactions.jsx`: métricas separadas (ingresos / gastos reales / ahorro+inv), pill "Ahorro/Inv." en el resumen, badge "Transferencia ↔", estilos teal para ahorro/inversión y neutral para transferencias, filtros de tipo ampliados (saving/investment/transfer), dayNet excluye transfers
-- `Analysis.jsx`: todos los cálculos (monthlyData, categoryData, weeklyData, kpis) usan txClassifier; gráfica mensual añade línea Ahorro/Inv. (teal 
+- Nueva utilidad `app/src/utils/txClassifier.js` — 5 funciones puras: `isTransfer`, `isSaving`,

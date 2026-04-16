@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useTransactions } from '../hooks/useTransactions'
+import { useDemoData, formatDemoExpiry } from '../hooks/useDemoData'
 import { formatCurrency, monthRange } from '../utils/formatters'
 import { isTransfer, isSaving, isInvestment, isRealExpense, isIncome } from '../utils/txClassifier'
 
@@ -58,9 +59,28 @@ export default function Transactions({ onEdit }) {
   const [filterAccId,   setFilterAccId]   = useState('')
   const [filterText,    setFilterText]    = useState('')
 
-  const { from, to }                          = useMemo(() => monthRange(year, month), [year, month])
-  const { transactions, loading, remove }     = useTransactions({ from, to })
-  const { transactions: allYear }             = useTransactions({ from: `${year}-01-01`, to: `${year}-12-31` })
+  const { from, to }                              = useMemo(() => monthRange(year, month), [year, month])
+  const { transactions: realTxs, loading: txLoading, remove } = useTransactions({ from, to })
+  const { transactions: allYearReal }             = useTransactions({ from: `${year}-01-01`, to: `${year}-12-31` })
+  const { demoTxs, demoActive, expiresAt, clear: clearDemo } = useDemoData()
+
+  // Combinar reales + demo para el mes visible
+  const transactions = useMemo(() => {
+    if (!demoActive) return realTxs
+    const demoFiltered = demoTxs.filter(tx => tx.tx_date >= from && tx.tx_date <= to)
+    return [...realTxs, ...demoFiltered]
+  }, [realTxs, demoTxs, demoActive, from, to])
+
+  // allYear para exportar: reales + demo del año
+  const allYear = useMemo(() => {
+    if (!demoActive) return allYearReal
+    const demoFiltered = demoTxs.filter(
+      tx => tx.tx_date >= `${year}-01-01` && tx.tx_date <= `${year}-12-31`
+    )
+    return [...allYearReal, ...demoFiltered]
+  }, [allYearReal, demoTxs, demoActive, year])
+
+  const loading = txLoading
 
   // ── Opciones derivadas de las transacciones cargadas ─────────────────────
 
@@ -203,6 +223,26 @@ export default function Transactions({ onEdit }) {
         </div>
       </div>
 
+      {/* ── Banner datos demo ────────────────────────────────────────────── */}
+      {demoActive && (
+        <div style={s.demoBanner}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: 0 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
+            </svg>
+            <span style={{ fontSize: '0.82rem', color: 'var(--text)', fontWeight: 500 }}>
+              Datos de ejemplo activos
+              {expiresAt && (
+                <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>
+                  {' '}· Expiran en {formatDemoExpiry(expiresAt)}
+                </span>
+              )}
+            </span>
+          </div>
+          <button style={s.demoClearBtn} onClick={clearDemo}>Limpiar</button>
+        </div>
+      )}
+
       {/* ── Resumen (sobre transacciones FILTRADAS) ────────────────────────── */}
       {!loading && filtered.length > 0 && (
         <div style={s.summary}>
@@ -327,7 +367,14 @@ export default function Transactions({ onEdit }) {
                 <div className={`date-header-total ${netCls}`}>{netStr}</div>
                 <div className="date-header-line" />
               </div>
-              {txs.map(tx => <TxRow key={tx.tx_id} tx={tx} onDelete={remove} onEdit={onEdit} />)}
+              {txs.map(tx => (
+                <TxRow
+                  key={tx.tx_id}
+                  tx={tx}
+                  onDelete={tx.tx_is_demo ? undefined : remove}
+                  onEdit={tx.tx_is_demo ? undefined : onEdit}
+                />
+              ))}
             </div>
           )
         })}
@@ -385,7 +432,14 @@ function TxRow({ tx, onDelete, onEdit }) {
     <div className="tx-item tx-row-hover">
       <div className="tx-dot" style={{ background: transfer ? 'var(--text-faint)' : catColor }} />
       <div className="tx-info">
-        <div className="tx-cat">{catName}</div>
+        <div className="tx-cat">
+          {catName}
+          {tx.tx_is_demo && (
+            <span style={{ marginLeft: '0.35rem', fontSize: '0.62rem', fontWeight: 700, color: 'var(--accent)', background: 'var(--accent-soft)', borderRadius: 4, padding: '1px 5px', verticalAlign: 'middle', letterSpacing: '0.04em' }}>
+              Demo
+            </span>
+          )}
+        </div>
         {tx.tx_notes && <div className="tx-note">{tx.tx_notes}</div>}
         {accName && <span className="tx-account">{accName}</span>}
         {tx.tx_is_pending && <span className="tx-account" style={{ color: 'var(--yellow)' }}>Pendiente</span>}
@@ -515,6 +569,32 @@ const s = {
   },
 
   loadingWrap: { display: 'flex', flexDirection: 'column', gap: '1rem' },
+
+  demoBanner: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '0.75rem',
+    padding: '0.65rem 1rem',
+    marginBottom: '1rem',
+    background: 'var(--accent-soft)',
+    border: '1px solid var(--accent)',
+    borderRadius: 'var(--radius-btn)',
+    flexWrap: 'wrap',
+  },
+  demoClearBtn: {
+    background: 'none',
+    border: '1px solid var(--accent)',
+    borderRadius: 6,
+    color: 'var(--accent)',
+    fontSize: '0.75rem',
+    fontWeight: 700,
+    cursor: 'pointer',
+    padding: '0.3rem 0.7rem',
+    whiteSpace: 'nowrap',
+    fontFamily: 'inherit',
+    flexShrink: 0,
+  },
 
   exportMenu: {
     position: 'absolute',

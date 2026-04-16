@@ -1,6 +1,8 @@
 # Finanzas V2 — Contexto para IA
 
-> Leer ANTES de tocar cualquier archivo. Para el estado actual: `docs/progress.md` (últimas 2 entradas). Para el plan: `docs/roadmap.md`. Para el schema completo: `docs/db-schema.md`.
+> Leer ANTES de tocar cualquier archivo. Para el estado actual: `docs/progress.md` (últimas 2 entradas). Para el plan: `docs/roadmap.md`. Para el schema completo: `docs/db-schema.md`. Para entender el sistema de trabajo entre agentes: `docs/workflow.md`.
+>
+> **Si eres Claude Code:** tu rol es implementar, no arquitectar. No tomes decisiones de diseño por tu cuenta — si surge un dilema, repórtalo. Lee `docs/workflow.md` para el modelo completo.
 
 ---
 
@@ -134,6 +136,50 @@ En V2 el tipo es solo la dirección del dinero. La granularidad (gasto fijo vs v
 | `isIncome(tx)` | `tx_type === 'income'` y no transfer | Ingreso real; verde |
 
 **`voiceParser.js`** — fuente de verdad para convertir texto hablado a campos de transacción. Soporta decimales ("cuarenta y cinco con cincuenta" → 45.50), tipos ("gasté", "cobré"), fechas relativas y categorías. Tests en `utils/__tests__/voiceParser.test.js` (52 casos, Vitest).
+
+---
+
+## Datos Demo — Arquitectura (Fase 6A)
+
+**Propósito**: Al registrarse en staging, generar 40 transacciones demo realistas para que el usuario vea cómo funciona la app sin entrar datos manualmente.
+
+### Tablas involucradas
+
+| Tabla | Propósito | Notas |
+|---|---|---|
+| `demo_data_templates` | 40 transacciones "plantilla" reutilizables | Una sola vez; cada nuevo user las recibe |
+| `user_demo_access` | Registro de qué templates activos tiene cada user | Controla visibilidad y expiración |
+| `transactions` | **Solo datos REALES del usuario** | NO contiene columnas demo para mantener limpieza |
+
+### Flujo de datos
+
+1. **Al registrarse** (trigger `handle_new_user()`):
+   - Crea entrada en `profiles`, `accounts`, seed de `categories`
+   - Llama `generate_demo_data(p_user_id, p_account_id)`
+
+2. **`generate_demo_data()` inserta en `user_demo_access`** (NO en `transactions`):
+   ```sql
+   INSERT INTO user_demo_access (uda_user_id, uda_template_id, uda_is_active, uda_expires_at)
+   SELECT p_user_id, ddt_id, TRUE, NOW() + INTERVAL '12 hours'
+   FROM demo_data_templates;
+   ```
+
+3. **Frontend junta datos** para mostrar:
+   - Transacciones REALES: `SELECT * FROM transactions WHERE tx_usr_id = user_id`
+   - Transacciones DEMO: `SELECT ddt.* FROM demo_data_templates ddt JOIN user_demo_access uda ON ddt.ddt_id = uda.uda_template_id WHERE uda.uda_user_id = user_id AND uda.uda_is_active = TRUE AND uda.uda_expires_at > NOW()`
+   - Junta ambas en la UI
+
+4. **Limpieza automática**:
+   - Cron job (futuro): `DELETE FROM user_demo_access WHERE uda_expires_at < NOW()`
+   - Manual (Settings): botón "Limpiar datos demo" que ejecuta el delete
+
+### Ventajas de esta arquitectura
+
+- ✅ `transactions` puro = solo datos reales, sin contaminación
+- ✅ Fácil de limpiar: solo borra `user_demo_access`, no toca `transactions`
+- ✅ Reutilizable: los 40 templates se usan para TODOS los usuarios nuevos
+- ✅ Flexible: si el usuario quiere ver datos reales, simple query sin filtros
+- ✅ Temporal: `uda_expires_at` es la fuente de verdad para expiración
 
 ---
 
