@@ -80,7 +80,9 @@ Categorías jerárquicas (raíz > subcategoría). Cada usuario tiene su propia c
 | `cat_is_visible` | boolean | Visible | Mostrar/ocultar en la app |
 | `cat_created_at` | timestamptz | — | |
 
-**Categorías base (semilladas al registrarse):**
+**Categorías base (semilladas al registrarse — 21 categorías):**
+
+Constraint `UNIQUE (cat_usr_id, cat_name)` activo desde migration 021. `seed_default_categories()` es idempotente (`ON CONFLICT DO NOTHING`).
 
 | Nombre | Tipo |
 |---|---|
@@ -88,12 +90,16 @@ Categorías jerárquicas (raíz > subcategoría). Cada usuario tiene su propia c
 | Seguros | fixed_expense |
 | Suministros | fixed_expense |
 | Suscripciones | fixed_expense |
+| Gimnasio | fixed_expense |
+| Internet | fixed_expense |
 | Supermercado | variable_expense |
 | Restaurantes | variable_expense |
 | Transporte | variable_expense |
 | Ocio | variable_expense |
 | Ropa | variable_expense |
 | Salud | variable_expense |
+| Gasolina | variable_expense |
+| Deporte | variable_expense |
 | Fondo de emergencia | saving |
 | Ahorro general | saving |
 | Broker | investment |
@@ -101,7 +107,6 @@ Categorías jerárquicas (raíz > subcategoría). Cada usuario tiene su propia c
 | Nómina | income |
 | Freelance | income |
 | Otros ingresos | income |
-| Transferencia | transfer |
 
 ---
 
@@ -265,3 +270,4 @@ recurring    ──► transactions           (rec_id → tx_rec_id)
 | `bud_end_date` nullable | null = presupuesto indefinido; facilita query "presupuesto activo hoy" |
 | `goal_saved` columna directa (no calculada) | Goals son independientes del sistema de cuentas; permite metas en efectivo o cuentas externas sin registrar |
 | `goal_is_active` soft-delete | Preserva historial de metas completadas o canceladas |
+| Sin policies `_admin` en tablas de datos | Cada usuario (incluido admin) solo ve sus propios datos via policy `_own`. Solo `profiles` tiene `prof_admin` para gestión de roles. Migration 021. |

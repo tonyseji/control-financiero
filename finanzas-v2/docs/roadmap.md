@@ -89,13 +89,13 @@ Cada cambio de schema sigue este flujo:
   - UI: botón flotante → ChatPanel con historial, voz, contador de llamadas
 
 ## Fase 6 — Onboarding y crecimiento
-- [ ] **Demo data en onboarding** — al registrarse, el usuario recibe 2 meses de datos de prueba realistas con flag `tx_is_demo: true`; banner visible "Estás viendo datos de ejemplo"; botón "Empezar con mis datos" los borra; auto-delete a las 12h si no lo hace el usuario (Edge Function con cron o check en login)
+- [x] **Demo data en onboarding** — al registrarse, el usuario recibe datos de prueba realistas via `demo_data_templates` + `user_demo_access` (arquitectura sin contaminar `transactions`); banner con tiempo de expiración (12h); botón "Limpiar" en Settings; Dashboard y Transactions combinan datos reales + demo ✅ (2026-04-16/17)
 - [ ] **Importar extracto bancario** — subir PDF/CSV del banco → Edge Function parsea con Claude Vision → devuelve lista con categoría sugerida + confianza → usuario revisa y confirma antes de guardar; reutiliza la arquitectura de `receipt-ocr`
-- [ ] Onboarding de nuevos usuarios (categorías por defecto, primera cuenta)
-- [ ] Ajustes de perfil (moneda, idioma, objetivo de ingreso mensual)
+- [x] Onboarding de nuevos usuarios (categorías por defecto, primera cuenta) ✅
+- [x] Ajustes de perfil — nombre editable ✅; moneda selector (pendiente persistir en BD) y objetivo de ingreso mensual (pendiente UI en Settings → `financial_config`)
 - [x] Importar datos de V1 (migración de las 241 transacciones históricas de Sep 2025 – Mar 2026) ✅
 - [x] Exportar datos (CSV) ✅
-- [ ] Análisis mensual automático (resumen al inicio de mes)
+- [x] Análisis — vista completa con KPIs, ingresos vs gastos, categorías, tasa ahorro, distribución por día/semana/mes ✅; resumen automático inicio de mes pendiente
 
 ## Fase 7 — Automatización externa (futuro)
 - [ ] n8n conectado a Supabase para automatizaciones

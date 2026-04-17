@@ -6,6 +6,23 @@ Historial completo: `docs/progress-archive.md`
 
 ---
 
+## 2026-04-17 — Aislamiento de datos + fix categorías duplicadas (COMPLETADO)
+
+**Problemas encontrados en pruebas con usuario nuevo:**
+
+1. **Usuario admin veía transacciones de otros usuarios** — las policies `_admin` en tablas de datos (tx_admin, acc_admin, cat_admin, etc.) daban acceso irrestricto al admin sobre todos los datos. El diseño correcto es que cada usuario solo vea lo suyo. Fix: eliminar las 8 policies `_admin` en tablas de datos. `prof_admin` en profiles se conserva (gestión de roles).
+
+2. **Categorías duplicadas al registrarse** — `seed_default_categories()` no tenía `ON CONFLICT`, por lo que una doble ejecución insertaba duplicados. Fix: deduplicación inmediata de existentes + constraint `UNIQUE (cat_usr_id, cat_name)` + función idempotente con `ON CONFLICT DO NOTHING`.
+
+**Migración aplicada en staging:**
+- ✅ `021_fix_admin_isolation_and_cat_duplicates.sql`
+
+**Verificado en staging:**
+- ✅ Test con usuario prueba: solo ve sus propios datos + demos
+- ✅ Sin categorías duplicadas
+
+---
+
 ## 2026-04-17 — Fix signup + permisos + getProfile (COMPLETADO)
 
 **Problema principal:** El signup fallaba con "Database error updating user" y la app mostraba pantalla en blanco.

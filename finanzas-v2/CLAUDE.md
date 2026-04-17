@@ -101,6 +101,8 @@ Staging = solo admin. Cada capa es independiente.
 **Reglas para no romper:**
 - API keys de IA solo en Supabase Edge Functions → Secrets (nunca en `VITE_*`)
 - Cualquier URL a Storage debe pasar por `isValidStorageUrl()` antes de persistir
+- **Aislamiento de datos**: cada usuario (incluido admin) solo ve sus propios datos via policy `_own`. NO crear policies `_admin` en tablas de datos (transactions, accounts, categories, etc.). Solo `profiles` tiene `prof_admin` para gestión de roles.
+- `seed_default_categories()` debe mantenerse idempotente (`ON CONFLICT DO NOTHING`) — constraint `UNIQUE (cat_usr_id, cat_name)` activo desde migration 021
 - Nuevas tablas: RLS + policy `_own` + policy `_admin` obligatorio
 - Toda función `SECURITY DEFINER` necesita `SET search_path = public`
 - **⚠️ CRÍTICO — Edge Functions con auth propio:** Desactivar **"Verify JWT with legacy secret"** en Settings de la EF. Si está ON:
@@ -282,9 +284,9 @@ Para planificación, diseño, decisiones arquitectónicas, configurar Supabase v
 
 ## Estado
 
-### V12 — Asesor Financiero IA (COMPLETADO — pendiente redespliegue EF)
+### V12 — Asesor Financiero IA (COMPLETADO)
 
-**Completado 2026-04-10:**
+**Completado 2026-04-10/17:**
 - ✅ Chat flotante completo: `FloatingChat` → `ChatPanel` → `ChatMessages`
 - ✅ Edge Function `financial-advisor`: JWT + rate-limit + contexto histórico + Claude Haiku
 - ✅ `monthly_summaries`: datos pre-calculados, trigger automático por transacción (O(1))
@@ -293,13 +295,16 @@ Para planificación, diseño, decisiones arquitectónicas, configurar Supabase v
 - ✅ `questionClassifier.js`: detecta si la pregunta necesita datos del usuario o es general
 - ✅ Admin bypass: `prof_role = 'admin'` → ilimitado (`remainingCalls = -1`), UI muestra "∞"
 - ✅ Seguridad: trigger `protect_prof_role` — usuarios no pueden auto-escalarse a admin
-- ✅ Conversación continua: `useCallback` con dependencia `[messages]` correcta
+- ✅ `007_protect_prof_role.sql` aplicado en staging
+- ✅ Edge Function `financial-advisor` redesplegada
+- ✅ Toggle "Verify JWT with legacy secret" = OFF verificado
 
-**Pendiente en Supabase (manual):**
-- Aplicar `007_protect_prof_role.sql` en SQL Editor de staging
-- Redesplegar Edge Function `financial-advisor`
-- Verificar toggle "Verify JWT with legacy secret" = OFF en la EF
+### V13 — Fixes de datos demo y seguridad (COMPLETADO — 2026-04-17)
+- ✅ Aislamiento de datos: eliminadas policies `_admin` en tablas de datos (migration 021)
+- ✅ Categorías sin duplicados: constraint UNIQUE + seed idempotente (migration 021)
+- ✅ Verificado en staging con usuario de prueba
 
 **Próximos pasos:**
-- Optimizar respuestas del asesor con feedback real
-- Posibles mejoras: análisis de tendencias, predicciones, alertas por categoría
+- Persistir moneda en BD desde Settings (ahora solo es estado local)
+- UI para objetivo de ingreso mensual en Settings → `financial_config`
+- Importar extracto bancario (PDF/CSV → Claude Vision)
