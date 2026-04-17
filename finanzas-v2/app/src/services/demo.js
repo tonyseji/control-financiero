@@ -49,10 +49,12 @@ export async function getDemoTransactions() {
     .select('cat_id, cat_name, cat_type, cat_color')
     .eq('cat_usr_id', userId)
 
-  // Mapa cat_type → primera categoría del usuario de ese tipo
+  // Mapa cat_name (lowercase) → cat, y cat_type → primera cat de ese tipo
+  const catByName = {}
   const catByType = {}
   if (userCats) {
     for (const cat of userCats) {
+      catByName[cat.cat_name.toLowerCase()] = cat
       if (!catByType[cat.cat_type]) catByType[cat.cat_type] = cat
     }
   }
@@ -66,8 +68,8 @@ export async function getDemoTransactions() {
     txDate.setDate(today.getDate() + tpl.ddt_date_offset)
     const dateStr = txDate.toISOString().slice(0, 10)
 
-    // Enriquecer con categoría real del usuario si hay match por tipo
-    const matchedCat = catByType[tpl.ddt_cat_type]
+    // Match primero por nombre exacto, luego por tipo como fallback
+    const matchedCat = catByName[tpl.ddt_cat_name?.toLowerCase()] ?? catByType[tpl.ddt_cat_type]
     const catName  = matchedCat?.cat_name  ?? tpl.ddt_cat_name
     const catColor = matchedCat?.cat_color ?? DEFAULT_CAT_COLORS[tpl.ddt_cat_type] ?? '#2e3558'
     const catType  = tpl.ddt_cat_type

@@ -7,6 +7,7 @@ import {
   XAxis, YAxis, Tooltip, CartesianGrid, Legend,
 } from 'recharts'
 import { useTransactions } from '../hooks/useTransactions'
+import { useDemoData } from '../hooks/useDemoData'
 import { formatCurrency } from '../utils/formatters'
 import { isTransfer, isSaving, isInvestment, isRealExpense, isIncome } from '../utils/txClassifier'
 
@@ -114,7 +115,19 @@ export default function Analysis() {
     if (to)   f.to   = to
     return f
   }, [from, to])
-  const { transactions, loading } = useTransactions(filters)
+  const { transactions: realTxs, loading: txLoading } = useTransactions(filters)
+  const { demoTxs, demoActive, loading: demoLoading } = useDemoData()
+  const loading = txLoading || demoLoading
+
+  const transactions = useMemo(() => {
+    if (!demoActive) return realTxs
+    const demoFiltered = demoTxs.filter(tx => {
+      if (from && tx.tx_date < from) return false
+      if (to   && tx.tx_date > to)   return false
+      return true
+    })
+    return [...realTxs, ...demoFiltered]
+  }, [realTxs, demoTxs, demoActive, from, to])
 
   // ── Income vs Expenses por mes ────────────────────────────────────────
   const monthlyData = useMemo(() => {
