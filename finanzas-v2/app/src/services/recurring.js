@@ -42,7 +42,7 @@ export async function deleteRecurring(recId) {
 // si ya existe una TX con tx_rec_id + tx_date del periodo antes de insertar.
 export async function generateDueRecurring() {
   const recs = await getRecurring()
-  const active = recs.filter(r => r.rec_is_active && !r.rec_end_date || (r.rec_is_active && r.rec_end_date >= today()))
+  const active = recs.filter(r => r.rec_is_active && (!r.rec_end_date || r.rec_end_date >= today()))
 
   const generated = []
 
