@@ -54,8 +54,8 @@ Cuentas financieras del usuario (banco, efectivo, tarjeta, ahorro, inversión).
 | `acc_name` | text | Nombre | Libre: "Santander", "ING"... |
 | `acc_type` | text optionset | Tipo | `bank` · `cash` · `credit_card` · `savings` · `investment` |
 | `acc_currency` | text optionset | Moneda | `EUR` · `USD` · `GBP` · `CHF` · `JPY` |
-| `acc_initial_balance` | numeric(15,2) | Saldo inicial | |
-| `acc_current_balance` | numeric(15,2) | Saldo actual | Mantenido automáticamente por trigger |
+| `acc_initial_balance` | numeric(15,2) | Saldo inicial declarado (siempre 0 para cuentas nuevas) | |
+| `acc_current_balance` | numeric(15,2) | Suma de transacciones reales | Mantenido por trigger; NO incluye saldo inicial ni demos |
 | `acc_color` | text | Color | Hex para UI |
 | `acc_icon` | text | Icono | Emoji o nombre de icono |
 | `acc_is_active` | boolean | Activa | Ocultar sin eliminar |
@@ -263,7 +263,7 @@ recurring    ──► transactions           (rec_id → tx_rec_id)
 | `tx_is_pending` en transactions | Para transacciones recurrentes variables: generadas automáticamente pero a confirmar manualmente |
 | `rec_name` obligatorio | Identificador visual del recurrente en la UI (ej: "Netflix", "Alquiler") |
 | `TEXT + CHECK` en vez de ENUM | Las migraciones en Supabase son más limpias sin ENUMs |
-| `acc_current_balance` desnormalizado | O(1) en lectura; mantenido por trigger en INSERT/UPDATE/DELETE |
+| `acc_current_balance` desnormalizado | O(1) en lectura; recalculado desde cero por trigger (no incremental). Siempre = suma real de transacciones, sin saldo inicial. El balance visual con demos se suma en frontend. |
 | `tx_usr_id` redundante en transactions | RLS eficiente sin joins a accounts |
 | `tx_metadata JSONB` | Datos extra de IA (OCR, etc.) sin alterar esquema |
 | Suma de % ≤ 100 en `financial_config` | Constraint a nivel de tabla; el resto es buffer libre |

@@ -6,6 +6,42 @@ Historial completo: `docs/progress-archive.md`
 
 ---
 
+## 2026-04-17 — Fix experiencia usuario demo (COMPLETADO)
+
+**Problemas encontrados y resueltos en pruebas con usuario nuevo:**
+
+1. **Vista Análisis vacía con datos demo** — Analysis.jsx solo usaba `useTransactions()` (datos reales). Fix: añadir `useDemoData()` y mezclar con mismo patrón que Dashboard/Transactions.
+
+2. **Categorías demo incorrectas en donut** — los templates tenían nombres en inglés (`Groceries`, `Restaurants`…) que no coincidían con el seed en español (`Supermercado`, `Restaurantes`…). Fix: migración `022_fix_demo_cat_names.sql` renombra los templates + `demo.js` hace match por nombre primero, fallback por tipo.
+
+3. **Balance de cuenta en 0€** — `handle_new_user()` insertaba la cuenta omitiendo `acc_current_balance`, que cogía `DEFAULT 0`. Fix: migración `023_fix_account_balance.sql`:
+   - Trigger `update_account_balance()` reescrito con recálculo completo (no incremental) desde transacciones reales
+   - Bulk fix de cuentas existentes
+   - `handle_new_user()` crea cuenta con `initial=0, current=0`
+   - Balance visual con demos = `acc_current_balance + demoDelta` calculado en frontend (Dashboard, Accounts)
+
+**Decisión de diseño — balance de cuentas:**
+- `acc_current_balance` = solo transacciones reales (nunca saldo inicial ni demos)
+- El saldo visual mientras hay demos activos se calcula en frontend sumando el delta de todas las demos
+- Al limpiar demos, vuelve al valor real sin tocar BD
+
+**Migraciones aplicadas en staging:**
+- ✅ `022_fix_demo_cat_names.sql`
+- ✅ `023_fix_account_balance.sql`
+
+**Archivos modificados:**
+- `app/src/views/Analysis.jsx` — useDemoData() integrado
+- `app/src/views/Dashboard.jsx` — totalBalance incluye demoDelta
+- `app/src/views/Accounts.jsx` — totalBalance y AccountCard incluyen demoDelta
+- `app/src/services/demo.js` — match por nombre de categoría primero
+
+**Próximos pasos:**
+- Persistir moneda en BD desde Settings (ahora solo es estado local)
+- UI para objetivo de ingreso mensual en Settings → `financial_config`
+- Importar extracto bancario (PDF/CSV → Claude Vision)
+
+---
+
 ## 2026-04-17 — Aislamiento de datos + fix categorías duplicadas (COMPLETADO)
 
 **Problemas encontrados en pruebas con usuario nuevo:**

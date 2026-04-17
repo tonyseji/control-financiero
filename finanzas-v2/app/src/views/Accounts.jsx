@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useAccounts } from '../hooks/useAccounts'
+import { useDemoData } from '../hooks/useDemoData'
 import { formatCurrency } from '../utils/formatters'
 import { ACC_TYPE_LABELS } from '../utils/constants'
 
@@ -13,6 +14,7 @@ const TYPE_COLORS = {
 
 export default function Accounts() {
   const { accounts, loading, add, update, remove } = useAccounts()
+  const { demoTxs, demoActive } = useDemoData()
   const [showForm, setShowForm] = useState(false)
   const [name,    setName]    = useState('')
   const [type,    setType]    = useState('bank')
@@ -20,9 +22,15 @@ export default function Accounts() {
   const [saving,  setSaving]  = useState(false)
   const [error,   setError]   = useState(null)
 
+  // Delta de transacciones demo (solo mientras están activas)
+  const demoDelta = useMemo(() => {
+    if (!demoActive) return 0
+    return demoTxs.reduce((s, tx) => tx.tx_type === 'income' ? s + tx.tx_amount : s - tx.tx_amount, 0)
+  }, [demoTxs, demoActive])
+
   const totalBalance = useMemo(
-    () => accounts.reduce((s, a) => s + (a.acc_current_balance ?? 0), 0),
-    [accounts]
+    () => accounts.reduce((s, a) => s + (a.acc_current_balance ?? 0), 0) + demoDelta,
+    [accounts, demoDelta]
   )
 
   async function handleAdd(e) {
@@ -115,8 +123,8 @@ export default function Accounts() {
       {/* ── Grid de cuentas ──────────────────────────────────────────────── */}
       {!loading && accounts.length > 0 && (
         <div style={s.grid}>
-          {accounts.map(acc => (
-            <AccountCard key={acc.acc_id} acc={acc} onUpdate={update} onDelete={remove} />
+          {accounts.map((acc, i) => (
+            <AccountCard key={acc.acc_id} acc={acc} onUpdate={update} onDelete={remove} demoDelta={i === 0 ? demoDelta : 0} />
           ))}
         </div>
       )}
@@ -124,7 +132,7 @@ export default function Accounts() {
   )
 }
 
-function AccountCard({ acc, onUpdate, onDelete }) {
+function AccountCard({ acc, onUpdate, onDelete, demoDelta = 0 }) {
   const [editing,    setEditing]    = useState(false)
   const [editName,   setEditName]   = useState(acc.acc_name)
   const [editType,   setEditType]   = useState(acc.acc_type)
@@ -132,7 +140,8 @@ function AccountCard({ acc, onUpdate, onDelete }) {
   const [confirming, setConfirming] = useState(false)
 
   const typeStyle = TYPE_COLORS[acc.acc_type] ?? TYPE_COLORS.bank
-  const isNeg = (acc.acc_current_balance ?? 0) < 0
+  const displayBalance = (acc.acc_current_balance ?? 0) + demoDelta
+  const isNeg = displayBalance < 0
 
   async function handleSave() {
     if (!editName.trim()) return
@@ -176,7 +185,7 @@ function AccountCard({ acc, onUpdate, onDelete }) {
         <>
           <p style={s.accName}>{acc.acc_name}</p>
           <p style={{ ...s.accBalance, color: isNeg ? 'var(--expense)' : 'var(--income)' }} className="num">
-            {isNeg ? '−' : ''}{formatCurrency(Math.abs(acc.acc_current_balance ?? 0))}
+            {isNeg ? '−' : ''}{formatCurrency(Math.abs(displayBalance))}
           </p>
         </>
       )}
