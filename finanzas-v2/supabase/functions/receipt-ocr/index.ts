@@ -97,7 +97,20 @@ Deno.serve(async (req: Request) => {
       },
     }
   } else if (body.imageUrl) {
-    // Imagen en Supabase Storage — usar URL
+    // Imagen en Supabase Storage — validar origen y ruta antes de usar
+    let parsedUrl: URL
+    try {
+      parsedUrl = new URL(body.imageUrl)
+    } catch {
+      return errorResponse('URL de imagen no válida', 400)
+    }
+    const allowedOrigin = new URL(SUPABASE_URL).origin
+    if (
+      parsedUrl.origin !== allowedOrigin ||
+      !parsedUrl.pathname.startsWith('/storage/v1/object/')
+    ) {
+      return errorResponse('URL de imagen no válida', 400)
+    }
     imageBlock = {
       type: 'image',
       source: {

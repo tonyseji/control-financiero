@@ -31,11 +31,14 @@ export async function uploadReceipt(file) {
   })
   if (error) throw error
 
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
-  return data.publicUrl
+  const { data, error: signError } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(path, 3600)
+  if (signError) throw signError
+  return data.signedUrl
 }
 
-// Elimina un archivo de Storage dado su URL pública.
+// Elimina un archivo de Storage dado su URL (firmada o pública).
 // Solo elimina si la URL pertenece al bucket propio del usuario.
 export async function deleteReceipt(url) {
   if (!isValidStorageUrl(url)) throw new Error('URL de adjunto no válida')
@@ -43,10 +46,23 @@ export async function deleteReceipt(url) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('No autenticado')
 
-  // Extrae el path relativo desde la URL pública
+  // Extrae el path relativo desde la URL, soportando ambos formatos:
+  //   /storage/v1/object/sign/receipts/{userId}/{file}?token=...   (signed)
+  //   /storage/v1/object/public/receipts/{userId}/{file}           (public — legacy)
   const urlObj = new URL(url)
-  const pathStart = `/storage/v1/object/public/${BUCKET}/`
-  const relativePath = urlObj.pathname.replace(pathStart, '')
+  const pathname = urlObj.pathname
+
+  let relativePath = null
+  const signedPrefix = `/storage/v1/object/sign/${BUCKET}/`
+  const publicPrefix = `/storage/v1/object/public/${BUCKET}/`
+
+  if (pathname.startsWith(signedPrefix)) {
+    relativePath = pathname.slice(signedPrefix.length)
+  } else if (pathname.startsWith(publicPrefix)) {
+    relativePath = pathname.slice(publicPrefix.length)
+  }
+
+  if (!relativePath) throw new Error('No se pudo extraer el path del archivo')
 
   // Verifica que el path pertenece al usuario actual
   if (!relativePath.startsWith(user.id + '/')) {
