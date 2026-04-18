@@ -61,14 +61,13 @@ export default function App() {
     if (profile) generateDueRecurring().catch(console.error)
   }, [profile?.prof_id])
 
-  // Show landing page when URL contains ?landing or hash #landing
-  const isLandingRoute =
-    window.location.search.includes('landing') ||
-    window.location.hash.includes('landing')
-  if (isLandingRoute) return <Landing />
-
   if (session === undefined || (session && !profile)) return null
-  if (!session) return <Auth />
+
+  // Sin sesión: landing por defecto, login solo si ?auth en la URL
+  if (!session) {
+    const isAuthRoute = window.location.search.includes('auth')
+    return isAuthRoute ? <Auth /> : <Landing />
+  }
 
   if (IS_STAGING && profile?.prof_role !== 'admin') {
     signOut()

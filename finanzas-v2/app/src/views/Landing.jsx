@@ -167,7 +167,7 @@ export default function Landing() {
   }
 
   const goToApp = () => {
-    window.location.href = '/'
+    window.location.href = '/?auth'
   }
 
   return (
