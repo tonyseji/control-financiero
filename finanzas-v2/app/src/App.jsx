@@ -15,6 +15,7 @@ import Recurring from './views/Recurring'
 import Goals from './views/Goals'
 import Analysis from './views/Analysis'
 import FloatingChat from './components/FloatingChat'
+import Landing from './views/Landing'
 
 const IS_STAGING = import.meta.env.VITE_APP_ENV === 'staging'
 
@@ -59,6 +60,12 @@ export default function App() {
   useEffect(() => {
     if (profile) generateDueRecurring().catch(console.error)
   }, [profile?.prof_id])
+
+  // Show landing page when URL contains ?landing or hash #landing
+  const isLandingRoute =
+    window.location.search.includes('landing') ||
+    window.location.hash.includes('landing')
+  if (isLandingRoute) return <Landing />
 
   if (session === undefined || (session && !profile)) return null
   if (!session) return <Auth />
