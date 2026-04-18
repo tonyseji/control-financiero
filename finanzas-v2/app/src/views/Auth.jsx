@@ -21,6 +21,24 @@ export default function Auth() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
+  useEffect(() => {
+    if (document.getElementById('auth-responsive')) return
+    const style = document.createElement('style')
+    style.id = 'auth-responsive'
+    style.textContent = `
+      @media (max-width: 480px) {
+        .auth-form-panel  { padding: 1.5rem 1rem !important; }
+        .auth-form-title  { font-size: 1.4rem !important; }
+        .auth-form-inner  { max-width: 100% !important; }
+        .auth-input       { font-size: 1rem !important; }
+        .auth-btn-primary { min-height: 52px !important; font-size: 1rem !important; }
+        .auth-btn-google  { min-height: 48px !important; }
+      }
+    `
+    document.head.appendChild(style)
+    return () => style.remove()
+  }, [])
+
   async function handleGoogle() {
     setError(null)
     setLoading(true)
@@ -113,7 +131,7 @@ export default function Auth() {
         )}
 
         {/* ── RIGHT FORM ──────────────────────────────────────────────── */}
-        <div style={{ ...s.formPanel, padding: isMobile ? '2rem 1.25rem' : '3rem 2.5rem' }}>
+        <div className="auth-form-panel" style={{ ...s.formPanel, padding: isMobile ? '2rem 1.25rem' : '3rem 2.5rem' }}>
           {/* Mobile logo */}
           {isMobile && (
             <div style={{ ...s.heroLogo, justifyContent: 'center', marginBottom: '2rem' }}>
@@ -122,10 +140,10 @@ export default function Auth() {
             </div>
           )}
 
-          <div style={s.formInner}>
+          <div className="auth-form-inner" style={s.formInner}>
             {/* Mode heading */}
             <div style={s.formHeader}>
-              <h2 style={s.formTitle}>
+              <h2 className="auth-form-title" style={s.formTitle}>
                 {mode === 'login'    && 'Bienvenido'}
                 {mode === 'register' && 'Crear cuenta'}
                 {mode === 'reset'    && 'Recuperar acceso'}
@@ -140,7 +158,7 @@ export default function Auth() {
             {/* Google */}
             {mode !== 'reset' && (
               <>
-                <button style={s.btnGoogle} onClick={handleGoogle} disabled={loading}>
+                <button className="auth-btn-google" style={s.btnGoogle} onClick={handleGoogle} disabled={loading}>
                   <GoogleIcon />
                   Continuar con Google
                 </button>
@@ -164,6 +182,7 @@ export default function Auth() {
                     </svg>
                   </span>
                   <input
+                    className="auth-input"
                     style={s.input}
                     type="email"
                     placeholder="tu@email.com"
@@ -186,6 +205,7 @@ export default function Auth() {
                       </svg>
                     </span>
                     <input
+                      className="auth-input"
                       style={s.input}
                       type="password"
                       placeholder="••••••••"
@@ -216,7 +236,7 @@ export default function Auth() {
                 </div>
               )}
 
-              <button style={s.btnPrimary} type="submit" disabled={loading}>
+              <button className="auth-btn-primary" style={s.btnPrimary} type="submit" disabled={loading}>
                 {loading
                   ? <LoadingDots />
                   : mode === 'login'    ? 'Entrar'

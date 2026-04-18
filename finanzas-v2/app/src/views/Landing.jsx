@@ -202,6 +202,35 @@ function GlobalStyles() {
       * { box-sizing: border-box; margin: 0; padding: 0; }
       html { scroll-behavior: smooth; }
       ::selection { background: rgba(45,206,137,0.3); color: #fff; }
+
+      /* ── Tablet (≤768px) ─────────────────────────────────────────────── */
+      @media (max-width: 768px) {
+        .landing-steps-grid  { grid-template-columns: 1fr !important; }
+        .landing-benefits-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        .landing-features-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        .landing-pain-grid   { grid-template-columns: 1fr !important; }
+        .landing-stats-grid  { grid-template-columns: repeat(2, 1fr) !important; }
+        .landing-pricing-grid { grid-template-columns: 1fr !important; max-width: 100% !important; }
+      }
+
+      /* ── Mobile (≤480px) ─────────────────────────────────────────────── */
+      @media (max-width: 480px) {
+        .landing-container   { padding: 0 1rem !important; }
+        .landing-section     { padding: 3rem 0 !important; }
+        .landing-hero        { padding-top: 6rem !important; padding-bottom: 3rem !important; }
+        .landing-hero-headline { font-size: 2.4rem !important; }
+        .landing-hero-ctas   { flex-direction: column !important; align-items: stretch !important; }
+        .landing-hero-ctas .landing-btn-primary,
+        .landing-hero-ctas .landing-btn-ghost { width: 100% !important; justify-content: center !important; }
+        .landing-widget      { max-width: 100% !important; width: 100% !important; }
+        .landing-hero-stats  { gap: 1.5rem !important; }
+        .landing-benefits-grid { grid-template-columns: 1fr !important; }
+        .landing-features-grid { grid-template-columns: 1fr !important; }
+        .landing-stats-grid  { grid-template-columns: repeat(2, 1fr) !important; }
+        .landing-final-cta   { padding: 4rem 0 !important; }
+        .landing-section-sub { margin-bottom: 2rem !important; }
+        .landing-navbar      { padding: 0 1rem !important; }
+      }
     `
     document.head.appendChild(style)
     return () => style.remove()
@@ -220,7 +249,7 @@ function Navbar({ onCTA }) {
   }, [])
 
   return (
-    <nav style={{
+    <nav className="landing-navbar" style={{
       ...s.navbar,
       background: scrolled ? 'rgba(8,10,14,0.95)' : 'transparent',
       borderBottomColor: scrolled ? C.border : 'transparent',
@@ -246,16 +275,16 @@ function Navbar({ onCTA }) {
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 function HeroSection({ onCTA, onLearnMore }) {
   return (
-    <section style={s.hero}>
+    <section className="landing-hero" style={s.hero}>
       <div style={s.heroGlow} />
       <div style={s.heroBgGrid} />
-      <div style={s.container}>
+      <div className="landing-container" style={s.container}>
         <div style={s.heroBadge}>
           <span style={s.heroBadgeDot} />
           Control financiero personal
         </div>
 
-        <h1 style={s.heroHeadline}>
+        <h1 className="landing-hero-headline" style={s.heroHeadline}>
           Deja de adivinar.<br />
           <em style={s.heroItalic}>Empieza a decidir.</em>
         </h1>
@@ -266,7 +295,7 @@ function HeroSection({ onCTA, onLearnMore }) {
           Sin sorpresas.
         </p>
 
-        <div style={s.heroCTAs}>
+        <div className="landing-hero-ctas" style={s.heroCTAs}>
           <button
             className="landing-btn-primary"
             style={{ ...s.btnPrimary, ...s.btnLarge }}
@@ -288,7 +317,7 @@ function HeroSection({ onCTA, onLearnMore }) {
           <BalanceWidget />
         </div>
 
-        <div style={s.heroStats}>
+        <div className="landing-hero-stats" style={s.heroStats}>
           {[
             { label: 'transacciones registradas', value: 2847, suffix: '' },
             { label: 'presupuestos creados', value: 341, suffix: '' },
@@ -325,7 +354,7 @@ function BalanceWidget() {
   }, [])
 
   return (
-    <div style={s.widget}>
+    <div className="landing-widget" style={s.widget}>
       <div style={s.widgetHeader}>
         <div style={s.widgetDots}>
           {['#ff5f57','#ffbd2e','#28ca41'].map(c => (
@@ -387,18 +416,18 @@ function ProblemSection() {
   ]
 
   return (
-    <section style={{ ...s.section, background: C.bgSection }}>
-      <div style={s.container}>
+    <section className="landing-section" style={{ ...s.section, background: C.bgSection }}>
+      <div className="landing-container" style={s.container}>
         <FadeIn>
           <div style={s.sectionLabel}>El problema</div>
           <h2 style={s.sectionHeadline}>¿Reconoces esto?</h2>
-          <p style={s.sectionSub}>
+          <p className="landing-section-sub" style={s.sectionSub}>
             No estás solo. La mayoría vivimos en un vago "creo que tengo dinero suficiente"
             que genera más estrés del que parece.
           </p>
         </FadeIn>
 
-        <div style={s.painGrid}>
+        <div className="landing-pain-grid" style={s.painGrid}>
           {pains.map((pain, i) => (
             <FadeIn key={pain.title} delay={i * 80} style={{ height: '100%' }}>
               <div className="landing-pain-card" style={s.painCard}>
@@ -417,19 +446,19 @@ function ProblemSection() {
 // ─── Solution ─────────────────────────────────────────────────────────────────
 const SolutionSection = forwardRef((props, ref) => {
   return (
-    <section id="como-funciona" ref={ref} style={s.section}>
-      <div style={s.container}>
+    <section id="como-funciona" ref={ref} className="landing-section" style={s.section}>
+      <div className="landing-container" style={s.container}>
         <FadeIn>
           <div style={s.sectionLabel}>La solución</div>
           <h2 style={{ ...s.sectionHeadline, maxWidth: 640, margin: '0 auto 1.5rem' }}>
             Con Finanzas, el dinero deja de ser un misterio
           </h2>
-          <p style={s.sectionSub}>
+          <p className="landing-section-sub" style={s.sectionSub}>
             Tres pasos. Menos de un minuto al día. Y siempre sabrás exactamente dónde estás.
           </p>
         </FadeIn>
 
-        <div style={s.stepsGrid}>
+        <div className="landing-steps-grid" style={s.stepsGrid}>
           {[
             {
               num: '01',
@@ -482,9 +511,9 @@ function StatsSection() {
   ]
 
   return (
-    <section style={{ ...s.section, background: C.bgSection, paddingTop: '4rem', paddingBottom: '4rem' }}>
-      <div style={s.container}>
-        <div style={s.statsGrid}>
+    <section className="landing-section" style={{ ...s.section, background: C.bgSection, paddingTop: '4rem', paddingBottom: '4rem' }}>
+      <div className="landing-container" style={s.container}>
+        <div className="landing-stats-grid" style={s.statsGrid}>
           {stats.map(({ display, value, suffix, prefix, label }, i) => (
             <FadeIn key={label} delay={i * 80}>
               <div style={s.statCard}>
@@ -540,18 +569,18 @@ function BenefitsSection() {
   ]
 
   return (
-    <section style={s.section}>
-      <div style={s.container}>
+    <section className="landing-section" style={s.section}>
+      <div className="landing-container" style={s.container}>
         <FadeIn>
           <div style={s.sectionLabel}>Resultados reales</div>
           <h2 style={s.sectionHeadline}>Lo que cambia de verdad</h2>
-          <p style={s.sectionSub}>
+          <p className="landing-section-sub" style={s.sectionSub}>
             No son funciones de software. Son cosas que ocurren en tu vida cuando
             dejas de improvisar con tu dinero.
           </p>
         </FadeIn>
 
-        <div style={s.benefitsGrid}>
+        <div className="landing-benefits-grid" style={s.benefitsGrid}>
           {benefits.map((b, i) => (
             <FadeIn key={b.title} delay={i * 70} style={{ height: '100%' }}>
               <div className="landing-benefit-card" style={s.benefitCard}>
@@ -609,13 +638,13 @@ function HowItWorksSection() {
   ]
 
   return (
-    <section style={{ ...s.section, background: C.bgSection }}>
-      <div style={s.container}>
+    <section className="landing-section" style={{ ...s.section, background: C.bgSection }}>
+      <div className="landing-container" style={s.container}>
         <FadeIn>
           <div style={s.sectionLabel}>Las herramientas</div>
           <h2 style={s.sectionHeadline}>Todo lo que necesitas, nada de lo que no</h2>
         </FadeIn>
-        <div style={s.featuresGrid}>
+        <div className="landing-features-grid" style={s.featuresGrid}>
           {features.map((f, i) => (
             <FadeIn key={f.title} delay={i * 70} style={{ height: '100%' }}>
               <div style={s.featureCard}>
@@ -659,18 +688,18 @@ function PricingSection() {
   ]
 
   return (
-    <section style={s.section}>
-      <div style={s.container}>
+    <section className="landing-section" style={s.section}>
+      <div className="landing-container" style={s.container}>
         <FadeIn>
           <div style={s.sectionLabel}>Planes</div>
           <h2 style={s.sectionHeadline}>Simple y honesto</h2>
-          <p style={s.sectionSub}>
+          <p className="landing-section-sub" style={s.sectionSub}>
             El plan Gratis no es un anzuelo. Es una app completa, para siempre.
             El Pro es para quien quiere más IA.
           </p>
         </FadeIn>
 
-        <div style={s.pricingGrid}>
+        <div className="landing-pricing-grid" style={s.pricingGrid}>
           {/* FREE */}
           <FadeIn delay={0}>
             <div className="landing-plan-card" style={{ ...s.planCard, transition: 'all 0.25s ease' }}>
@@ -776,9 +805,9 @@ function PricingSection() {
 
 // ─── Final CTA ────────────────────────────────────────────────────────────────
 const FinalCTA = ({ onCTA, ref: forwardedRef }) => (
-  <section ref={forwardedRef} style={s.finalCTA}>
+  <section ref={forwardedRef} className="landing-section landing-final-cta" style={s.finalCTA}>
     <div style={s.finalCTAGlow} />
-    <div style={{ ...s.container, position: 'relative', zIndex: 1 }}>
+    <div className="landing-container" style={{ ...s.container, position: 'relative', zIndex: 1 }}>
       <FadeIn>
         <div style={s.finalCTAInner}>
           <div style={s.finalCTABadge}>Empieza hoy</div>
