@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { signOut } from '../../services/auth'
 import SearchModal from '../modals/SearchModal'
+import ChatPanel from '../ChatPanel'
 
 const THEME_KEY = 'cf_v2_theme'
 function getTheme() {
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
 export default function Layout({ view, onNavigate, children, profile }) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [theme, setTheme] = useState(getTheme)
+  const [chatOpen, setChatOpen] = useState(false)
 
   function toggleTheme() {
     const next = theme === 'dark' ? 'light' : 'dark'
@@ -127,11 +129,26 @@ export default function Layout({ view, onNavigate, children, profile }) {
             <button className="search-top-btn" onClick={() => setSearchOpen(true)} title="Buscar">
               <IconSearch size={18} />
             </button>
+            <button
+              className={`search-top-btn${chatOpen ? ' active' : ''}`}
+              onClick={() => setChatOpen(o => !o)}
+              title="Asesor Financiero IA"
+              aria-label={chatOpen ? 'Cerrar asesor' : 'Abrir asesor financiero'}
+            >
+              <IconChat size={18} />
+            </button>
             <button className="search-top-btn" onClick={() => onNavigate('settings')} title="Ajustes">
               <IconGear size={18} />
             </button>
           </div>
         </div>
+
+        {/* Chat overlay — solo móvil */}
+        {chatOpen && (
+          <div className="mobile-chat-overlay" role="dialog" aria-modal="true" aria-label="Asesor Financiero">
+            <ChatPanel onClose={() => setChatOpen(false)} />
+          </div>
+        )}
 
         {children}
       </main>
@@ -274,6 +291,14 @@ function IconMoon({ size = 24 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  )
+}
+
+function IconChat({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
     </svg>
   )
 }

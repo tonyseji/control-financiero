@@ -4,6 +4,7 @@ import { useAccounts } from '../hooks/useAccounts'
 import { useCategories } from '../hooks/useCategories'
 import { useVoiceInput } from '../hooks/useVoiceInput'
 import { useReceiptOcr } from '../hooks/useReceiptOcr'
+import { useRecurring } from '../hooks/useRecurring'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -19,6 +20,7 @@ export default function AddTransaction({ onSuccess, editTx }) {
   const { add, update, addTransfer } = useTransactions()
   const { accounts } = useAccounts()
   const { categories } = useCategories()
+  const { add: addRecurring } = useRecurring()
   const { isListening, transcript, parsedFields, supported, error: voiceError, startListening, stopListening } =
     useVoiceInput({ categories, accounts })
   const { scanFile, loading: ocrLoading, error: ocrError } = useReceiptOcr()
@@ -71,6 +73,19 @@ export default function AddTransaction({ onSuccess, editTx }) {
   const [error, setError]       = useState(null)
   const [voiceFeedback, setVoiceFeedback] = useState(null) // mensaje tras autorrelleno
   const [ocrFeedback, setOcrFeedback]     = useState(null) // mensaje tras OCR
+
+  // Recurring toggle state
+  const [repeatMonthly, setRepeatMonthly]   = useState(false)
+  const [recName, setRecName]               = useState('')
+  const [recDay, setRecDay]                 = useState(() => new Date().getDate())
+
+  // Keep recDay in sync with the selected date (only while user hasn't changed it manually)
+  const recDayUserEdited = useRef(false)
+  useEffect(() => {
+    if (recDayUserEdited.current) return
+    const parsed = new Date(date + 'T12:00:00')
+    if (!isNaN(parsed)) setRecDay(Math.min(parsed.getDate(), 28))
+  }, [date])
 
   // Track which fields the user has manually edited after the last voice fill.
   // Prevents voice from overwriting deliberate user changes.
@@ -285,6 +300,11 @@ export default function AddTransaction({ onSuccess, editTx }) {
       clearTimeout(ocrFeedbackTimerRef.current)
       ocrFeedbackTimerRef.current = null
     }
+    // Reset recurring toggle
+    setRepeatMonthly(false)
+    setRecName('')
+    setRecDay(new Date().getDate())
+    recDayUserEdited.current = false
   }
 
   async function handleSubmit(e) {
@@ -325,6 +345,24 @@ export default function AddTransaction({ onSuccess, editTx }) {
           // FIX: distinguir correctamente entre voz, OCR y manual
           tx_source: parsedFields ? 'voice' : ocrAppliedRef.current ? 'receipt' : 'manual',
         })
+
+        // Save recurring template if toggle is ON
+        if (repeatMonthly && !isTransfer) {
+          const selectedCat = categories.find(c => c.cat_id === catId)
+          const fallbackName = selectedCat?.cat_name ?? notes ?? 'Recurrente'
+          await addRecurring({
+            rec_name:         recName.trim() || fallbackName,
+            rec_type:         type,
+            rec_amount:       parseFloat(amount),
+            rec_frequency:    'monthly',
+            rec_day_of_month: Math.min(Math.max(parseInt(recDay, 10) || 1, 1), 28),
+            rec_acc_id:       accId,
+            rec_cat_id:       catId,
+            rec_start_date:   date,
+            rec_is_active:    true,
+            rec_is_variable:  false,
+          })
+        }
       }
       onSuccess?.()
     } catch (e) {
@@ -622,6 +660,66 @@ export default function AddTransaction({ onSuccess, editTx }) {
             rows={3}
           />
         </FormField>
+
+        {/* Repetir mensualmente — solo en nueva transacción no-transfer */}
+        {!isEdit && !isTransfer && (
+          <>
+            <div style={s.repeatSeparator} aria-hidden="true" />
+            <div style={s.repeatRow}>
+              <span style={s.repeatLabel}>Repetir mensualmente</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={repeatMonthly}
+                onClick={() => setRepeatMonthly(v => !v)}
+                style={{
+                  ...s.toggleTrack,
+                  background: repeatMonthly ? 'var(--accent)' : 'var(--border)',
+                }}
+                aria-label="Repetir mensualmente"
+              >
+                <span style={{
+                  ...s.toggleThumb,
+                  transform: repeatMonthly ? 'translateX(18px)' : 'translateX(2px)',
+                }} />
+              </button>
+            </div>
+
+            {repeatMonthly && (
+              <div style={s.repeatFields}>
+                <label style={s.field}>
+                  <span style={s.fieldLabel}>Nombre del recurrente</span>
+                  <input
+                    style={s.input}
+                    type="text"
+                    placeholder={
+                      categories.find(c => c.cat_id === catId)?.cat_name
+                      ?? notes
+                      ?? 'Ej: Suscripción Netflix'
+                    }
+                    value={recName}
+                    onChange={e => setRecName(e.target.value)}
+                    maxLength={80}
+                  />
+                </label>
+                <label style={s.field}>
+                  <span style={s.fieldLabel}>Día del mes (1–28)</span>
+                  <input
+                    style={{ ...s.input, maxWidth: 120 }}
+                    type="number"
+                    min={1}
+                    max={28}
+                    value={recDay}
+                    onChange={e => {
+                      recDayUserEdited.current = true
+                      setRecDay(e.target.value)
+                    }}
+                  />
+                </label>
+              </div>
+            )}
+          </>
+        )}
 
         {/* Error */}
         {error && (
@@ -941,6 +1039,53 @@ const s = {
     width: '100%',
     appearance: 'none',
     WebkitAppearance: 'none',
+  },
+
+  // Repeat monthly section
+  repeatSeparator: {
+    height: 1,
+    background: 'var(--border)',
+    marginTop: '0.25rem',
+    marginBottom: '0.25rem',
+  },
+  repeatRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '0.1rem 0',
+  },
+  repeatLabel: {
+    fontSize: '0.88rem',
+    color: 'var(--text-muted)',
+    fontWeight: 500,
+  },
+  toggleTrack: {
+    position: 'relative',
+    width: 42,
+    height: 24,
+    borderRadius: 999,
+    border: 'none',
+    cursor: 'pointer',
+    padding: 0,
+    flexShrink: 0,
+    transition: 'background 0.18s ease',
+  },
+  toggleThumb: {
+    display: 'block',
+    position: 'absolute',
+    top: 3,
+    width: 18,
+    height: 18,
+    borderRadius: '50%',
+    background: '#fff',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+    transition: 'transform 0.18s ease',
+  },
+  repeatFields: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+    padding: '0.25rem 0 0.25rem 0',
   },
 
   // Error

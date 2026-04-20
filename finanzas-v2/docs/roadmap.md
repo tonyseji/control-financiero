@@ -92,7 +92,11 @@ Cada cambio de schema sigue este flujo:
 - [x] **Demo data en onboarding** — al registrarse, el usuario recibe datos de prueba realistas via `demo_data_templates` + `user_demo_access` (arquitectura sin contaminar `transactions`); banner con tiempo de expiración (12h); botón "Limpiar" en Settings; Dashboard y Transactions combinan datos reales + demo ✅ (2026-04-16/17)
 - [ ] **Importar extracto bancario** — subir PDF/CSV del banco → Edge Function parsea con Claude Vision → devuelve lista con categoría sugerida + confianza → usuario revisa y confirma antes de guardar; reutiliza la arquitectura de `receipt-ocr`
 - [x] Onboarding de nuevos usuarios (categorías por defecto, primera cuenta) ✅
-- [x] Ajustes de perfil — nombre editable ✅; moneda selector (pendiente persistir en BD) y objetivo de ingreso mensual (pendiente UI en Settings → `financial_config`)
+- [x] Ajustes de perfil — nombre editable ✅; moneda eliminada (complejidad sin valor inmediato); objetivo de ingreso mensual (pendiente UI en Settings → `financial_config`)
+- [x] Categorías editables — botón lápiz en cada categoría + formulario reutilizado para edición ✅ (2026-04-21)
+- [x] Recurrentes inline — toggle "Repetir mensualmente" en AddTransaction, crea recurrente al guardar ✅ (2026-04-21)
+- [x] Asesor IA accesible en móvil — icono en topbar + overlay pantalla completa en lugar de burbuja flotante ✅ (2026-04-21)
+- [ ] **Web Push notifications** — recordatorio diario 22:30, frases rotativas, toggle en Settings; requiere VAPID + Edge Function + cron job
 - [x] Importar datos de V1 (migración de las 241 transacciones históricas de Sep 2025 – Mar 2026) ✅
 - [x] Exportar datos (CSV) ✅
 - [x] Análisis — vista completa con KPIs, ingresos vs gastos, categorías, tasa ahorro, distribución por día/semana/mes ✅; resumen automático inicio de mes pendiente

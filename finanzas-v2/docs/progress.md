@@ -6,6 +6,42 @@ Historial completo: `docs/progress-archive.md`
 
 ---
 
+## 2026-04-21 — UX: categorías editables, recurrentes en AddTransaction, asesor en header móvil, limpieza Settings (COMPLETADO)
+
+### Categorías editables
+- `Categories.jsx` — botón lápiz en cada categoría rellena el formulario con sus datos; título y botón cambian a "Editar categoría" / "Guardar cambios"; botón Cancelar; selector de padre oculto al editar
+- `categories.js` service ya tenía `updateCategory`; `useCategories` ya exportaba `update` — sin cambios en backend
+
+### Recurrentes inline en AddTransaction
+- `AddTransaction.jsx` — toggle "Repetir mensualmente" al final del formulario (oculto en edición y transferencias)
+- Al activar: campo nombre (opcional, hereda categoría) + día del mes (auto desde fecha, máx 28)
+- Al guardar la transacción, crea la recurrente automáticamente via `useRecurring().add`; estado se resetea al limpiar formulario
+
+### Asesor financiero — header en móvil
+- `Layout.jsx` — icono de chat en topbar visible solo en móvil (≤768px); abre `ChatPanel` como overlay pantalla completa (`position: fixed; inset: 0`)
+- `main.css` — `.floating-chat { display: none }` en móvil; `.mobile-chat-overlay` como full-screen overlay
+- FloatingChat en esquina inferior derecha se mantiene intacto en desktop
+
+### Limpieza de Settings
+- Nuevo orden: Perfil → Nombre → Gestión → Seguridad → Cerrar sesión
+- Eliminado bloque "Rol" (badge Admin)
+- Eliminada sección "Preferencias" con selector de moneda (complejidad sin valor inmediato)
+- Limpiado código muerto: constante `CURRENCIES`, estado `currency`, estilos `currencyRow/currencyBtn/currencyBtnActive/roleBadge`
+
+**Archivos modificados:**
+- `app/src/views/Categories.jsx`
+- `app/src/views/AddTransaction.jsx`
+- `app/src/views/Settings.jsx`
+- `app/src/components/layout/Layout.jsx`
+- `app/src/main.css`
+
+**Próximos pasos:**
+- Web Push notifications — recordatorio 22:30 con frases rotativas (ver instrucciones en chat para retomar en nueva sesión)
+- Toggle tema claro/oscuro en Settings
+- UI objetivo de ingreso mensual → `financial_config`
+
+---
+
 ## 2026-04-20 — Mejoras responsive en pantalla de login (COMPLETADO)
 
 **Problemas encontrados y resueltos en vista Auth (`/?auth`) en móvil:**

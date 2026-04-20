@@ -3,8 +3,7 @@ import { signOut, requestPasswordReset } from '../services/auth'
 import { supabase } from '../services/supabase'
 import { useDemoData } from '../hooks/useDemoData'
 
-const CURRENCIES = ['EUR', 'USD', 'GBP']
-const THEME_KEY  = 'cf_v2_theme'
+const THEME_KEY = 'cf_v2_theme'
 
 function getTheme() {
   return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light'
@@ -17,7 +16,6 @@ function applyTheme(theme) {
 
 export default function Settings({ profile, onProfileUpdate, onNavigate }) {
   const [email,       setEmail]       = useState(null)
-  const [currency,    setCurrency]    = useState(profile?.prof_currency ?? 'EUR')
   const [pwdStatus,   setPwdStatus]   = useState(null)
   const [pwdError,    setPwdError]    = useState('')
   const [editName,    setEditName]    = useState(false)
@@ -129,32 +127,34 @@ export default function Settings({ profile, onProfileUpdate, onNavigate }) {
         )}
       </div>
 
-      {isAdmin && (
-        <div style={s.section}>
-          <p style={s.fieldLabel}>Rol</p>
-          <p style={s.fieldValue}>
-            <span style={s.roleBadge}>Admin</span>
-          </p>
+      {/* ── Gestión ───────────────────────────────────────────────────── */}
+      <p style={s.groupLabel}>Gestión</p>
+
+      <button style={s.navBtn} onClick={() => onNavigate('categories')}>
+        <span>Categorías</span>
+        <span style={s.chevron}>›</span>
+      </button>
+
+      <button style={s.navBtn} onClick={() => onNavigate('recurring')}>
+        <span>Recurrentes</span>
+        <span style={s.chevron}>›</span>
+      </button>
+
+      {demoActive && (
+        <div style={s.demoSection}>
+          <div>
+            <p style={s.demoLabel}>Datos de ejemplo</p>
+            <p style={s.demoHint}>{demoTxs.length} transacciones de ejemplo activas</p>
+          </div>
+          <button
+            style={{ ...s.demoClearBtn, ...(demoClearing ? s.demoClearBtnDisabled : {}) }}
+            onClick={handleClearDemo}
+            disabled={demoClearing}
+          >
+            {demoClearing ? 'Limpiando…' : 'Limpiar →'}
+          </button>
         </div>
       )}
-
-      {/* ── Preferencias ──────────────────────────────────────────────── */}
-      <p style={s.groupLabel}>Preferencias</p>
-
-      <div style={s.section}>
-        <p style={s.fieldLabel}>Moneda</p>
-        <div style={s.currencyRow}>
-          {CURRENCIES.map(c => (
-            <button
-              key={c}
-              style={{ ...s.currencyBtn, ...(currency === c ? s.currencyBtnActive : {}) }}
-              onClick={() => setCurrency(c)}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* ── Seguridad ─────────────────────────────────────────────────── */}
       <p style={s.groupLabel}>Seguridad</p>
@@ -187,35 +187,6 @@ export default function Settings({ profile, onProfileUpdate, onNavigate }) {
           <p style={s.feedbackErr}>{pwdError || 'Error desconocido'}</p>
         )}
       </div>
-
-      {/* ── Gestión ───────────────────────────────────────────────────── */}
-      <p style={s.groupLabel}>Gestión</p>
-
-      <button style={s.navBtn} onClick={() => onNavigate('categories')}>
-        <span>Categorías</span>
-        <span style={s.chevron}>›</span>
-      </button>
-
-      <button style={s.navBtn} onClick={() => onNavigate('recurring')}>
-        <span>Recurrentes</span>
-        <span style={s.chevron}>›</span>
-      </button>
-
-      {demoActive && (
-        <div style={s.demoSection}>
-          <div>
-            <p style={s.demoLabel}>Datos de ejemplo</p>
-            <p style={s.demoHint}>{demoTxs.length} transacciones de ejemplo activas</p>
-          </div>
-          <button
-            style={{ ...s.demoClearBtn, ...(demoClearing ? s.demoClearBtnDisabled : {}) }}
-            onClick={handleClearDemo}
-            disabled={demoClearing}
-          >
-            {demoClearing ? 'Limpiando…' : 'Limpiar →'}
-          </button>
-        </div>
-      )}
 
       {/* ── Cerrar sesión ─────────────────────────────────────────────── */}
       <button style={s.signOutBtn} onClick={() => signOut()}>
@@ -304,41 +275,6 @@ const s = {
     color: 'var(--text-faint)',
     marginTop: '0.15rem',
   },
-  roleBadge: {
-    display: 'inline-block',
-    background: 'var(--accent-soft)',
-    color: 'var(--accent)',
-    fontSize: '0.72rem',
-    fontWeight: 700,
-    padding: '2px 8px',
-    borderRadius: 99,
-    letterSpacing: '0.05em',
-    textTransform: 'uppercase',
-  },
-
-  // Moneda
-  currencyRow: {
-    display: 'flex',
-    gap: '0.4rem',
-    marginTop: '0.35rem',
-  },
-  currencyBtn: {
-    background: 'var(--bg-hover)',
-    border: '1px solid var(--border)',
-    borderRadius: 8,
-    padding: '0.35rem 0.75rem',
-    fontSize: '0.85rem',
-    fontWeight: 600,
-    color: 'var(--text-muted)',
-    cursor: 'pointer',
-    transition: 'background var(--transition), color var(--transition)',
-  },
-  currencyBtnActive: {
-    background: 'var(--accent-soft)',
-    border: '1px solid var(--accent)',
-    color: 'var(--accent)',
-  },
-
   // Seguridad
   securityRow: {
     display: 'flex',
