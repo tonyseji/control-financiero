@@ -6,6 +6,31 @@ Historial completo: `docs/progress-archive.md`
 
 ---
 
+## 2026-04-20 — Mejoras responsive en pantalla de login (COMPLETADO)
+
+**Problemas encontrados y resueltos en vista Auth (`/?auth`) en móvil:**
+
+1. **Logo "Finanzas V2" flotando encima del formulario** — el logo estaba fuera del `formInner` como hermano del contenedor flex, quedando desalineado. Fix: mover el logo dentro de `formInner` para que forme parte del flujo del formulario.
+
+2. **Formulario no ocupaba toda la pantalla en móvil** — `formPanel` carecía de `minHeight: 100vh`, `width: 100%` y `boxSizing: border-box`. Fix: añadir estas propiedades.
+
+3. **Scroll cortado con teclado virtual** — `page` tenía `overflow: hidden`. Fix: cambiar a `overflowX: hidden` + `overflowY: auto`.
+
+4. **Inputs desbordándose** — faltaba `boxSizing: border-box` en `input` y `btnGoogle`.
+
+5. **Orden del botón de Google** — movido debajo del formulario de email/contraseña (era más natural poner primero el flujo principal y luego la alternativa OAuth).
+
+6. **Eliminado `useEffect` que inyectaba CSS en el DOM** — era redundante con los estilos inline y propenso a bugs.
+
+**Archivos modificados:**
+- `app/src/views/Auth.jsx` — fixes responsive + reorden Google OAuth
+
+**Próximos pasos:**
+- Persistir moneda en BD desde Settings (ahora solo es estado local)
+- UI para objetivo de ingreso mensual en Settings → `financial_config`
+
+---
+
 ## 2026-04-17 — Fix experiencia usuario demo (COMPLETADO)
 
 **Problemas encontrados y resueltos en pruebas con usuario nuevo:**

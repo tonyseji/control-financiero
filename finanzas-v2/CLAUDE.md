@@ -304,6 +304,14 @@ Para planificación, diseño, decisiones arquitectónicas, configurar Supabase v
 - ✅ Categorías sin duplicados: constraint UNIQUE + seed idempotente (migration 021)
 - ✅ Verificado en staging con usuario de prueba
 
+### V14 — Mejoras responsive pantalla de login (COMPLETADO — 2026-04-20)
+- ✅ Logo móvil reposicionado dentro del flujo del formulario
+- ✅ `formPanel` ocupa toda la pantalla en móvil (`minHeight: 100vh`, `width: 100%`)
+- ✅ Scroll habilitado con teclado virtual (`overflowY: auto`)
+- ✅ `boxSizing: border-box` en inputs y botones
+- ✅ Botón Google OAuth movido debajo del formulario email/contraseña
+- ✅ Eliminado `useEffect` que inyectaba CSS en el DOM
+
 **Próximos pasos:**
 - Persistir moneda en BD desde Settings (ahora solo es estado local)
 - UI para objetivo de ingreso mensual en Settings → `financial_config`

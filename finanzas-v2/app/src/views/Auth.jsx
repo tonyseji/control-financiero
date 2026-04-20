@@ -21,23 +21,6 @@ export default function Auth() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  useEffect(() => {
-    if (document.getElementById('auth-responsive')) return
-    const style = document.createElement('style')
-    style.id = 'auth-responsive'
-    style.textContent = `
-      @media (max-width: 480px) {
-        .auth-form-panel  { padding: 1.5rem 1rem !important; }
-        .auth-form-title  { font-size: 1.4rem !important; }
-        .auth-form-inner  { max-width: 100% !important; }
-        .auth-input       { font-size: 1rem !important; }
-        .auth-btn-primary { min-height: 52px !important; font-size: 1rem !important; }
-        .auth-btn-google  { min-height: 48px !important; }
-      }
-    `
-    document.head.appendChild(style)
-    return () => style.remove()
-  }, [])
 
   async function handleGoogle() {
     setError(null)
@@ -131,16 +114,15 @@ export default function Auth() {
         )}
 
         {/* ── RIGHT FORM ──────────────────────────────────────────────── */}
-        <div className="auth-form-panel" style={{ ...s.formPanel, padding: isMobile ? '2rem 1.25rem' : '3rem 2.5rem' }}>
+        <div className="auth-form-panel" style={{ ...s.formPanel, padding: isMobile ? '1.5rem 1.25rem' : '3rem 2.5rem' }}>
+          <div className="auth-form-inner" style={s.formInner}>
           {/* Mobile logo */}
           {isMobile && (
-            <div style={{ ...s.heroLogo, justifyContent: 'center', marginBottom: '2rem' }}>
+            <div style={{ ...s.heroLogo, justifyContent: 'center', marginBottom: '1.5rem' }}>
               <div style={s.heroLogoMark}><LogoIcon /></div>
               <span style={s.heroLogoText}>Finanzas V2</span>
             </div>
           )}
-
-          <div className="auth-form-inner" style={s.formInner}>
             {/* Mode heading */}
             <div style={s.formHeader}>
               <h2 className="auth-form-title" style={s.formTitle}>
@@ -154,21 +136,6 @@ export default function Auth() {
                 {mode === 'reset'    && 'Te enviaremos un enlace de recuperación'}
               </p>
             </div>
-
-            {/* Google */}
-            {mode !== 'reset' && (
-              <>
-                <button className="auth-btn-google" style={s.btnGoogle} onClick={handleGoogle} disabled={loading}>
-                  <GoogleIcon />
-                  Continuar con Google
-                </button>
-                <div style={s.divider}>
-                  <span style={s.dividerLine} />
-                  <span style={s.dividerText}>o continúa con email</span>
-                  <span style={s.dividerLine} />
-                </div>
-              </>
-            )}
 
             {/* Form */}
             <form onSubmit={handleSubmit} style={s.form}>
@@ -244,6 +211,21 @@ export default function Auth() {
                   : 'Enviar enlace'}
               </button>
             </form>
+
+            {/* Google */}
+            {mode !== 'reset' && (
+              <>
+                <div style={s.divider}>
+                  <span style={s.dividerLine} />
+                  <span style={s.dividerText}>o continúa con Google</span>
+                  <span style={s.dividerLine} />
+                </div>
+                <button className="auth-btn-google" style={s.btnGoogle} onClick={handleGoogle} disabled={loading}>
+                  <GoogleIcon />
+                  Continuar con Google
+                </button>
+              </>
+            )}
 
             {/* Nav links */}
             <div style={s.links}>
@@ -419,7 +401,8 @@ const s = {
     alignItems: 'stretch',
     background: 'var(--bg)',
     position: 'relative',
-    overflow: 'hidden',
+    overflowX: 'hidden',
+    overflowY: 'auto',
   },
   blob1: {
     position: 'fixed',
@@ -447,6 +430,7 @@ const s = {
   layout: {
     display: 'flex',
     flex: 1,
+    minHeight: '100vh',
     position: 'relative',
     zIndex: 1,
   },
@@ -678,6 +662,9 @@ const s = {
     alignItems: 'center',
     justifyContent: 'center',
     background: 'var(--bg)',
+    width: '100%',
+    boxSizing: 'border-box',
+    minHeight: '100vh',
   },
   formInner: {
     width: '100%',
@@ -703,6 +690,7 @@ const s = {
   /* Google btn */
   btnGoogle: {
     width: '100%',
+    boxSizing: 'border-box',
     padding: '0.72rem 1rem',
     borderRadius: 10,
     border: '1px solid var(--border)',
@@ -717,14 +705,13 @@ const s = {
     gap: '0.6rem',
     fontFamily: 'inherit',
     transition: 'border-color var(--transition), box-shadow var(--transition)',
-    marginBottom: '1.25rem',
     boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
   },
 
   divider: {
     display: 'flex',
     alignItems: 'center',
-    marginBottom: '1.25rem',
+    margin: '1.25rem 0',
     gap: '0.75rem',
   },
   dividerLine: {
@@ -778,6 +765,7 @@ const s = {
     color: 'var(--text)',
     fontSize: '0.9rem',
     width: '100%',
+    boxSizing: 'border-box',
     fontFamily: 'inherit',
     outline: 'none',
     transition: 'border-color var(--transition)',
