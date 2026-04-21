@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { signOut, requestPasswordReset } from '../services/auth'
 import { supabase } from '../services/supabase'
 import { useDemoData } from '../hooks/useDemoData'
+import { usePushNotifications } from '../hooks/usePushNotifications'
 
 const THEME_KEY = 'cf_v2_theme'
 
@@ -25,6 +26,15 @@ export default function Settings({ profile, onProfileUpdate, onNavigate }) {
   const [demoClearing, setDemoClearing] = useState(false)
 
   const { demoActive, demoTxs, clear: clearDemo } = useDemoData()
+  const {
+    isSubscribed,
+    isLoading:        pushLoading,
+    error:            pushError,
+    isSupported:      pushSupported,
+    permissionDenied: pushDenied,
+    enable:           enablePush,
+    disable:          disablePush,
+  } = usePushNotifications()
 
   // Cargar email desde la sesión de Supabase
   useEffect(() => {
@@ -155,6 +165,40 @@ export default function Settings({ profile, onProfileUpdate, onNavigate }) {
           </button>
         </div>
       )}
+
+      {/* ── Notificaciones ────────────────────────────────────────────── */}
+      <p style={s.groupLabel}>Notificaciones</p>
+      <div style={s.section}>
+        <div style={s.notifRow}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={s.fieldLabel}>Recordatorio diario</p>
+            <p style={s.fieldHint}>
+              {!pushSupported
+                ? 'Tu navegador no soporta notificaciones push'
+                : pushDenied
+                ? 'Permiso bloqueado — actívalo en la configuración del navegador'
+                : isSubscribed
+                ? 'Recibirás un recordatorio a las 22:30'
+                : 'Activa para recibir un recordatorio de anotar gastos'}
+            </p>
+          </div>
+          {pushSupported && !pushDenied && (
+            <button
+              style={{
+                ...s.toggleBtn,
+                ...(isSubscribed ? s.toggleBtnOn : s.toggleBtnOff),
+                ...(pushLoading ? s.toggleBtnDisabled : {}),
+              }}
+              onClick={isSubscribed ? disablePush : enablePush}
+              disabled={pushLoading}
+              aria-pressed={isSubscribed}
+            >
+              {pushLoading ? '…' : isSubscribed ? 'Activado' : 'Activar'}
+            </button>
+          )}
+        </div>
+        {pushError && <p style={s.feedbackErr}>{pushError}</p>}
+      </div>
 
       {/* ── Seguridad ─────────────────────────────────────────────────── */}
       <p style={s.groupLabel}>Seguridad</p>
@@ -401,6 +445,40 @@ const s = {
   },
   demoClearBtnDisabled: {
     opacity: 0.55,
+    cursor: 'not-allowed',
+  },
+
+  // Notificaciones
+  notifRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '1rem',
+    flexWrap: 'wrap',
+  },
+  toggleBtn: {
+    border: 'none',
+    borderRadius: 8,
+    padding: '0.45rem 0.875rem',
+    fontSize: '0.82rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    transition: 'opacity var(--transition)',
+    fontFamily: 'inherit',
+    flexShrink: 0,
+  },
+  toggleBtnOn: {
+    background: 'var(--income)',
+    color: '#fff',
+  },
+  toggleBtnOff: {
+    background: 'var(--bg-hover)',
+    border: '1px solid var(--border)',
+    color: 'var(--text)',
+  },
+  toggleBtnDisabled: {
+    opacity: 0.5,
     cursor: 'not-allowed',
   },
 

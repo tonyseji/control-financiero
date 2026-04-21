@@ -26,7 +26,7 @@ PWA de control financiero personal con backend real. Está en construcción acti
 | Lógica serverless | Supabase Edge Functions |
 | IA — voz | Web Speech API (navegador, sin backend) |
 | IA — foto ticket | Claude Vision via Edge Function `receipt-ocr` |
-| Deploy | GitHub Pages (actual) / Vercel (futuro) |
+| Deploy | Vercel (producción) |
 
 ---
 
@@ -35,6 +35,9 @@ PWA de control financiero personal con backend real. Está en construcción acti
 ```
 finanzas-v2/
 ├── CLAUDE.md
+├── vercel.json         ← SPA routing + SW headers + cron 22:30
+├── api/
+│   └── push-reminder.js ← Vercel Serverless Function (cron → Supabase EF)
 ├── docs/               ← db-schema.md · roadmap.md · progress.md
 ├── app/src/
 │   ├── App.jsx         ← routing auth/app + guardia staging
@@ -80,6 +83,15 @@ finanzas-v2/
 - `.env.staging` y `.env.production` → **gitignored, nunca commitear**
 - Migraciones: siempre `supabase/migrations/NNN_*.sql` → staging → validar → producción
 - `VITE_APP_ENV`: `development` | `staging` | `production`
+
+### Vercel deploy
+- Build command: `cd app && npm install && npm run build`
+- Output directory: `app/dist`
+- Variables de entorno en Vercel Dashboard → Settings → Environment Variables:
+  - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_APP_ENV`
+  - `VITE_VAPID_PUBLIC_KEY` — clave pública VAPID (segura en frontend)
+  - `SUPABASE_URL`, `CRON_SECRET` — solo para la serverless function del cron (`api/push-reminder.js`)
+- Cron job: `vercel.json` programa `/api/push-reminder` a las 21:30 UTC (= 22:30 CET / 23:30 CEST)
 
 ### Supabase Auth (staging)
 - Site URL: `http://localhost:5173`
@@ -312,7 +324,16 @@ Para planificación, diseño, decisiones arquitectónicas, configurar Supabase v
 - ✅ Botón Google OAuth movido debajo del formulario email/contraseña
 - ✅ Eliminado `useEffect` que inyectaba CSS en el DOM
 
+### V15 — Web Push notifications backend (COMPLETADO — 2026-04-21)
+- ✅ Migration `024_push_subscriptions.sql`: tabla `push_subscriptions` + RLS _own + índices
+- ✅ Edge Function `push-subscribe`: subscribe/unsubscribe con upsert, valida JWT + endpoint https
+- ✅ Edge Function `push-daily-reminder`: VAPID nativo con `crypto.subtle`, 15 frases rotativas, batch 10, desactiva endpoints 410/404
+- ✅ Sin dependencias externas: implementación AES-128-GCM + ECDH + JWT ES256 100% nativa Deno
+- Pendiente frontend: `usePushNotifications.js` + Service Worker evento `push` + cron (GitHub Actions o pg_cron a las 22:30)
+- Secrets a añadir en Supabase: `VAPID_PRIVATE_KEY`, `VAPID_PUBLIC_KEY`, `VAPID_SUBJECT`, `CRON_SECRET`
+
 **Próximos pasos:**
+- Frontend Web Push: hook `usePushNotifications.js` + SW + toggle en Settings
 - Persistir moneda en BD desde Settings (ahora solo es estado local)
 - UI para objetivo de ingreso mensual en Settings → `financial_config`
 - Importar extracto bancario (PDF/CSV → Claude Vision)

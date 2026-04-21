@@ -6,6 +6,55 @@ Historial completo: `docs/progress-archive.md`
 
 ---
 
+## 2026-04-21 — Web Push notifications: migration + Edge Functions (COMPLETADO)
+
+### Backend Web Push
+
+**Migration `024_push_subscriptions.sql`:**
+- Tabla `push_subscriptions` con campos `psub_id`, `psub_usr_id`, `psub_endpoint`, `psub_p256dh`, `psub_auth`, `psub_is_active`, timestamps
+- FK → `auth.users(id)` ON DELETE CASCADE
+- UNIQUE(`psub_usr_id`, `psub_endpoint`) — evita duplicados por device
+- Índice en `psub_usr_id`, índice parcial en `psub_is_active = true`
+- Función `set_psub_updated_at()` + trigger (patrón consistente con 001/002)
+- RLS habilitado, policy `push_subscriptions_own` (usuario ve solo sus filas, sin policy _admin)
+
+**Edge Function `push-subscribe/index.ts`:**
+- POST con `{ action, endpoint, p256dh, auth }` — action: `"subscribe"` | `"unsubscribe"`
+- Valida JWT de usuario + valida que endpoint sea URL `https://`
+- Subscribe: upsert con ON CONFLICT — reactiva y actualiza claves si el endpoint ya existe
+- Unsubscribe: UPDATE `psub_is_active = false`
+- Usa SERVICE_ROLE_KEY (bypass RLS desde EF)
+
+**Edge Function `push-daily-reminder/index.ts`:**
+- Autenticación por `CRON_SECRET` header (no JWT de usuario)
+- Lee todas las suscripciones activas via SERVICE_ROLE_KEY
+- 15 frases rotativas hardcoded, elige una aleatoriamente
+- Implementación VAPID 100% nativa con `crypto.subtle` (sin dependencias npm):
+  - JWT VAPID ES256 (ECDSA P-256 + SHA-256)
+  - Cifrado AES-128-GCM + ECDH según RFC 8291 / RFC 8188
+- Envío en batches de 10 concurrentes
+- Desactiva automáticamente endpoints muertos (HTTP 410/404)
+- Responde `{ sent, failed, deactivated }`
+
+**Secrets necesarios (añadir en Supabase Dashboard → Edge Functions → Secrets):**
+- `VAPID_PRIVATE_KEY` — clave privada ECDSA P-256, base64url (generar con `npx web-push generate-vapid-keys`)
+- `VAPID_PUBLIC_KEY` — clave pública correspondiente, base64url
+- `VAPID_SUBJECT` — `mailto:antonio.secojimenez@gmail.com`
+- `CRON_SECRET` — string aleatorio largo para el cron job
+
+**Pendiente (trabajo en frontend + cron):**
+- `usePushNotifications.js` hook — pedir permiso, registrar SW, llamar push-subscribe EF
+- Service Worker: evento `push` → mostrar notificación
+- Cron job (GitHub Actions o Supabase pg_cron) llamando push-daily-reminder a las 22:30
+
+**Archivos creados:**
+- `supabase/migrations/024_push_subscriptions.sql`
+- `supabase/functions/push-subscribe/index.ts`
+- `supabase/functions/push-daily-reminder/index.ts`
+- `deno.json` — sin cambios (implementación es nativa, sin dependencias adicionales)
+
+---
+
 ## 2026-04-21 — UX: categorías editables, recurrentes en AddTransaction, asesor en header móvil, limpieza Settings (COMPLETADO)
 
 ### Categorías editables
