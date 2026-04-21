@@ -6,6 +6,57 @@ Historial completo: `docs/progress-archive.md`
 
 ---
 
+## 2026-04-21 — Web Push notifications: implementación completa (COMPLETADO)
+
+### Frontend + Deploy + Cron
+
+**Eliminado `vite-plugin-singlefile`:**
+- `vite.config.js` simplificado — build normal de Vite (genera `app/dist/` con assets separados)
+- `package.json` limpio sin la dependencia
+- Necesario para que el Service Worker pueda servirse como `/sw.js` independiente
+
+**Service Worker `app/public/sw.js`:**
+- Evento `push` → parsea payload JSON y muestra notificación con `showNotification()`
+- Evento `notificationclick` → focaliza ventana existente o abre nueva en `/`
+- Minimalista, sin cache ni offline (no había SW previo)
+
+**Servicio `app/src/services/pushNotifications.js`:**
+- `subscribeToPush()` — pide permiso + suscribe con clave VAPID pública
+- `unsubscribeFromPush()` — desuscribe del browser
+- `getPushSubscription()` — chequea estado actual
+- `savePushSubscription()` / `removePushSubscription()` — llaman a EF `push-subscribe`
+
+**Hook `app/src/hooks/usePushNotifications.js`:**
+- Estado: `isSubscribed`, `isLoading`, `error`, `isSupported`, `permissionDenied`
+- `enable()` / `disable()` con null-check de sesión y manejo de permiso denegado
+
+**Toggle en `app/src/views/Settings.jsx`:**
+- Sección "Notificaciones" entre Gestión y Seguridad
+- Botón "Activar" / "Activado" con estado visual
+- Mensaje adaptado si el navegador no soporta push o el permiso está bloqueado
+
+**`vercel.json` (nuevo):**
+- SPA routing — todas las rutas apuntan a `index.html`
+- Header `Service-Worker-Allowed: /` para `/sw.js`
+- Cron job: `/api/push-reminder` a las 21:30 UTC (22:30 CET)
+- Build command y output directory configurados
+
+**`api/push-reminder.js` (nuevo):**
+- Vercel Serverless Function ejecutada por el cron
+- Llama a la EF `push-daily-reminder` con `CRON_SECRET` en el header
+
+**Variables de entorno añadidas:**
+- Vercel: `VITE_VAPID_PUBLIC_KEY`, `SUPABASE_URL`, `CRON_SECRET`
+- Supabase Secrets: `VAPID_PRIVATE_KEY`, `VAPID_PUBLIC_KEY`, `VAPID_SUBJECT`, `CRON_SECRET`
+
+**Fix crítico post-deploy:**
+- "Verify JWT with legacy secret" → OFF en `push-subscribe` y `push-daily-reminder`
+- Sin este cambio las EFs rechazaban el token con `unauthorized_unsupported_token_algorithm`
+
+**Estado:** Funcional en producción (Vercel). Toggle activo en Ajustes. Cron programado a las 22:30.
+
+---
+
 ## 2026-04-21 — Web Push notifications: migration + Edge Functions (COMPLETADO)
 
 ### Backend Web Push

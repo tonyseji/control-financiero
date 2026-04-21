@@ -324,16 +324,22 @@ Para planificación, diseño, decisiones arquitectónicas, configurar Supabase v
 - ✅ Botón Google OAuth movido debajo del formulario email/contraseña
 - ✅ Eliminado `useEffect` que inyectaba CSS en el DOM
 
-### V15 — Web Push notifications backend (COMPLETADO — 2026-04-21)
-- ✅ Migration `024_push_subscriptions.sql`: tabla `push_subscriptions` + RLS _own + índices
-- ✅ Edge Function `push-subscribe`: subscribe/unsubscribe con upsert, valida JWT + endpoint https
-- ✅ Edge Function `push-daily-reminder`: VAPID nativo con `crypto.subtle`, 15 frases rotativas, batch 10, desactiva endpoints 410/404
-- ✅ Sin dependencias externas: implementación AES-128-GCM + ECDH + JWT ES256 100% nativa Deno
-- Pendiente frontend: `usePushNotifications.js` + Service Worker evento `push` + cron (GitHub Actions o pg_cron a las 22:30)
-- Secrets a añadir en Supabase: `VAPID_PRIVATE_KEY`, `VAPID_PUBLIC_KEY`, `VAPID_SUBJECT`, `CRON_SECRET`
+### V15 — Web Push notifications completo (COMPLETADO — 2026-04-21)
+- ✅ Migration `024_push_subscriptions.sql`: tabla `push_subscriptions` + RLS _own + `is_valid_user()` + índices
+- ✅ Edge Function `push-subscribe`: subscribe/unsubscribe con upsert, valida JWT + endpoint https. "Verify JWT" = OFF
+- ✅ Edge Function `push-daily-reminder`: VAPID nativo con `crypto.subtle`, 15 frases rotativas, batch 10, desactiva endpoints 410/404, CRON_SECRET timing-safe. "Verify JWT" = OFF
+- ✅ Sin dependencias externas: AES-128-GCM + ECDH + JWT ES256 100% nativa Deno
+- ✅ `app/public/sw.js`: evento `push` + `notificationclick`
+- ✅ `app/src/services/pushNotifications.js`: subscribe/unsubscribe/save/remove
+- ✅ `app/src/hooks/usePushNotifications.js`: estado completo con permissionDenied + null-check sesión
+- ✅ Toggle "Recordatorio diario" en Settings.jsx (sección Notificaciones)
+- ✅ `vercel.json`: SPA routing + header SW + cron 21:30 UTC (22:30 CET)
+- ✅ `api/push-reminder.js`: Vercel Serverless Function → llama EF con CRON_SECRET
+- ✅ Eliminado `vite-plugin-singlefile` — build normal Vite compatible con SW
+- ✅ Secrets configurados: Vercel (VITE_VAPID_PUBLIC_KEY, SUPABASE_URL, CRON_SECRET) + Supabase (VAPID_PRIVATE_KEY, VAPID_PUBLIC_KEY, VAPID_SUBJECT, CRON_SECRET)
+- ✅ Funcional en producción (Vercel). Toggle activo en móvil.
 
 **Próximos pasos:**
-- Frontend Web Push: hook `usePushNotifications.js` + SW + toggle en Settings
 - Persistir moneda en BD desde Settings (ahora solo es estado local)
 - UI para objetivo de ingreso mensual en Settings → `financial_config`
 - Importar extracto bancario (PDF/CSV → Claude Vision)
