@@ -117,26 +117,29 @@ async function buildVapidJwt(audience: string): Promise<string> {
 
   const signingInput = `${header}.${payload}`
 
-  // Importar clave privada ECDSA P-256 (raw 32 bytes en base64url)
-  const rawPrivateKey = base64urlDecode(VAPID_PRIVATE_KEY)
+  // Importar clave privada ECDSA P-256 desde base64url raw (32 bytes).
+  // Deno no soporta 'raw' para ECDSA — importamos como JWK que sí funciona nativamente.
+  // JWK para P-256 necesita también la clave pública (x, y) — la extraemos de VAPID_PUBLIC_KEY
+  // que es la clave pública uncompressed (65 bytes: 0x04 + 32 bytes x + 32 bytes y).
+  const pubKeyBytes = base64urlDecode(VAPID_PUBLIC_KEY)
+  // pubKeyBytes[0] === 0x04 (uncompressed point prefix)
+  const x = base64urlEncode(pubKeyBytes.slice(1, 33))
+  const y = base64urlEncode(pubKeyBytes.slice(33, 65))
 
   const privateKey = await crypto.subtle.importKey(
-    'raw',
-    rawPrivateKey,
+    'jwk',
+    {
+      kty: 'EC',
+      crv: 'P-256',
+      d: VAPID_PRIVATE_KEY,  // ya está en base64url
+      x,
+      y,
+      key_ops: ['sign'],
+    },
     { name: 'ECDSA', namedCurve: 'P-256' },
     false,
     ['sign']
-  ).catch(async () => {
-    // Algunos runtimes esperan PKCS8 si la clave viene en ese formato.
-    // Intentar como PKCS8 si raw falla.
-    return crypto.subtle.importKey(
-      'pkcs8',
-      rawPrivateKey,
-      { name: 'ECDSA', namedCurve: 'P-256' },
-      false,
-      ['sign']
-    )
-  })
+  )
 
   const signature = await crypto.subtle.sign(
     { name: 'ECDSA', hash: 'SHA-256' },
@@ -405,8 +408,8 @@ Deno.serve(async (req) => {
     const payload = JSON.stringify({
       title:     'Finanzas',
       body:      phrase,
-      icon:      '/icon-192.png',
-      badge:     '/icon-192.png',
+      icon:      '/logo/bilans-logo-positive-192.png',
+      badge:     '/logo/bilans-logo-positive-192.png',
       tag:       'daily-reminder',
       renotify:  false,
     })

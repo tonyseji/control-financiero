@@ -5,8 +5,8 @@ self.addEventListener('push', (event) => {
   let title = 'Finanzas V2'
   let options = {
     body: 'Recuerda anotar tus gastos de hoy.',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    icon: '/logo/bilans-logo-positive-192.png',
+    badge: '/logo/bilans-logo-positive-192.png',
     tag: 'daily-reminder',
     renotify: false,
   }

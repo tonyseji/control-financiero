@@ -6,6 +6,23 @@ Historial completo: `docs/progress-archive.md`
 
 ---
 
+## 2026-04-22 — Fix notificaciones push: VAPID JWK + logo Bilans (COMPLETADO)
+
+### Fixes Web Push
+
+**Error VAPID `expected valid PKCS#8 data`:**
+- Deno no acepta claves ECDSA P-256 como `raw` ni como `pkcs8` construido a mano
+- Solución: importar la clave privada como JWK usando `x` e `y` extraídos de `VAPID_PUBLIC_KEY`
+- `buildVapidJwt()` ahora usa `crypto.subtle.importKey('jwk', { kty:'EC', crv:'P-256', d, x, y })`
+
+**Logo Bilans en notificaciones:**
+- `app/public/sw.js` — `icon` y `badge` actualizados a `/logo/bilans-logo-positive-192.png`
+- `supabase/functions/push-daily-reminder/index.ts` — ídem en el payload enviado a FCM
+
+**Estado:** Notificaciones funcionando en producción con logo correcto.
+
+---
+
 ## 2026-04-22 — Nuevo logo Bilans y renombre de marca (COMPLETADO)
 
 ### Branding
