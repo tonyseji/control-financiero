@@ -76,7 +76,7 @@ export default function Auth() {
               <div style={s.heroLogoMark}>
                 <LogoIcon />
               </div>
-              <span style={s.heroLogoText}>Finanzas V2</span>
+              <span style={s.heroLogoText}>Bilans</span>
             </div>
 
             {/* Headline */}
@@ -120,7 +120,7 @@ export default function Auth() {
           {isMobile && (
             <div style={{ ...s.heroLogo, justifyContent: 'center', marginBottom: '1.5rem' }}>
               <div style={s.heroLogoMark}><LogoIcon /></div>
-              <span style={s.heroLogoText}>Finanzas V2</span>
+              <span style={s.heroLogoText}>Bilans</span>
             </div>
           )}
             {/* Mode heading */}
@@ -253,13 +253,7 @@ export default function Auth() {
 /* ── Sub-components ─────────────────────────────────────────────────────────── */
 
 function LogoIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M2 17l10 5 10-5" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M2 12l10 5 10-5" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.6"/>
-    </svg>
-  )
+  return <img src="/logo/bilans-logo-positive.svg" width="32" height="32" alt="Bilans" />
 }
 
 function GoogleIcon() {
@@ -466,20 +460,17 @@ const s = {
     position: 'relative',
   },
   heroLogoMark: {
-    width: 38,
-    height: 38,
-    background: 'var(--accent-soft)',
-    border: '1px solid rgba(79,145,255,0.25)',
-    borderRadius: 10,
+    width: 32,
+    height: 32,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   },
   heroLogoText: {
-    fontSize: '1.05rem',
+    fontSize: '1.25rem',
     fontWeight: 800,
     color: 'var(--text)',
-    letterSpacing: '-0.02em',
+    letterSpacing: '-0.03em',
   },
 
   heroHeadline: {

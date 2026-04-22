@@ -257,8 +257,8 @@ function Navbar({ onCTA }) {
     }}>
       <div style={s.navInner}>
         <div style={s.navLogo}>
-          <div style={s.logoDot} />
-          <span style={s.logoText}>Finanzas</span>
+          <img src="/logo/bilans-logo-positive.svg" height="32" alt="Bilans" style={{ display: 'block' }} />
+          <span style={s.logoText}>Bilans</span>
         </div>
         <button
           className="landing-btn-primary"
@@ -840,8 +840,8 @@ function Footer() {
     <footer style={s.footer}>
       <div style={s.footerInner}>
         <div style={s.navLogo}>
-          <div style={s.logoDot} />
-          <span style={{ ...s.logoText, fontSize: '1rem' }}>Finanzas</span>
+          <img src="/logo/bilans-logo-positive.svg" height="32" alt="Bilans" style={{ display: 'block' }} />
+          <span style={{ ...s.logoText, fontSize: '1rem' }}>Bilans</span>
         </div>
         <p style={s.footerText}>
           Control financiero personal · Hecho con cuidado
@@ -898,11 +898,11 @@ const s = {
     boxShadow: `0 0 12px ${C.accentGlow}`,
   },
   logoText: {
-    fontFamily: FONT_DISPLAY,
-    fontWeight: 700,
+    fontFamily: FONT_BODY,
+    fontWeight: 800,
     fontSize: '1.25rem',
     color: C.white,
-    letterSpacing: '-0.02em',
+    letterSpacing: '-0.03em',
   },
 
   // Buttons

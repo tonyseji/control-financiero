@@ -700,21 +700,18 @@ button:hover:not(:disabled) {
   flex-shrink: 0;
 }
 .sidebar-logo-mark {
-  width: 34px;
-  height: 34px;
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-glow);
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 .sidebar-logo-text {
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--text);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 /* Nav */

@@ -47,11 +47,9 @@ export default function Layout({ view, onNavigate, children, profile }) {
         {/* Logo */}
         <div className="sidebar-logo">
           <div className="sidebar-logo-mark">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#4f91ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <img src="/logo/bilans-logo-positive.svg" alt="Bilans" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
-          <span className="sidebar-logo-text">Finanzas</span>
+          <span className="sidebar-logo-text">Bilans</span>
         </div>
 
         {/* Navegación */}
@@ -115,12 +113,10 @@ export default function Layout({ view, onNavigate, children, profile }) {
         {/* Header móvil */}
         <div className="mobile-header">
           <div className="mobile-logo">
-            <div className="sidebar-logo-mark" style={{ width: 28, height: 28 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#4f91ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+            <div className="sidebar-logo-mark" style={{ width: 32, height: 32 }}>
+              <img src="/logo/bilans-logo-positive.svg" alt="Bilans" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
-            <span className="sidebar-logo-text">Finanzas</span>
+            <span className="sidebar-logo-text">Bilans</span>
           </div>
           <div style={{ display: 'flex', gap: '0.25rem' }}>
             <button className="search-top-btn" onClick={toggleTheme} title={theme === 'dark' ? 'Cambiar a claro' : 'Cambiar a oscuro'}>
