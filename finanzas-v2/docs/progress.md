@@ -6,6 +6,29 @@ Historial completo: `docs/progress-archive.md`
 
 ---
 
+## 2026-04-22 — Nuevo logo Bilans y renombre de marca (COMPLETADO)
+
+### Branding
+
+**Archivos de logo añadidos a `app/public/logo/`:**
+- `bilans-logo-positive.svg` — azul marino + oro (uso principal)
+- `bilans-logo-dark-gold.svg` — solo oro (fondos muy oscuros)
+- `bilans-logo-monochrome-black.svg` — negro (fondos claros)
+- PNGs: 32, 128, 180, 192, 512px
+
+**Cambios en UI:**
+- `Layout.jsx` — sidebar y mobile header: SVG genérico reemplazado por logo Bilans, texto "Finanzas" → "Bilans"
+- `Auth.jsx` — panel hero y logo móvil: `LogoIcon()` → img Bilans, "Finanzas V2" → "Bilans"
+- `Landing.jsx` — navbar y footer: logoDot + texto "Finanzas" → img Bilans + "Bilans". Font del texto: Fraunces → Inter weight 800
+- `manifest.json` — `name`/`short_name` → "Bilans", iconos → rutas `/logo/bilans-logo-positive-*.png`
+- `index.html` — `<title>` → "Bilans", apple-touch-icon → logo Bilans 180px
+
+**Ajustes de estilo:**
+- Eliminado el contenedor cuadrado `sidebar-logo-mark` (fondo `accent-soft` + borde) en todas las zonas — logo flota libre
+- Tamaño unificado a **32px** en todos los puntos: sidebar desktop/móvil, Auth, Landing navbar/footer
+
+---
+
 ## 2026-04-21 — Web Push notifications: implementación completa (COMPLETADO)
 
 ### Frontend + Deploy + Cron

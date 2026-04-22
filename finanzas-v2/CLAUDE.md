@@ -339,6 +339,12 @@ Para planificación, diseño, decisiones arquitectónicas, configurar Supabase v
 - ✅ Secrets configurados: Vercel (VITE_VAPID_PUBLIC_KEY, SUPABASE_URL, CRON_SECRET) + Supabase (VAPID_PRIVATE_KEY, VAPID_PUBLIC_KEY, VAPID_SUBJECT, CRON_SECRET)
 - ✅ Funcional en producción (Vercel). Toggle activo en móvil.
 
+### V16 — Branding Bilans (COMPLETADO — 2026-04-22)
+- ✅ Archivos de logo añadidos: `app/public/logo/` (SVGs + PNGs 32/128/180/192/512px)
+- ✅ Logo unificado a 32px sin contenedor cuadrado en todas las zonas (sidebar, auth, landing)
+- ✅ Nombre "Finanzas" → "Bilans" en Layout, Auth, Landing, manifest y index.html
+- ✅ Landing logoText: Fraunces serif → Inter 800 para coherencia con marca
+
 **Próximos pasos:**
 - Persistir moneda en BD desde Settings (ahora solo es estado local)
 - UI para objetivo de ingreso mensual en Settings → `financial_config`
